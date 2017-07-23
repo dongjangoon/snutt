@@ -41,17 +41,9 @@ function getCreditFromString(str:string): number {
   else return null;
 }
 
-/*
-function likeWithArray(strarr: string[]) {
-  var regarr:string[] = [];
-  for (let i=0; i<strarr.length; i++) {
-    regarr.push(like(strarr[i], false));
-  }
-  var joined = regarr.join('|');
-  return joined;
-}
-*/
-
+/**
+ * 라우터의 Body를 자료구조로 만듦
+ */
 export type LectureQuery = {
   year:number;
   semester:number;
@@ -68,6 +60,9 @@ export type LectureQuery = {
   limit:number;
 }
 
+/**
+ * 라우터에서 전송받은 Body를 mongo query로 변환
+ */
 async function toMongoQuery(lquery:LectureQuery): Promise<Object> {
   var mquery = {}; // m for Mongo
   mquery["year"] = lquery.year;
@@ -90,16 +85,32 @@ async function toMongoQuery(lquery:LectureQuery): Promise<Object> {
     mquery["department"] = { $in : lquery.department };
   if (lquery.time_mask) {
     if (lquery.time_mask.length != 7) return Promise.reject(errcode.INVALID_TIMEMASK);
-    mquery["$where"] = "";
+    /**
+     * 시간이 아예 입력되지 않은 강의는 제외
+     * 시간 검색의 의미에 잘 맞지 않는다고 판단, 제외했음
+     */ 
+    mquery["$where"] = "(";
+    for (let i=0; i< 7; i++) {
+      if (i > 0) mquery["$where"] += " || ";
+      mquery["$where"] += "this.class_time_mask[" + i + "] != 0";
+    }
+    mquery["$where"] += ")";
+
+    /**
+     * 타임마스크와 비트 연산
+     */
     lquery.time_mask.forEach(function(bit, idx) {
-      if (idx > 0) mquery["$where"] += " && ";
-      mquery["$where"] += "((this.class_time_mask["+idx+"] & "+(~bit<<1>>>1)+") == 0)";
+      mquery["$where"] += " && ((this.class_time_mask["+idx+"] & "+(~bit<<1>>>1)+") == 0)";
     });
   }
 
   return mquery;
 }
 
+/**
+ * Course title을 분석하지 않고
+ * 따로 입력받은 필터로만 검색
+ */
 export async function explicitSearch(lquery: LectureQuery): Promise<LectureDocument[]> {
   var mquery = await toMongoQuery(lquery);
     
@@ -119,6 +130,10 @@ export async function explicitSearch(lquery: LectureQuery): Promise<LectureDocum
     });
 }
 
+/**
+ * Course title을 분석하여
+ * 전공, 학과, 학년 등의 정보를 따로 뽑아냄.
+ */
 export async function extendedSearch(lquery: LectureQuery): Promise<LectureDocument[]> {
   var mquery = await toMongoQuery(lquery);
   var title = lquery.title;
