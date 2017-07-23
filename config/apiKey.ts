@@ -59,7 +59,7 @@ export function validateKey(api_key:string):Promise<string> {
     });
   }
   return new Promise(function(resolve, reject){
-    jwt.verify(api_key, config.secretKey, function(err, decoded) {
+    jwt.verify(api_key, config.secretKey, function(err, decoded: any) {
       if (err) return reject("invalid api key");
       if (!decoded.string || !decoded.key_version) return reject("invalid api key");
       if (api_list[decoded.string] &&
