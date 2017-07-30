@@ -1,3 +1,11 @@
+/**
+ * 프로젝트 전체에서 사용하는 config 파일입니다.
+ * 환경 변수로부터 설정을 입력받습니다.
+ * 개발자는 git 등의 형상관리 시스템에
+ * 이 파일에 사용되는 설정이 포함되지 않도록 주의해야 합니다.
+ * 
+ * @author Jang Ryeol, ryeolj5911@gmail.com
+ */
 class SnuttConfig {
     production:string = process.env.SNUTT_PRODUCTION;
     secretKey:string = process.env.SNUTT_SECRET;

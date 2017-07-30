@@ -1,4 +1,6 @@
-#coding:utf-8
+# sugang.snu.ac.kr에서 수강편람을 얻어 옵니다.
+# @author zxzl, secury, Rajin9601, kgwangrae, simnalamburt @ github
+# @author Jang Ryeol, ryeolj5911@gmail.com
 
 #수강편람을 긁어옴
 #인자 : year semester

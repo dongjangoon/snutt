@@ -1,4 +1,8 @@
-"use strict";
+/**
+ * API 기능 목적의 라우터 엔트리
+ * {@link config/apiKey}의 API 키가 필수
+ * 각 라우터의 input과 ouput은 위키 참조
+ */
 
 import express = require('express');
 

@@ -1,5 +1,3 @@
-"use strict";
-
 import express = require('express');
 import mongoose = require('mongoose');
 var router = express.Router();

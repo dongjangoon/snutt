@@ -1,3 +1,8 @@
+/**
+ * 쿼리 로그를 DB에 저장하는 용도
+ * 현재 사용하지 않음
+ */
+
 import mongoose = require('mongoose');
 
 var QueryLogSchema = new mongoose.Schema ({

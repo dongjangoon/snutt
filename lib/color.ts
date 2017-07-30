@@ -1,3 +1,17 @@
+/**
+ * 색에 대한 constant 값을 모듈화
+ * 클라이언트는 개별로 색을 가지고 있지 않고,
+ * 서버로부터 색 목록을 얻어 옴
+ * 
+ * 안드로이드는 대부분의 기기가 푸른빛을 띠는 특성 상
+ * iOS와 다소 다른 색을 설정
+ * 
+ * @author Jang Ryeol, ryeolj5911@gmail.com
+ */
+
+/**
+ * 하위 버전 호환을 위한 파스텔 색상
+ */
 const legacypastel9 = [
     { fg: "#2B8728", bg: "#B6F9B2"},
     { fg: "#45B2B8", bg: "#BFF7F8"},
@@ -10,6 +24,9 @@ const legacypastel9 = [
     { fg: "#E27B35", bg: "#FFDAB7"}
   ];
 
+/**
+ * 하위 버전 호환을 위한 파스텔 색상
+ */
 const legacyname9 = [
     "초록색",
     "하늘색",

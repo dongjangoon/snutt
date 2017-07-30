@@ -1,3 +1,10 @@
+/**
+ * 최근의 수강편람의 업데이트가 있는지 확인합니다.
+ * 그리고 다음학기의 수강편람이 추가되었는지 확인합니다.
+ * 
+ * @author Jang Ryeol, ryeolj5911@gmail.com
+ */
+
 const db = require('../db');
 import {CourseBookModel} from '../model/courseBook';
 import {importFromFile} from './import_txt';
@@ -18,6 +25,9 @@ function semesterToString(semester:number):string {
   }
 }
 
+/**
+ * 현재 수강편람과 다음 수강편람
+ */
 async function getUpdateCandidate():Promise<[[number, string]]> {
   try {
     let recentCoursebook = await CourseBookModel.getRecent();
@@ -39,6 +49,11 @@ async function getUpdateCandidate():Promise<[[number, string]]> {
   }
 }
 
+/**
+ * fetch.rb를 child process로 실행
+ * @param year 
+ * @param semester 
+ */
 function fetch_sugang_snu(year:number, semester:string):Promise<void> {
   return new Promise<void>(function(resolve, reject) {
     let child = cp.spawn('ruby', ['fetch.rb', year.toString(), semester], {

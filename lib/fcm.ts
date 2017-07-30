@@ -1,3 +1,10 @@
+/**
+ * Google FIrebase를 이용한 Notification을 돕는 모듈
+ * Firebase 설정 값은 {@link config}에서 불러 옴
+ * 
+ * @author ryeolj5911@gmail.com
+ */
+
 import {UserModel, UserDocument} from '../model/user';
 import {FcmLogModel} from '../model/fcmLog';
 import request = require('request-promise-native');

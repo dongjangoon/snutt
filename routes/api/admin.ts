@@ -1,6 +1,6 @@
 /**
- * routes/api/admin.js
- * Admin purpose
+ * 외부 Admin 모듈과 http 통신.
+ * Admin 권한을 가진 user만이 사용 가능
  */
 import express = require('express');
 import libfcm = require('../../lib/fcm');

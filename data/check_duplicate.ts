@@ -1,5 +1,10 @@
 /**
- * Created by north on 16. 3. 24.
+ * 현재 DB에 중복된 강의가 있는지 검사합니다.
+ * 예전 업데이트 로직에 문제가 있었을 때 디버깅을 위해 사용한 유틸입니다.
+ * 실행하려면 npm run build로 자바스크립트 파일을 빌드한 후
+ * $ node check_duplicate 2016 1
+ * 
+ * @author Jang Ryeol, ryeolj5911@gmail.com
  */
 
 var LectureModel = require('../model/lecture').LectureModel;

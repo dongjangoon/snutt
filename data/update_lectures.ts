@@ -1,3 +1,13 @@
+/**
+ * {@link import_txt}에서 업데이트 로직을 모듈화
+ * 
+ * @author Jang Ryeol, ryeolj5911@gmail.com
+ */
+
+
+/**
+ * 직접 호출 시 종료
+ */
 if (!module.parent) {
   console.log("Not to be executed directly. Instead call import_txt.js");
   console.log("usage: $ node import_txt.js 2016 1");

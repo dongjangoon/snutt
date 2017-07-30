@@ -1,3 +1,7 @@
+/**
+ * 유저로부터 피드백을 입력 받아 DB에 삽입
+ */
+
 import mongoose = require('mongoose');
 
 export interface FeedbackDocument extends mongoose.Document {
