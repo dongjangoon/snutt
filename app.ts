@@ -1,3 +1,8 @@
+/**
+ * HTTP 서버를 실행하는
+ * 메인 엔트리
+ */
+
 import express = require("express");
 const db = require('./db');
 import logger = require("morgan");

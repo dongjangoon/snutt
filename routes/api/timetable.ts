@@ -1,5 +1,4 @@
 import express = require('express');
-import mongoose = require('mongoose');
 var router = express.Router();
 
 import {timeJsonToMask} from '../../lib/util';
