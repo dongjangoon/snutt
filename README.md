@@ -49,3 +49,18 @@ $ node config/apiKey list
 ```sh
 $ node ~/snutt/data/update_recent
 ```
+
+반드시 환경 변수가 설정되어 있는지 확인해야 합니다. 유저 이름이 snutt이고 애플리케이션이 `~/snutt`에 위치하며, 환경 변수 설정이 `~/.snuttrc`에 위치할 때 다음과 같은 쉘 스크립트를 만들 수 있습니다. 스크립트는 stdout과 stderr을 `~/snutt_cron.log`로 출력합니다.
+
+```bash
+#!/bin/bash
+source /home/snutt/.snuttrc && node /home/snutt/snutt/data/update_recent >> /home/snutt/snutt_cron.log 2>&1
+```
+
+crontab에서 쉘이 bash로 설정되어 있는지 확인하세요. 위 스크립트가 `~/snutt_cronjob.sh`일 때 실행 권한을 부여한 후  아래와 같이 설정하세요.
+
+```
+SHELL=/bin/bash
+# m h dom mon dow command
+0 18 * * * /home/snutt/snutt_cronjob.sh
+```
