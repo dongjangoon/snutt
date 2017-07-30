@@ -183,7 +183,6 @@ function load_new_lectures(year:number, semesterIndex:number, lines:string[]) : 
       remark: components[12],
       category: components[13]
     }));
-    process.stdout.write("Loading " + new_lectures.length + "th course\r");
   }
 
   return {
