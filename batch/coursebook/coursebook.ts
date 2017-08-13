@@ -6,8 +6,12 @@
  * @author Jang Ryeol, ryeolj5911@gmail.com
  */
 
+const db = require('../db');
 import fs = require('fs');
-import {insert_course} from './update_lectures';
+import {insert_course} from './data/parse';
+import {fetchSugangSnu} from './data/fetch';
+import {CourseBookModel} from '../../model/courseBook';
+
 
 /**
  * String을 읽어 몽고 디비에 입력합니다.
@@ -58,19 +62,62 @@ export function importFromFile(year:number, semester:string, fcm_enabled:boolean
 	});
 }
 
+function semesterToString(semester:number):string {
+  switch(semester) {
+    case 1:
+    return '1';
+    case 2:
+    return 'S';
+    case 3:
+    return '2';
+    case 4:
+    return 'W';
+    default:
+    return '?';
+  }
+}
+
+/**
+ * 현재 수강편람과 다음 수강편람
+ */
+async function getUpdateCandidate():Promise<[[number, string]]> {
+  try {
+    let recentCoursebook = await CourseBookModel.getRecent();
+    let year = recentCoursebook.year;
+    let semester = recentCoursebook.semester;
+
+    let nextYear = year;
+    let nextSemester = semester + 1;
+    if (nextSemester > 4) {
+      nextYear++;
+      nextSemester = 0;
+    }
+
+    return [[year, semesterToString(semester)],
+    [nextYear, semesterToString(nextSemester)]];
+  } catch (err) {
+    console.error(err);
+    process.exit(1);
+  }
+}
+
+async function main() {
+  let cands = await getUpdateCandidate();
+  for (let i=0; i<cands.length; i++) {
+    let year = cands[i][0];
+    let semester = cands[i][1];
+    try {
+      await fetchSugangSnu(year, semester);
+      await importFromFile(year, semester, true);
+    } catch (err) {
+      console.error(err);
+      console.log("Failed");
+      continue;
+    }
+  }
+  process.exit(0);  
+}
+
 if (!module.parent) {
-	if (process.argv.length != 4) {
-		console.log("Invalid arguments");
-		console.log("usage: $ node import_txt.js 2016 1");
-		process.exit(1);
-	}
-	var year = Number(process.argv[2]);
-	var semester = process.argv[3];
-	console.log("Importing " + year + " " + semester);
-	importFromFile(year, semester, true).then(function(){
-		process.exit();
-	}).catch(function(reason){
-		console.error(reason);
-		process.exit(1);
-	});
+  main();
 }

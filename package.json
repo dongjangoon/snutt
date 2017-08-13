@@ -5,7 +5,8 @@
   "scripts": {
     "test": "tsc -p . && mocha --recursive",
     "start": "node ./app.js",
-    "build": "tsc -p ."
+    "build": "tsc -p .",
+    "api-key": "node config/apiKey list"
   },
   "dependencies": {
     "@types/js-yaml": "^3.9.0",

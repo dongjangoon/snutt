@@ -16,14 +16,14 @@ if (!module.parent) {
 
 const db = require('../db'); // Unused imports will be deleted
 import async = require('async');
-import {LectureModel, LectureDocument} from '../model/lecture';
-import {CourseBookModel} from '../model/courseBook';
-import {NotificationModel, Type as NotificationType} from '../model/notification';
-import {TimetableModel, TimetableDocument} from '../model/timetable';
-import {TagListModel} from '../model/tagList';
-import Util = require('../lib/util');
-import fcm = require('../lib/fcm');
-import errcode = require('../lib/errcode');
+import {LectureModel, LectureDocument} from '../../../model/lecture';
+import {CourseBookModel} from '../../../model/courseBook';
+import {NotificationModel, Type as NotificationType} from '../../../model/notification';
+import {TimetableModel, TimetableDocument} from '../../../model/timetable';
+import {TagListModel} from '../../../model/tagList';
+import Util = require('../../../lib/util');
+import fcm = require('../../../lib/fcm');
+import errcode = require('../../../lib/errcode');
 
 /*
  * 교양 영역을 한글로 번역.

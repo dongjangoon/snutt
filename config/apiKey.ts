@@ -5,7 +5,7 @@
  *
  * API 키를 새로 발급하고 싶으면, npm run build를 수행 후
  * node로 다음 명령을 수행합니다.
- * $ node apiKey.js list
+ * $ npm run api-key
  * 
  * @author Jang Ryeol, ryeolj5911@gmail.com
  */
