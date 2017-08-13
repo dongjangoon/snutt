@@ -76,25 +76,25 @@ TimetableSchema.methods.checkDuplicate = function(next) {
  * @flags {lean}
  */
 TimetableSchema.statics.getTimetables = function(user_id, flags, callback) {
-  var query = TimetableModel.where('user_id', user_id).select('year semester title _id updated_at');
+  var query:any = TimetableModel.where('user_id', user_id).select('year semester title _id updated_at');
   if (flags && flags.lean === true) query = query.lean();
   return query.exec(callback);
 };
 
 TimetableSchema.statics.getTimetablesBySemester = function(user_id, year, semester, flags, callback) {
-  var query = TimetableModel.find({'user_id': user_id, 'year': year, 'semester': semester});
+  var query:any = TimetableModel.find({'user_id': user_id, 'year': year, 'semester': semester});
   if (flags && flags.lean === true) query = query.lean();
   return query.exec(callback);
 };
 
 TimetableSchema.statics.getTimetable = function(user_id, timetable_id, flags, callback) {
-  var query = TimetableModel.findOne({'user_id': user_id, '_id' : timetable_id});
+  var query:any = TimetableModel.findOne({'user_id': user_id, '_id' : timetable_id});
   if (flags && flags.lean === true) query = query.lean();
   return query.exec(callback);
 };
 
 TimetableSchema.statics.getRecent = function(user_id, flags, callback) {
-  var query = TimetableModel.findOne({'user_id': user_id}).sort({updated_at : -1});
+  var query:any = TimetableModel.findOne({'user_id': user_id}).sort({updated_at : -1});
   if (flags && flags.lean === true) query = query.lean();
   return query.exec(callback);
 };
@@ -355,7 +355,6 @@ TimetableSchema.methods.get_new_color_legacy = function(): {fg:string, bg:string
 }
 
 TimetableSchema.methods.validateLectureTime = function(lecture_id:string, lecture:UserLectureDocument): boolean {
-  var tablemask = [0,0,0,0,0,0,0];
   for (var i=0; i<this.lecture_list.length; i++) {
     var tableLecture:LectureDocument = this.lecture_list[i];
     if (lecture_id == tableLecture._id) continue;

@@ -108,7 +108,7 @@ router.post('/:timetable_id/lecture/:lecture_id', function(req, res, next) {
     });
 });
 
-function set_timemask(lecture_raw) {
+function set_timemask(lecture_raw): boolean {
   if (lecture_raw.class_time_json) {
     if (!lecture_raw.class_time_mask) {
       lecture_raw.class_time_mask = timeJsonToMask(lecture_raw.class_time_json, true);
@@ -260,9 +260,9 @@ router.put('/:table_id/lecture/:lecture_id/reset', function(req, res, next) {
     } else if (err === errcode.LECTURE_NOT_FOUND) {
       return res.status(404).json({errcode:err, message:"lecture not found"});
     } else if (err === errcode.TIMETABLE_NOT_FOUND) {
-      return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+      return res.status(404).json({errcode:err, message:"timetable not found"});
     } else if (err === errcode.LECTURE_TIME_OVERLAP) {
-      return res.status(403).json({errcode:err.errcode, message:"lecture time overlap"});
+      return res.status(403).json({errcode:err, message:"lecture time overlap"});
     } else {
       console.log("lecture reset: ",err);
       return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"reset lecture failed"});
