@@ -20,11 +20,10 @@ import {FeedbackModel} from '../../model/feedback';
 let request = supertest(app);
 describe('API Test', function() {
   before(function(done) {
-    if (config.secretKey && config.host && config.port && config.email)
+    if (config.secretKey && config.host && config.port)
       return done();
     else
-      return done(new Error("Config is not set. If you're not serious, Just type\n" +
-       "> SNUTT_HOST=localhost SNUTT_PORT=3000 SNUTT_EMAIL=snutt@wafflestudio.com SNUTT_SECRET=1 npm test"));
+      return done(new Error("Invalid config. Please set conf.yml"));
   });
 
   // Change connection into test DB in order not to corrupt production DB

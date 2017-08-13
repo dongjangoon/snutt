@@ -132,7 +132,7 @@ UserSchema.statics.getUserFromCredentialHash = function (hash:string) : Promise<
   if (!hash) {
     return Promise.reject(errcode.SERVER_FAULT);
   } else {
-    return mongoose.model('User').findOne({
+    return <Promise<UserDocument>>mongoose.model('User').findOne({
       'credentialHash' : hash,
       'active' : true
     }).exec();

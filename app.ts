@@ -13,7 +13,6 @@ import path = require("path");
 
 import routes = require('./routes/routes');
 import http = require('http');
-import https = require('https');
 import fs = require('fs');
 
 var app = express();
@@ -84,43 +83,21 @@ app.set('host', host);
 
 if (process.env.NODE_ENV != 'mocha') {
     var server = createServer();
-    serverListen(server);
 }
 
 
 /**
  * Create server.
  */
-function createServer() {
-  if (config.protocol == "https")
-    var protocol = "https";
-  else
-    var protocol = "http";
-
-  var server:any;
-
-  if (protocol == "https") {
-    var ssl_options = {
-      key: fs.readFileSync(config.ssl_key),
-      cert: fs.readFileSync(config.ssl_cert)
-    };
-    server = https.createServer(ssl_options, app);
-  } else {
-    server = http.createServer(app);
-  }
-
-  return server;
-}
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-function serverListen(server) {
+function createServer(): http.Server {
+  var protocol = "http";
+  var server = http.createServer(app);
   server.listen(port, host, function() {
-    console.log("Server listening on " + config.protocol + "://" + host + ":" + port);
+    console.log("Server listening on http://" + host + ":" + port);
   });
   server.on('error', onError);
   server.on('listening', onListening);
+  return server;
 }
 
 /**
