@@ -14,7 +14,7 @@ class SnuttConfig {
 
     constructor() {
         try {
-            this.yamlString = fs.readFileSync('snutt.yml', 'utf8');
+            this.yamlString = fs.readFileSync(__dirname + '/../snutt.yml', 'utf8');
             let config = yaml.safeLoad(this.yamlString);
             this.secretKey = config.secretKey;
             this.host = config.host;

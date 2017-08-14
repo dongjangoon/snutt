@@ -182,7 +182,7 @@ describe('API Test', function() {
     require('./timetable_test')(app, db, request);
   });
 
-  describe('Cousebook Import', function () {
+/*  describe('Cousebook Import', function () {
     require('./import_test')(app, db, request);
-  });
+  });*/
 });

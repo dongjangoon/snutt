@@ -1,4 +1,4 @@
-import {importFromString} from '../../data/import_txt';
+/*import {importFromString} from '../../data/import_txt';
 import {LectureDocument} from '../../model/lecture';
 import {Type} from '../../model/notification';
 import assert = require('assert');
@@ -235,4 +235,4 @@ export = function(app, db, request) {
         });
     });
   })
-}
+}*/

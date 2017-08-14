@@ -10,7 +10,9 @@
     "init-coursebook": ""
   },
   "dependencies": {
+    "@types/iconv": "^2.1.15",
     "@types/js-yaml": "^3.9.0",
+    "@types/request-promise-native": "^1.0.6",
     "@types/xlsx": "0.0.34",
     "async": "~1.5.2",
     "bcrypt": "^0.8.5",
@@ -21,11 +23,13 @@
     "ejs": "~2.3.4",
     "express": "~4.13.1",
     "fcm": "^1.0.3",
+    "iconv": "^2.3.0",
     "jade": "~1.11.0",
     "js-yaml": "^3.9.1",
     "jsonwebtoken": "~5.5.0",
     "kerberos": "0.0.21",
     "lodash": "^3.10.1",
+    "log4js": "^2.3.3",
     "mongoose": "4.7.2",
     "morgan": "~1.6.1",
     "request": "^2.74.0",
