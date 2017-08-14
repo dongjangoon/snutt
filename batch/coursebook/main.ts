@@ -101,6 +101,93 @@ async function getUpdateCandidate():Promise<[[number, string]]> {
   }
 }
 
+
+export async function insert_course(lines:Array<string>, year:number,
+  semesterIndex:number, fcm_enabled:boolean): Promise<void>
+{
+  var semesterString = (['1', '여름', '2', '겨울'])[semesterIndex-1];
+  var saved_cnt = 0, err_cnt = 0;
+  var old_lectures: LectureDocument[];
+  var new_lectures: LectureDocument[];
+  var tags: TagStruct;
+  var diff: LectureDiff;
+
+  var noti_msg = year+"년도 "+semesterString+"학기 수강편람이 추가되었습니다.";
+
+  console.log ("Loading new lectures...");
+  var result = load_new_lectures(year, semesterIndex, lines);
+  new_lectures = result.new_lectures;
+  tags = result.tags;
+  console.log("\nLoad complete with "+new_lectures.length+" courses");
+
+  if (new_lectures.length == 0) {
+    console.log("No lectures.");
+    return;
+  }
+
+  console.log ("Pulling existing lectures...");
+  old_lectures = <LectureDocument[]>await LectureModel.find({year : year, semester : semesterIndex}).lean().exec();
+
+  console.log("Comparing existing lectures and new lectures...");
+  diff = compare_lectures(old_lectures, new_lectures);
+  if (diff.updated.length === 0 &&
+      diff.created.length === 0 &&
+      diff.removed.length === 0) {
+    console.log("Nothing updated.");
+    return;
+  }
+
+  console.log(diff.updated.length + " updated, "+
+      diff.created.length + " created, "+
+      diff.removed.length + " removed.");
+
+  await notifyUpdated(year, semesterIndex, diff, fcm_enabled);
+
+  await LectureModel.remove({ year: year, semester: semesterIndex}).exec();
+  console.log("Removed existing lecture for this semester");
+
+  console.log("Inserting new lectures...");
+  var docs = await LectureModel.insertMany(new_lectures);
+  console.log("\nInsert complete with " + docs.length + " success and "+ (new_lectures.length - docs.length) + " errors");
+
+  await TagListModel.remove({ year: year, semester: semesterIndex}).exec();
+  console.log("Removed existing tags");
+
+  console.log("Inserting tags from new lectures...");
+  for (var key in tags) {
+    if (tags.hasOwnProperty(key)){
+      tags[key].sort();
+    }
+  }
+  var tagList = new TagListModel({
+    year: Number(year),
+    semester: semesterIndex,
+    tags: tags,
+    updated_at: Date.now()
+  });
+  await tagList.save();
+  console.log("Inserted tags");
+
+  console.log("saving coursebooks...");
+  /* Send notification only when coursebook is new */
+  var doc = await CourseBookModel.findOneAndUpdate({ year: Number(year), semester: semesterIndex },
+    { updated_at: Date.now() },
+    {
+      new: false,   // return new doc
+      upsert: true // insert the document if it does not exist
+    })
+    .exec();
+
+  if (!doc) {
+    if (fcm_enabled) await fcm.send_msg(null, noti_msg, "update_lectures.ts", "new coursebook");
+    await NotificationModel.createNotification(null, noti_msg, NotificationType.COURSEBOOK, null, "unused");
+    console.log("Notification inserted");
+  }
+
+  return;
+}
+
+
 async function main() {
   let cands = await getUpdateCandidate();
   for (let i=0; i<cands.length; i++) {
