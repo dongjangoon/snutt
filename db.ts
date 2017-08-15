@@ -1,4 +1,6 @@
 import mongoose = require('mongoose');
+import * as log4js from 'log4js';
+var logger = log4js.getLogger();
 mongoose.Promise = global.Promise;
 
 // connect mongoose
@@ -17,14 +19,13 @@ mongoose.connect('mongodb://localhost/snutt', function(err) {
   var admin = mongoose.connection.db.admin();
   admin.buildInfo(function (err, info) {
     if (err) {
-      return console.log("Could not get mongodb version");
+      return logger.error("Could not get mongodb version");
     }
-    console.log("MongoDB "+info.version+" connected");
+    logger.info("MongoDB "+info.version+" connected");
     if (parseFloat(info.version) < 2.4) {
-      console.log("MongoDB version is outdated. (< 2.4) Service might not work properly");
+      logger.warn("MongoDB version is outdated. (< 2.4) Service might not work properly");
     }
   });
-  //console.log('mongodb connected');
 });
 
 export = mongoose;

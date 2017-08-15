@@ -2,6 +2,9 @@ import mongoose = require('mongoose');
 import assert = require('assert');
 import _ = require('lodash');
 import errcode = require('./errcode');
+import * as log4js from 'log4js';
+var logger = log4js.getLogger();
+
 
 class TimePlace {
   day: number;
@@ -80,7 +83,7 @@ export function timeJsonToMask(timeJson:Array<TimePlace>, duplicateCheck?:boolea
   timeJson.forEach(function(lecture, lectureIdx) {
     var dayIdx = Number(lecture.day);
     var end = Number(lecture.start) + Number(lecture.len);
-    if (lecture.start >= 15) console.log("timeJsonToMask: lecture start bigger than 15");
+    if (lecture.start >= 15) logger.warn("timeJsonToMask: lecture start bigger than 15");
     if (duplicateCheck) {
       for (var i = lecture.start * 2; i < end*2; i++) {
         if (bitTable2D[dayIdx][i]) throw errcode.LECTURE_TIME_OVERLAP;

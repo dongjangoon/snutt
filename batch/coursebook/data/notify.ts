@@ -2,7 +2,9 @@ import { LectureDiff } from './compare';
 import errcode = require('../../../lib/errcode');
 import { Type as NotificationType, NotificationModel } from '../../../model/notification';
 import { TimetableModel, TimetableDocument } from '../../../model/timetable';
-import fcm = require('../../../lib/fcm');
+import * as fcm from '../../../lib/fcm';
+import * as async from 'async';
+
 
 function findTableWithLecture(year:number, semesterIndex:number, course_number:string,
   lecture_number:string, cb?:(err, timetables:TimetableDocument[])=>any): Promise<TimetableDocument[]> {

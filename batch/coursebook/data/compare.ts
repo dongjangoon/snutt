@@ -1,4 +1,4 @@
-import {LectureDocument} from '../../../model/lecture';
+import {LectureModel, LectureDocument} from '../../../model/lecture';
 import Util = require('../../../lib/util');
 
 type LectureIdent = {

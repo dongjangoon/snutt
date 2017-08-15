@@ -69,7 +69,7 @@ const semesterQueryString = {
 }
 
 const SUGANG_SNU_BASEPATH = "http://sugang.snu.ac.kr/sugang/cc/cc100excel.action?";
-function getSugangSnuQueryString(year:number, semester:number, lectureCategory:LectureCategory):string {
+function getSugangSnuEndPoint(year:number, semester:number, lectureCategory:LectureCategory):string {
   let queryStrings: string[] = [
     "srchCond=1",
     "pageNo=1",
@@ -109,22 +109,40 @@ function getSugangSnuQueryString(year:number, semester:number, lectureCategory:L
   } else {
     logger.info("Fetching " + lectureCategoryString[lectureCategory]);
   }
-  return SUGANG_SNU_BASEPATH + queryStrings.join('&');
+  let ret = SUGANG_SNU_BASEPATH + queryStrings.join('&');
+  //logger.debug(ret);
+  return ret;
 }
 
-export type LectureLine = {
-  classification: string,
-  department: string,
-  academic_year: string,
-  course_number: string,
-  lecture_number: string,
-  course_title: string,
-  credit: number,
-  class_time: string,
-  location: string,
-  instructor: string,
-  remark:string,
-  category:string,
+export class LectureLine {
+  classification: string;
+  department: string;
+  academic_year: string;
+  course_number: string;
+  lecture_number: string;
+  course_title: string;
+  credit: number;
+  class_time: string;
+  location: string;
+  instructor: string;
+  remark:string;
+  category:string;
+}
+
+class SheetWrapper {
+  private sheet: xlsx.WorkSheet;
+  constructor (sheet: xlsx.WorkSheet) {
+    this.sheet = sheet;
+  }
+
+  getRowSize(): number {
+    return xlsx.utils.decode_range(this.sheet['!ref']).e.r;
+  }
+
+  getCell(r: number, c: number): string {
+    let obj:xlsx.CellObject = this.sheet[xlsx.utils.encode_cell({r: r, c: c})];
+    return <string>obj.v;
+  }
 }
 
 /**
@@ -132,22 +150,23 @@ export type LectureLine = {
  * @return          "월(7.5-3)/목(9-1)"
  */
 function convertClassTime(times:string): string {
-  const classTimeRegEx:RegExp = /(.)\((\d{2}):(\d{2})~(\d{2}):(\d{2})\)/g;
+  const classTimeRegEx:RegExp = /(월|화|수|목|금|토|일)\((\d{2}):(\d{2})~(\d{2}):(\d{2})\)/;
   let classTimes:string[] = times.split('/');
   let ret:string[] = [];
   for (let classTime of classTimes) {
+    if (classTime.length == 0) continue;
     let error = false;
     let matchResult = classTimeRegEx.exec(classTime);
-    if (matchResult != null) {
+    if (matchResult === null) {
       logger.error("Parse error: " + classTime);
       continue;
     }
 
-    let weekOfDay   = matchResult[0];
-    let startHour   = parseInt(matchResult[1]);
-    let startMinute = parseInt(matchResult[2]);
-    let endHour     = parseInt(matchResult[3]);
-    let endMinute   = parseInt(matchResult[4]);
+    let weekOfDay   = matchResult[1];
+    let startHour   = parseInt(matchResult[2])-8;
+    let startMinute = parseInt(matchResult[3]);
+    let endHour     = parseInt(matchResult[4])-8;
+    let endMinute   = parseInt(matchResult[5]);
 
     if (startMinute == 30) startHour += 0.5;
     else if (startMinute != 0) error = true;
@@ -164,69 +183,77 @@ function convertClassTime(times:string): string {
   return ret.join('/');
 }
 
-function getLineFromSheetAndRowIndex(sheet:xlsx.WorkSheet, i: number, lectureCategory: LectureCategory): LectureLine {
-  let line: LectureLine;
-  line.classification = sheet['A-'+i];
+function getLineFromSheetAndRowIndex(sheetWrap: SheetWrapper, i: number, lectureCategory: LectureCategory): LectureLine {
+  let line: LectureLine = new LectureLine();
+  line.classification = sheetWrap.getCell(i, 0);
   // 교양 수업은 카테고리가 지정되어있을 때에만
   if (line.classification == "교양" && lectureCategory == null)
     return null;
 
-  line.department = sheet['C-'+i];
+  line.department = sheetWrap.getCell(i, 2);
   // 학과 정보가 없을 경우 단과 대학을 삽입
   if (line.department.length == 0)
-    line.department = sheet['B-'+i];
-  line.department.replace("null", ""); // null(과학교육계) 수정
+    line.department = sheetWrap.getCell(i, 1);
+  line.department = line.department.replace("null", ""); // null(과학교육계) 수정
 
 
-  line.academic_year = sheet['D-'+i];
+  line.academic_year = sheetWrap.getCell(i, 3);
   if (line.academic_year == "학사") {
-    line.academic_year = sheet['E-'+i];
+    line.academic_year = sheetWrap.getCell(i, 4);
     if (line.academic_year == "0")
       line.academic_year = ""
   }
 
-  line.course_number = sheet['F-'+i];
-  line.lecture_number = sheet['G-'+i];
-  line.course_title = sheet['H-'+i];
-  if (sheet['I-'+i].length > 0)
-    line.course_title += " (" + sheet['I-'+i] + ")";
+  line.course_number = sheetWrap.getCell(i, 5);;
+  line.lecture_number = sheetWrap.getCell(i, 6);;
+  line.course_title = sheetWrap.getCell(i, 7);;
+  if (sheetWrap.getCell(i, 8).length > 0)
+    line.course_title += " (" + sheetWrap.getCell(i, 8); + ")";
   
-  line.credit = parseInt(sheet['J-'+i]);
-  line.class_time = convertClassTime(sheet['M-'+i]);
-  line.location = sheet['O-'+i];
-  line.instructor = sheet['P-'+i];
-  line.remark = sheet['S-'+i].replace('\n', ' ');
+  line.credit = parseInt(sheetWrap.getCell(i, 9));
+  line.class_time = convertClassTime(sheetWrap.getCell(i, 12));
+  line.location = sheetWrap.getCell(i, 14);
+  line.instructor = sheetWrap.getCell(i, 15);
+  line.remark = sheetWrap.getCell(i, 18);
   line.category = lectureCategoryString[lectureCategory];
   return line;
 }
 
-function getExcelFile(year:number, semester: number, lectureCategory: LectureCategory): Promise<string> {
-  return new Promise<string>(function(resolve, reject) {
-    http.get({
-
-    }, function(res) {
-      resolve(res.body);
-    })
+function getExcelFile(year:number, semester: number, lectureCategory: LectureCategory): Promise<Buffer> {
+  return new Promise<Buffer>(function(resolve, reject) {
+    http.get(getSugangSnuEndPoint(year, semester, lectureCategory), 
+    function(res) {
+      if (res.statusCode != 200) {
+        return reject("status code "+res.statusCode);
+      }
+      
+      var data = [];
+      res.on('data', function(chunk) {
+        data.push(chunk);
+      }).on('end', function() {
+        var buffer = Buffer.concat(data);
+        resolve(buffer);
+      })
+    }).on("error", function(err) {
+      reject(err);
+    });
   })
 }
 
 async function getExcelAndPush(destination:LectureLine[], year:number, semester:number, lectureCategory: LectureCategory): Promise<void> {
-  let responseBody = http.get
-  let responseBody = await request(getSugangSnuQueryString(year, semester, lectureCategory));
-  if (responseBody == null || responseBody.length == 0) {
-    logger.warn("No response");
+  let fileBuffer:Buffer = await getExcelFile(year, semester, lectureCategory);
+  if (fileBuffer.byteLength == 0) {
+    logger.info("No response");
     return;
   }
-  logger.debug(responseBody);
-  fs.writeFileSync("downloaded.xls", responseBody);
-  let workbook = xlsx.read(responseBody, {type:"binary"});
+  let workbook = xlsx.read(fileBuffer, {type:"buffer"});
   let sheet = workbook.Sheets[workbook.SheetNames[0]];
-  let rowsize = sheet['!rows'].length;
-  logger.debug(workbook.SheetNames[0] + ": " + rowsize + " rows");
+  let sheetWrap = new SheetWrapper(sheet);
+  let rowsize = sheetWrap.getRowSize();
+  logger.info(workbook.SheetNames[0] + ": " + rowsize + " rows");
   for (let i=4; i<=rowsize; i++) {
-    let line = getLineFromSheetAndRowIndex(sheet, i, lectureCategory);
+    let line = getLineFromSheetAndRowIndex(sheetWrap, i, lectureCategory);
     if (line !== null) destination.push(line);
-    if (i==4) logger.debug(String(line));
   }
 }
 

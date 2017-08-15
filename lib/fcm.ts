@@ -9,6 +9,8 @@ import {UserModel, UserDocument} from '../model/user';
 import {FcmLogModel} from '../model/fcmLog';
 import request = require('request-promise-native');
 import config = require('../config/config');
+import * as log4js from 'log4js';
+var logger = log4js.getLogger();
 
 function fcm_create_noti_key(key_name:string, registration_ids:[string]): Promise<string> {
   return request({
@@ -28,8 +30,8 @@ function fcm_create_noti_key(key_name:string, registration_ids:[string]): Promis
     }).then(function(body){
       return Promise.resolve(body.notification_key);
     }).catch(function(err){
-      console.log("fcm_create_noti_key: " + err.response.body.error);
-      return Promise.reject(err.response.body.error);
+      logger.error("fcm_create_noti_key: " + err.response.statusMessage);
+      return Promise.reject(err.response.statusMessage);
     });
 }
 
@@ -49,8 +51,8 @@ function fcm_get_noti_key(key_name:string): Promise<string> {
     }).then(function (body) {
       return Promise.resolve(body.notification_key);
     }).catch(function (err) {
-      console.log("fcm_get_noti_key: " + err.response.body.error);
-      return Promise.reject(err.response.body.error);
+      logger.error("fcm_get_noti_key: " + err.response.statusMessage);
+      return Promise.reject(err.response.statusMessage);
     });
 }
 
@@ -73,8 +75,8 @@ function fcm_add_device(key_name:string, key:string, registration_ids:[string]):
     }).then(function(body){
       return Promise.resolve(body.notification_key);
     }).catch(function(err){
-      console.log("fcm_add_device: " + err.response.body.error);
-      return Promise.reject(err.response.body.error);
+      logger.error("fcm_add_device: " + err.response.statusMessage);
+      return Promise.reject(err.response.statusMessage);
     });
 }
 
@@ -97,8 +99,8 @@ function fcm_remove_device(key_name:string, key:string, registration_ids:[string
     }).then(function(body){
       return Promise.resolve(body.notification_key);
     }).catch(function(err){
-      console.log("fcm_remove_device: " + err.response.body.error);
-      return Promise.reject(err.response.body.error);
+      logger.error("fcm_remove_device: " + err.response.statusMessage);
+      return Promise.reject(err.response.statusMessage);
     });
 }
 
@@ -112,8 +114,8 @@ function fcm_add_topic(registration_id:string): Promise<any> {
         // no need for project_id
       }
     }).catch(function(err){
-      console.log("fcm_add_topic: " + err.response);
-      return Promise.reject(err.response);
+      logger.error("fcm_add_topic: " + err.response.statusMessage);
+      return Promise.reject(err.response.statusMessage);
     });
 }
 
@@ -132,8 +134,8 @@ function fcm_remove_topic_batch(registration_tokens:[string]): Promise<any> {
       },
       json: true
     }).catch(function(err){
-      console.log("fcm_remove_topic_batch: " + err.response);
-      return Promise.reject(err.response);
+      logger.error("fcm_remove_topic_batch: " + err.response.statusMessage);
+      return Promise.reject(err.response.statusMessage);
     });
 }
 
@@ -156,8 +158,8 @@ function fcm_send_msg(to:string, title:string, body:string): Promise<any> {
       },
       json:true,
     }).catch(function(err){
-      console.log("fcm_send_msg: " + err.response);
-      return Promise.reject(err.response);
+      logger.error("fcm_send_msg: " + err.response.statusMessage);
+      return Promise.reject(err.response.statusMessage);
     });
 }
 
