@@ -2,7 +2,6 @@ import * as xlsx from 'xlsx';
 import * as http from 'http';
 import * as request from 'request-promise-native';
 import * as log4js from 'log4js';
-import * as fs from 'fs';
 var logger = log4js.getLogger();
 
 enum LectureCategory {
@@ -103,14 +102,15 @@ function getSugangSnuEndPoint(year:number, semester:number, lectureCategory:Lect
     "srchLsnProgType=",
     "srchMrksGvMthd=",
   ];
-  if (lectureCategory !== null) queryStrings.push("srchOpenSbjtFldCd="+lectureCategory);
   if (lectureCategory === null) {
+    queryStrings.push("srchOpenSbjtFldCd=");
     logger.info("Fetching "+year+"-"+semesterString[semester]);
   } else {
+    queryStrings.push("srchOpenSbjtFldCd="+lectureCategory);
     logger.info("Fetching " + lectureCategoryString[lectureCategory]);
   }
   let ret = SUGANG_SNU_BASEPATH + queryStrings.join('&');
-  //logger.debug(ret);
+  logger.debug(ret);
   return ret;
 }
 
@@ -215,7 +215,8 @@ function getLineFromSheetAndRowIndex(sheetWrap: SheetWrapper, i: number, lecture
   line.location = sheetWrap.getCell(i, 14);
   line.instructor = sheetWrap.getCell(i, 15);
   line.remark = sheetWrap.getCell(i, 18);
-  line.category = lectureCategoryString[lectureCategory];
+  if (lectureCategory) line.category = lectureCategoryString[lectureCategory];
+  else line.category = "";
   return line;
 }
 
@@ -224,7 +225,8 @@ function getExcelFile(year:number, semester: number, lectureCategory: LectureCat
     http.get(getSugangSnuEndPoint(year, semester, lectureCategory), 
     function(res) {
       if (res.statusCode != 200) {
-        return reject("status code "+res.statusCode);
+        logger.warn("status code "+res.statusCode);
+        return resolve(new Buffer(0));
       }
       
       var data = [];
@@ -250,7 +252,7 @@ async function getExcelAndPush(destination:LectureLine[], year:number, semester:
   let sheet = workbook.Sheets[workbook.SheetNames[0]];
   let sheetWrap = new SheetWrapper(sheet);
   let rowsize = sheetWrap.getRowSize();
-  logger.info(workbook.SheetNames[0] + ": " + rowsize + " rows");
+  logger.debug(workbook.SheetNames[0] + ": " + rowsize + " rows");
   for (let i=4; i<=rowsize; i++) {
     let line = getLineFromSheetAndRowIndex(sheetWrap, i, lectureCategory);
     if (line !== null) destination.push(line);

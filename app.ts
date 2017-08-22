@@ -8,7 +8,6 @@ const db = require('./db');
 import logger = require("morgan");
 import cookieParser = require("cookie-parser");
 import bodyParser = require("body-parser");
-import cors = require("cors");
 import path = require("path");
 
 import routes = require('./routes/routes');
@@ -24,12 +23,10 @@ var app = express();
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 if (app.get('env') !== 'mocha')
-  app.use(logger('dev'));
+  app.use(logger('tiny'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
-// only for development server
-app.use(cors());
 
 app.use('/asset', express.static('asset'));
 app.use('/', routes);

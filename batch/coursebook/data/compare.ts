@@ -1,5 +1,7 @@
 import {LectureModel, LectureDocument} from '../../../model/lecture';
 import Util = require('../../../lib/util');
+import * as log4js from 'log4js';
+var logger = log4js.getLogger();
 
 type LectureIdent = {
   course_number: string,
@@ -45,7 +47,7 @@ export class LectureDiff {
 }
 
 export async function compareLectures(year:number, semester: number, new_lectures:LectureDocument[]): Promise<LectureDiff> {
-  console.log ("Pulling existing lectures...");
+  logger.info("Pulling existing lectures...");
   var old_lectures = <LectureDocument[]>await LectureModel.find({year : year, semester : semester}).lean().exec();
   var diff = new LectureDiff();
   var checked:boolean[] = [];

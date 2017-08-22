@@ -34,8 +34,23 @@ log4js.configure({
  */
 async function getUpdateCandidate():Promise<[[number, number]]> {
   let recentCoursebook = await CourseBookModel.getRecent();
-  if (recentCoursebook) {
-    throw new Error("Cannot find recent coursebook");
+  if (!recentCoursebook) {
+    let date = new Date();
+    let year = date.getFullYear();
+    let month = date.getMonth();
+    let semester: number;
+    if (month < 3) {
+      semester = 4; // Winter
+    } else if (month < 7) {
+      semester = 1; // Spring
+    } else if (month < 9) {
+      semester = 2; // Summer
+    } else {
+      semester = 3; // Fall
+    }
+    logger.info("No recent coursebook found, infer from the current date.");
+    logger.info("Inferred {} {}", year, semester);
+    return [[year, semester]];
   }
   let year = recentCoursebook.year;
   let semester = recentCoursebook.semester;
@@ -65,7 +80,7 @@ export async function fetchAndInsert(year:number, semesterIndex:number, fcm_enab
   let parsed = parseLines(year, semesterIndex, fetched);
   if (parsed.new_lectures.length == 0) {
     logger.warn("No lecture found.");
-    process.exit(1);
+    return;
   }
   logger.info("Load complete with "+parsed.new_lectures.length+" courses");
   logger.info("Compare lectures...");
@@ -73,10 +88,10 @@ export async function fetchAndInsert(year:number, semesterIndex:number, fcm_enab
   if (compared.updated.length === 0 &&
         compared.created.length === 0 &&
         compared.removed.length === 0) {
-    console.log("Nothing updated.");
+    logger.info("Nothing updated.");
     return;
   }
-  console.log(compared.updated.length + " updated, "+
+  logger.info(compared.updated.length + " updated, "+
       compared.created.length + " created, "+
       compared.removed.length + " removed.");
 
@@ -88,7 +103,7 @@ export async function fetchAndInsert(year:number, semesterIndex:number, fcm_enab
 
   logger.info("Inserting new lectures...");
   var docs = await LectureModel.insertMany(parsed.new_lectures);
-  logger.info("\nInsert complete with " + docs.length + " success and "+ (parsed.new_lectures.length - docs.length) + " errors");
+  logger.info("Insert complete with " + docs.length + " success and "+ (parsed.new_lectures.length - docs.length) + " errors");
 
   await TagListModel.remove({ year: year, semester: semesterIndex}).exec();
   logger.info("Removed existing tags");
