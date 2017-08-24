@@ -6,7 +6,7 @@ mongoose.Promise = global.Promise;
 // connect mongoose
 mongoose.connect('mongodb://localhost/snutt', function(err) {
   if(err) {
-    console.log(err);
+    logger.error(err);
     throw err;
   }
   if (process.env.NODE_ENV == 'mocha')

@@ -23,6 +23,8 @@ import {FeedbackModel, FeedbackDocument} from '../../model/feedback';
 
 import errcode = require('../../lib/errcode');
 import libcolor = require('../../lib/color');
+import * as log4js from 'log4js';
+var logger = log4js.getLogger();
 
 var api_info;
 
@@ -42,14 +44,20 @@ router.use(function(req, res, next) {
 
 router.get('/course_books', function(req, res, next) {
   CourseBookModel.getAll({lean: true}, function (err, courseBooks) {
-    if (err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server fault"});
+    if (err) {
+      logger.error(err);
+      return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server fault"});
+    }
     res.json(courseBooks);
   });
 });
 
 router.get('/course_books/recent', function(req, res, next) {
   CourseBookModel.getRecent({lean: true}, function (err, courseBook) {
-    if (err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server fault"});
+    if (err) {
+      logger.error(err);
+      return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server fault"});
+    }
     res.json(courseBook);
   });
 });

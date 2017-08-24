@@ -9,11 +9,16 @@ import {UserModel, UserDocument} from '../../model/user';
 import util = require('../../lib/util');
 import errcode = require('../../lib/errcode');
 import Color = require('../../lib/color');
+import * as log4js from 'log4js';
+var logger = log4js.getLogger();
 
 router.get('/', function(req, res, next) { //timetable list
   var user:UserDocument = <UserDocument>req["user"];
   TimetableModel.getTimetables(user._id, {lean:true}, function(err, timetables) {
-    if (err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'fetch timetable list failed'});
+    if (err) {
+      logger.error(err);
+      return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'fetch timetable list failed'});
+    }
     res.json(timetables);
   });
 });
@@ -21,7 +26,10 @@ router.get('/', function(req, res, next) { //timetable list
 router.get('/recent', function(req, res, next) {
   var user:UserDocument = <UserDocument>req["user"];
   TimetableModel.getRecent(user._id, {lean:true}, function(err, timetable) {
-    if (err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'find table failed'});
+    if (err) {
+      logger.error(err);
+      return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'find table failed'});
+    }
     if (!timetable) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:'no timetable'});
     res.json(timetable);
   });
@@ -30,7 +38,10 @@ router.get('/recent', function(req, res, next) {
 router.get('/:id', function(req, res, next) { //get
   var user:UserDocument = <UserDocument>req["user"];
   TimetableModel.getTimetable(user._id, req.params.id, {lean:true}, function(err, timetable) {
-    if(err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
+    if(err) {
+      logger.error(err);
+      return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
+    }
     if(!timetable) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:'timetable not found'});
     res.json(timetable);
   });
@@ -40,7 +51,10 @@ router.get('/:year/:semester', function(req, res, next) {
   var user:UserDocument = <UserDocument>req["user"];
   TimetableModel.getTimetablesBySemester(user._id, req.params.year, req.params.semester, {lean:true},
     function(err, timetable) {
-      if(err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
+      if(err) {
+        logger.error(err);
+        return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
+      }
       if(!timetable) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"No timetable for given semester"});
       res.json(timetable);
   });
@@ -58,15 +72,20 @@ router.post('/', function(req, res, next) { //create
     title : req.body.title})
     .then(function(doc) {
       TimetableModel.getTimetables(user._id, {lean:true}, function(err, timetables){
-        if (err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'get timetable list failed'});
+        if (err) {
+          logger.error(err);
+          return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'get timetable list failed'});
+        }
         res.json(timetables);
       });
     })
     .catch(function(err) {
-      if (err == errcode.DUPLICATE_TIMETABLE_TITLE)
+      if (err == errcode.DUPLICATE_TIMETABLE_TITLE) {
         return res.status(403).json({errcode: errcode.DUPLICATE_TIMETABLE_TITLE, message: err});
-      else
-        return res.status(500).json({errcode: errcode.SERVER_FAULT, message: err});
+      } else {
+        logger.error(err);
+        return res.status(500).json({errcode: errcode.SERVER_FAULT, message: 'server fault'});
+      }
     });
 });
 
@@ -96,14 +115,17 @@ router.post('/:timetable_id/lecture/:lecture_id', function(req, res, next) {
                 return res.status(403).json({errcode:err, message:"duplicate lecture"});
               else if (err == errcode.LECTURE_TIME_OVERLAP)
                 return res.status(403).json({errcode:err, message:"lecture time overlap"});
-              else
+              else {
+                logger.error(err);
                 return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"insert lecture failed"});
+              }
             }
             res.json(timetable);
           });
         });
     })
     .catch(function(err) {
+      logger.error(err);
       return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
     });
 });
@@ -147,7 +169,7 @@ router.post('/:id/lecture', function(req, res, next) {
         if (err == errcode.LECTURE_TIME_OVERLAP)
           return res.status(403).json({errcode: err, message:"lecture time overlapped"});
         else {
-          console.error("/:id/lecture", err);
+          logger.error(err);
           return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
         }
       }
@@ -183,7 +205,7 @@ router.post('/:id/lecture', function(req, res, next) {
             return res.status(403).json({errcode:err, message:"lecture time overlap"});
           if (err == errcode.INVALID_COLOR)
             return res.status(400).json({errcode:err, message:"invalid color"});  
-          console.log(err)
+          logger.error(err)
           return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"insert lecture failed"});
         }
         res.json(timetable);
@@ -218,7 +240,7 @@ router.put('/:table_id/lecture/:lecture_id', function(req, res, next) {
         if (err == errcode.LECTURE_TIME_OVERLAP)
           return res.status(403).json({errcode: err, message:"lecture time overlapped"});
         else {
-          console.error("/:id/lecture", err);
+          logger.error(err);
           return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
         }
       }
@@ -230,7 +252,7 @@ router.put('/:table_id/lecture/:lecture_id', function(req, res, next) {
             return res.status(400).json({errcode:err, message:"invalid color"})
           if (err == errcode.LECTURE_TIME_OVERLAP)
             return res.status(403).json({errcode:err, message:"lecture time overlapped"})
-          console.log(err);
+          logger.error(err);
           return res.status(500).json({errcode:err, message:"update lecture failed"});
         }
         res.json(doc);
@@ -281,7 +303,7 @@ router.delete('/:table_id/lecture/:lecture_id', function(req, res, next) {
     { $pull: {lecture_list : {_id: req.params.lecture_id} } }, {new: true})
     .exec(function (err, doc) {
       if (err) {
-        console.log(err);
+        logger.error(err);
         return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"delete lecture failed"});
       }
       if (!doc) return res.status(404).json({errcode:errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});

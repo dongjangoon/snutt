@@ -22,10 +22,10 @@ var logger = log4js.getLogger();
 
 log4js.configure({
   appenders: { 
-    'out': { type : 'stdout' },
+    'out': { type : 'stdout', layout: { type: "basic" } },
   },
   categories: {
-    default: { appenders: [ 'out' ], level: 'debug' }
+    default: { appenders: [ 'out' ], level: 'info' }
   }
 });
 

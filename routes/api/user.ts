@@ -10,6 +10,8 @@ import auth = require('../../lib/auth');
 import fcm = require('../../lib/fcm');
 import {UserModel, UserDocument} from '../../model/user';
 import errcode = require('../../lib/errcode');
+import * as log4js from 'log4js';
+var logger = log4js.getLogger();
 
 router.get('/info', function (req, res, next) {
   var user:UserDocument = req["user"];
@@ -27,7 +29,10 @@ router.put('/info', function (req, res, next) {
   var user:UserDocument = req["user"];
   if (req.body.email) user.email = req.body.email;
   user.save(function(err, user){
-    if (err) return res.status(500).json({errcode: errcode.SERVER_FAULT, messsage:"server fault"});
+    if (err) {
+      logger.error(err);
+      return res.status(500).json({errcode: errcode.SERVER_FAULT, messsage:"server fault"});
+    }
     res.json({message:"ok"});
   });
 });
@@ -39,7 +44,7 @@ router.post('/password', function (req, res, next) {
     if (err) {
       if (err == errcode.INVALID_PASSWORD)
         return res.status(403).json({errcode: err, message:"invalid password"});
-      console.log(err);
+      logger.error(err);
       return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
     }
     res.json({token: user.getCredentialHash()});
@@ -55,7 +60,7 @@ router.put('/password', function (req, res, next) {
         if (err) {
             if (err == errcode.INVALID_PASSWORD)
               return res.status(403).json({errcode: err, message:"invalid password"});
-            console.log(err);
+            logger.error(err);
             return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"server fault"});
         }
         res.json({token: user.getCredentialHash()});
@@ -74,14 +79,14 @@ router.post('/facebook', function (req, res, next) {
     if (err || !info.fb_id) return res.status(403).json({errcode: err.errcode, message:err.message});
     UserModel.get_fb(info.fb_name, info.fb_id, function(err, result) {
       if (err) {
-        console.log(err);
+        logger.error(err);
         return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server error"});
       }
       if (result) return res.status(403).json({errcode: errcode.FB_ID_WITH_SOMEONE_ELSE, message: "already attached with this fb_id"});
       user.attachFBId(info.fb_name, info.fb_id).then(function(user) {
         return res.json({token: user.getCredentialHash()});
       }, function (err) {
-        console.log(err);
+        logger.error(err);
         return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server error"});
       });
     });
@@ -118,7 +123,7 @@ router.post('/device', function (req, res, next) {
   promise.then(function(status){
     return res.json({message:"ok"});
   }).catch(function(err){
-    console.log(err);
+    logger.error(err);
     res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
   });
 });
@@ -130,7 +135,7 @@ router.post('/device/:registration_id', function (req, res, next) {
   promise.then(function(status){
     return res.json({message:"ok"});
   }).catch(function(err){
-    console.log(err);
+    logger.error(err);
     res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
   });
 });
@@ -143,7 +148,7 @@ router.delete('/device', function (req, res, next) {
   promise.then(function(status){
     return res.json({message:"ok"});
   }).catch(function(err){
-    console.log(err);
+    logger.error(err);
     res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
   });
 });
@@ -155,7 +160,7 @@ router.delete('/device/:registration_id', function (req, res, next) {
   promise.then(function(status){
     return res.json({message:"ok"});
   }).catch(function(err){
-    console.log(err);
+    logger.error(err);
     res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
   });
 });
@@ -164,7 +169,10 @@ router.delete('/account', function(req, res, next){
   var user:UserDocument = req["user"];
   user.active = false;
   user.save(function(err, user){
-    if (err) return res.status(500).json({errcode: errcode.SERVER_FAULT, messsage:"server fault"});
+    if (err) {
+      logger.error(err);
+      return res.status(500).json({errcode: errcode.SERVER_FAULT, messsage:"server fault"});
+    }
     res.json({message:"ok"});
   });
 });

@@ -5,7 +5,7 @@
 
 import express = require("express");
 const db = require('./db');
-import logger = require("morgan");
+import morgan = require("morgan");
 import cookieParser = require("cookie-parser");
 import bodyParser = require("body-parser");
 import path = require("path");
@@ -13,6 +13,17 @@ import path = require("path");
 import routes = require('./routes/routes');
 import http = require('http');
 import fs = require('fs');
+import * as log4js from 'log4js';
+var logger = log4js.getLogger();
+
+log4js.configure({
+  appenders: { 
+    'out': { type : 'stdout', layout: { type: "basic" } },
+  },
+  categories: {
+    default: { appenders: [ 'out' ], level: 'info' }
+  }
+});
 
 var app = express();
 
@@ -23,7 +34,7 @@ var app = express();
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 if (app.get('env') !== 'mocha')
-  app.use(logger('tiny'));
+  app.use(morgan('tiny'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -90,7 +101,7 @@ function createServer(): http.Server {
   var protocol = "http";
   var server = http.createServer(app);
   server.listen(port, host, function() {
-    console.log("Server listening on http://" + host + ":" + port);
+    logger.info("Server listening on http://" + host + ":" + port);
   });
   server.on('error', onError);
   server.on('listening', onListening);
@@ -133,11 +144,11 @@ function onError(error) {
   // handle specific listen errors with friendly messages
   switch (error.code) {
     case 'EACCES':
-      console.error(bind + ' requires elevated privileges');
+      logger.error(bind + ' requires elevated privileges');
       process.exit(1);
       break;
     case 'EADDRINUSE':
-      console.error(bind + ' is already in use');
+      logger.error(bind + ' is already in use');
       process.exit(1);
       break;
     default:

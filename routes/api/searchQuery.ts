@@ -3,6 +3,8 @@ var router = express.Router();
 import Util = require('../../lib/util');
 import errcode = require('../../lib/errcode');
 import {LectureQuery, extendedSearch} from '../../model/query';
+import * as log4js from 'log4js';
+var logger = log4js.getLogger();
 
 // deprecated
 /*
@@ -27,7 +29,7 @@ router.post('/', async function(req, res, next) {
     case errcode.INVALID_TIMEMASK:
       return res.status(400).json({errcode:errcode.INVALID_TIMEMASK, message: "invalid timemask"});
     default:
-      console.error(err);
+      logger.error(err);
       return res.status(500).json({errcode:errcode.SERVER_FAULT, message: "search error"});
     }
   }

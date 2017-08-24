@@ -4,6 +4,8 @@ import {NotificationModel} from '../../model/notification';
 import {UserDocument} from '../../model/user';
 
 import errcode = require('../../lib/errcode');
+import * as log4js from 'log4js';
+var logger = log4js.getLogger();
 
 router.get('/', function(req, res, next){
   var user:UserDocument = <UserDocument>req["user"];
@@ -16,7 +18,7 @@ router.get('/', function(req, res, next){
     if (req.query.explicit) {
       user.updateNotificationCheckDate(function (err) {
         if (err) {
-          console.log(err);
+          logger.error(err);
           return res.status(500).json({errcode:errcode.SERVER_FAULT, message: 'error'});
         }
         res.json(value);
@@ -25,7 +27,7 @@ router.get('/', function(req, res, next){
       res.json(value);
     }
   }, function(err) {
-    console.log(err);
+    logger.error(err);
     res.status(500).json({errcode:errcode.SERVER_FAULT, message: 'error'});
   });
 });
@@ -35,7 +37,7 @@ router.get('/count', function(req, res, next){
   NotificationModel.countUnread(user).then(function(value){
     res.json({count: value});
   }, function(err) {
-    console.log(err);
+    logger.error(err);
     res.status(500).json({errcode:errcode.SERVER_FAULT, message: 'error'});
   });
 });

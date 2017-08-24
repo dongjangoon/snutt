@@ -5,6 +5,9 @@
 import express = require('express');
 import libfcm = require('../../lib/fcm');
 import errcode = require('../../lib/errcode');
+import * as log4js from 'log4js';
+var logger = log4js.getLogger();
+
 var router = express.Router();
 
 router.use(function(req, res, next) {
@@ -19,6 +22,7 @@ router.post('/send_fcm', function(req, res, next) {
   p.then(function(result) {
     res.status(200).send(result);
   }).catch(function(err){
+    logger.error(err);
     res.status(500).send({errcode: errcode.SERVER_FAULT, message:err});
   });
 });
