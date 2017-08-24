@@ -23,6 +23,7 @@
     "express": "~4.13.1",
     "js-yaml": "^3.9.1",
     "jsonwebtoken": "~5.5.0",
+    "lodash": "^4.17.4",
     "log4js": "^2.3.3",
     "mongoose": "4.7.2",
     "morgan": "^1.8.2",

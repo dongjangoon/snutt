@@ -125,8 +125,9 @@ export class LectureLine {
   class_time: string;
   location: string;
   instructor: string;
-  remark:string;
-  category:string;
+  quota: number;
+  remark: string;
+  category: string;
 }
 
 class SheetWrapper {
@@ -214,6 +215,7 @@ function getLineFromSheetAndRowIndex(sheetWrap: SheetWrapper, i: number, lecture
   line.class_time = convertClassTime(sheetWrap.getCell(i, 12));
   line.location = sheetWrap.getCell(i, 14);
   line.instructor = sheetWrap.getCell(i, 15);
+  line.quota = parseInt(sheetWrap.getCell(i, 16).split(" ")[0]);
   line.remark = sheetWrap.getCell(i, 18);
   if (lectureCategory) line.category = lectureCategoryString[lectureCategory];
   else line.category = "";

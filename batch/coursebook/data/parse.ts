@@ -83,6 +83,7 @@ export function parseLines(year:number, semesterIndex:number, lines:LectureLine[
       class_time_json: timeJson,
       class_time_mask: Util.timeJsonToMask(timeJson),
       instructor: line.instructor,
+      quota: line.quota,
       remark: line.remark,
       category: line.category
     }));
