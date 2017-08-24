@@ -9,3 +9,4 @@ data/txt/*
 data/data.zip
 *.db
 dashboard/src/samples/
+snutt.yml
