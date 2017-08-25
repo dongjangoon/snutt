@@ -5,3 +5,5 @@ node_js:
   - "4"
   - "6"
   - "node"
+before_script:
+  - cp $TRAVIS_BUILD_DIR/snutt.yml.example $TRAVIS_BUILD_DIR/snutt.yml
