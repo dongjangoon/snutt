@@ -3,7 +3,7 @@
  * Jang Ryeol, ryeolj5911@gmail.com
  */
 import mongoose = require('mongoose');
-import {UserModel, UserDocument} from './user';
+import {UserModel} from './user';
 import fcm = require('../lib/fcm');
 
 export interface NotificationDocument extends mongoose.Document{
@@ -16,10 +16,10 @@ export interface NotificationDocument extends mongoose.Document{
 }
 
 interface _NotificationModel extends mongoose.Model<NotificationDocument>{
-  getNewest(user:UserDocument, offset:number, limit:number,
+  getNewest(user:UserModel, offset:number, limit:number,
       cb?:(err, docs:mongoose.Types.DocumentArray<NotificationDocument>)=>void)
       :Promise<mongoose.Types.DocumentArray<NotificationDocument>>;
-  countUnread(user:UserDocument, cb?:(err, count:number)=>void):Promise<number>;
+  countUnread(user:UserModel, cb?:(err, count:number)=>void):Promise<number>;
   createNotification(user_id:string, message:string, type:Number, detail:any, fcm_status:string,
       cb?:(err, doc:NotificationDocument)=>void):Promise<NotificationDocument>;
 }

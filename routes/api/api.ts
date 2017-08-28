@@ -18,7 +18,7 @@ import notificationRouter = require('./notification');
 import userRouter = require('./user');
 import adminRouter = require('./admin');
 var apiKey = require('../../config/apiKey');
-import {UserModel, UserDocument} from '../../model/user';
+import {UserModel} from '../../model/user';
 import {FeedbackModel, FeedbackDocument} from '../../model/feedback';
 
 import errcode = require('../../lib/errcode');

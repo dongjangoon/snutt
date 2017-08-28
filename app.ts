@@ -9,6 +9,7 @@ import morgan = require("morgan");
 import cookieParser = require("cookie-parser");
 import bodyParser = require("body-parser");
 import path = require("path");
+import cors = require("cors");
 
 import routes = require('./routes/routes');
 import http = require('http');
@@ -35,6 +36,8 @@ var app = express();
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 if (app.get('env') !== 'mocha')
   app.use(morgan('tiny'));
+// Only for development
+app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());

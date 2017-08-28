@@ -6,175 +6,169 @@ import express = require('express');
 import request = require('request-promise-native');
 var router = express.Router();
 import config = require('../../config/config');
-import auth = require('../../lib/auth');
+import facebook = require('../../lib/facebook');
 import fcm = require('../../lib/fcm');
-import {UserModel, UserDocument} from '../../model/user';
+import {UserModel} from '../../model/user';
 import errcode = require('../../lib/errcode');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
 router.get('/info', function (req, res, next) {
-  var user:UserDocument = req["user"];
-  return res.json({
-    isAdmin: user.isAdmin,
-    regDate: user.regDate,
-    notificationCheckedAt: user.notificationCheckedAt,
-    email: user.email,
-    local_id: user.credential.local_id,
-    fb_name: user.credential.fb_name
-  });
+  var user:UserModel = req["user"];
+  return res.json(user.getUserInfo());
 });
 
-router.put('/info', function (req, res, next) {
-  var user:UserDocument = req["user"];
-  if (req.body.email) user.email = req.body.email;
-  user.save(function(err, user){
-    if (err) {
-      logger.error(err);
-      return res.status(500).json({errcode: errcode.SERVER_FAULT, messsage:"server fault"});
-    }
-    res.json({message:"ok"});
-  });
+router.put('/info', async function (req, res, next) {
+  var user:UserModel = req["user"];
+  try {
+    if (req.body.email) 
+      await user.setUserInfo(req.body.email);
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, messsage:"server fault"});
+  }
+
+  res.json({message:"ok"});
 });
 
-router.post('/password', function (req, res, next) {
-  var user:UserDocument = req["user"];
-  if (user.credential.local_id) return res.status(403).json({errcode: errcode.ALREADY_LOCAL_ACCOUNT, message: "already have local id"});
-  UserModel.create_local(user, req.body.id, req.body.password, function(err, user){
-    if (err) {
-      if (err == errcode.INVALID_PASSWORD)
-        return res.status(403).json({errcode: err, message:"invalid password"});
-      logger.error(err);
-      return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
-    }
-    res.json({token: user.getCredentialHash()});
-  });
+router.post('/password', async function (req, res, next) {
+  var user:UserModel = req["user"];
+  if (user.hasLocal()) return res.status(403).json({errcode: errcode.ALREADY_LOCAL_ACCOUNT, message: "already have local id"});
+  try {
+    await user.attachLocal(req.body.id, req.body.password);
+  } catch (err) {
+    if (err == errcode.INVALID_PASSWORD)
+      return res.status(403).json({errcode: err, message:"invalid password"});
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
+  }
+  res.json({token: user.getCredentialHash()});
 });
 
-router.put('/password', function (req, res, next) {
-  var user:UserDocument = req["user"];
-  if (!user.credential.local_id) return res.status(403).json({errcode: errcode.NOT_LOCAL_ACCOUNT, message: "no local id"});
-  user.verify_password(req.body.old_password, function(err, isMatch){
-    if (err || !isMatch) return res.status(403).json({errcode: errcode.WRONG_PASSWORD, message:"wrong old password"});
-    user.changeLocalPassword(req.body.new_password, function(err, user){
-        if (err) {
-            if (err == errcode.INVALID_PASSWORD)
-              return res.status(403).json({errcode: err, message:"invalid password"});
-            logger.error(err);
-            return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"server fault"});
-        }
-        res.json({token: user.getCredentialHash()});
-      });
-    });
+router.put('/password', async function (req, res, next) {
+  var user:UserModel = req["user"];
+  if (!user.hasLocal()) return res.status(403).json({errcode: errcode.NOT_LOCAL_ACCOUNT, message: "no local id"});
+  try {
+    let result = await user.verifyPassword(req.body.old_password);
+    if (!result) return res.status(403).json({errcode: errcode.WRONG_PASSWORD, message:"wrong old password"});
+    await user.changeLocalPassword(req.body.new_password);
+  } catch (err) {
+    if (err == errcode.INVALID_PASSWORD)
+      return res.status(403).json({errcode: err, message:"invalid password"});
+    logger.error(err);
+    return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"server fault"});
+  }
+  res.json({token: user.getCredentialHash()});
 });
 
 // Credential has been modified. Should re-send token
-router.post('/facebook', function (req, res, next) {
-  var user:UserDocument = req["user"];
-  if (user.credential.fb_id) return res.status(403).json({errcode: errcode.ALREADY_FB_ACCOUNT, message: "already attached"});
+router.post('/facebook', async function (req, res, next) {
+  let user:UserModel = req["user"];
+  if (user.hasFb()) return res.status(403).json({errcode: errcode.ALREADY_FB_ACCOUNT, message: "already attached"});
   if (!req.body.fb_token || !req.body.fb_id)
     return res.status(400).json({errcode: errcode.NO_FB_ID_OR_TOKEN, message: "both fb_id and fb_token required"});
 
-  auth.fb_auth(req.body.fb_id, req.body.fb_token, function(err, _, info) {
-    if (err || !info.fb_id) return res.status(403).json({errcode: err.errcode, message:err.message});
-    UserModel.get_fb(info.fb_name, info.fb_id, function(err, result) {
-      if (err) {
-        logger.error(err);
-        return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server error"});
-      }
-      if (result) return res.status(403).json({errcode: errcode.FB_ID_WITH_SOMEONE_ELSE, message: "already attached with this fb_id"});
-      user.attachFBId(info.fb_name, info.fb_id).then(function(user) {
-        return res.json({token: user.getCredentialHash()});
-      }, function (err) {
-        logger.error(err);
-        return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server error"});
-      });
-    });
-  });
+  let fbInfo;
+  try {
+    fbInfo = await facebook.getFbInfo(req.body.fb_id, req.body.fb_token);
+  } catch (err) {
+    return res.status(403).json({errcode: errcode.WRONG_FB_TOKEN, message: "wrong facebook token"});
+  }
+
+  try {
+    let duplicateUser = await UserModel.getByFb(fbInfo.fbName, fbInfo.fbId);
+    if (duplicateUser) return res.status(403).json({errcode: errcode.FB_ID_WITH_SOMEONE_ELSE, message: "already attached with this fb_id"});
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server error"});
+  }
+
+  try {
+    await user.attachFb(fbInfo.fbName, fbInfo.fbId);
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server error"});
+  }
+  return res.json({token: user.getCredentialHash()});
 });
 
-router.delete('/facebook', function (req, res, next) {
-  var user:UserDocument = req["user"];
-  if (!user.credential.fb_id) return res.status(403).json({errcode: errcode.NOT_FB_ACCOUNT, message: "not attached yet"});
-  if (!user.credential.local_id) return res.status(403).json({errcode: errcode.NOT_LOCAL_ACCOUNT, message: "no local id"});
-  user.detachFBId().then(function () {
-    return res.json({token: user.getCredentialHash()});
-  }, function() {
+router.delete('/facebook', async function (req, res, next) {
+  var user:UserModel = req["user"];
+  if (!user.hasFb()) return res.status(403).json({errcode: errcode.NOT_FB_ACCOUNT, message: "not attached yet"});
+  if (!user.hasLocal()) return res.status(403).json({errcode: errcode.NOT_LOCAL_ACCOUNT, message: "no local id"});
+  try {
+    await user.detachFb();
+  } catch (err) {
     return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server error"});
-  });
+  }
+
+  return res.json({token: user.getCredentialHash()});
 });
 
 router.get('/facebook', function (req, res, next) {
-  var user:UserDocument = req["user"];
-  var attached;
-  if (user.credential.fb_id) {
-    attached = true;
-  } else {
-    attached = false;
+  var user:UserModel = req["user"];
+  return res.json({attached: user.hasFb(), name: user.getFbName()});
+});
+
+// Deprecated
+router.post('/device', async function (req, res, next) {
+  var user:UserModel = req["user"];
+  if (!req.body.registration_id) return res.status(400).json({errcode: errcode.NO_REGISTRATION_ID, message: "no registration_id"});
+
+  try {
+    await user.attachDevice(req.body.registration_id);
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
   }
-  return res.json({attached: attached, name: user.credential.fb_name});
+  res.json({message:"ok"});
 });
 
-router.post('/device', function (req, res, next) {
-  var user:UserDocument = req["user"];
+router.post('/device/:registration_id', async function (req, res, next) {
+  var user:UserModel = req["user"];
+  try {
+    await user.attachDevice(req.params.registration_id);
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
+  }
+  res.json({message:"ok"});
+});
+
+// Deprecated
+router.delete('/device', async function (req, res, next) {
+  var user:UserModel = req["user"];
   if (!req.body.registration_id) return res.status(400).json({errcode: errcode.NO_REGISTRATION_ID, message: "no registration_id"});
-  var promise = fcm.create_device(user, req.body.registration_id);
 
-  promise.then(function(status){
-    return res.json({message:"ok"});
-  }).catch(function(err){
+  try {
+    await user.detachDevice(req.body.registration_id);
+  } catch (err) {
     logger.error(err);
-    res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
-  });
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
+  }
+  res.json({message:"ok"});
 });
 
-router.post('/device/:registration_id', function (req, res, next) {
-  var user:UserDocument = req["user"];
-  var promise = fcm.create_device(user, req.params.registration_id);
-
-  promise.then(function(status){
-    return res.json({message:"ok"});
-  }).catch(function(err){
+router.delete('/device/:registration_id', async function (req, res, next) {
+  var user:UserModel = req["user"];
+  try {
+    await user.detachDevice(req.params.registration_id);
+  } catch (err) {
     logger.error(err);
-    res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
-  });
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
+  }
+  res.json({message:"ok"});
 });
 
-router.delete('/device', function (req, res, next) {
-  var user:UserDocument = req["user"];
-  if (!req.body.registration_id) return res.status(400).json({errcode: errcode.NO_REGISTRATION_ID, message: "no registration_id"});
-  var promise = fcm.remove_device(user, req.body.registration_id);
-
-  promise.then(function(status){
-    return res.json({message:"ok"});
-  }).catch(function(err){
+router.delete('/account', async function(req, res, next){
+  var user:UserModel = req["user"];
+  try {
+    await user.deactivate();
+  } catch (err) {
     logger.error(err);
-    res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
-  });
-});
-
-router.delete('/device/:registration_id', function (req, res, next) {
-  var user:UserDocument = req["user"];
-  var promise = fcm.remove_device(user, req.params.registration_id);
-
-  promise.then(function(status){
-    return res.json({message:"ok"});
-  }).catch(function(err){
-    logger.error(err);
-    res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
-  });
-});
-
-router.delete('/account', function(req, res, next){
-  var user:UserDocument = req["user"];
-  user.active = false;
-  user.save(function(err, user){
-    if (err) {
-      logger.error(err);
-      return res.status(500).json({errcode: errcode.SERVER_FAULT, messsage:"server fault"});
-    }
-    res.json({message:"ok"});
-  });
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, messsage:"server fault"});
+  }
+  res.json({message:"ok"});
 });
 
 export = router;

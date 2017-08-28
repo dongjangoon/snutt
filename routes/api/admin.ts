@@ -3,8 +3,8 @@
  * Admin 권한을 가진 user만이 사용 가능
  */
 import express = require('express');
-import libfcm = require('../../lib/fcm');
 import errcode = require('../../lib/errcode');
+import {UserModel} from '../../model/user';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -17,14 +17,21 @@ router.use(function(req, res, next) {
   }
 });
 
-router.post('/send_fcm', function(req, res, next) {
-  var p = libfcm.send_msg(req.body.user_id, req.body.message, req["user"]._id, "admin");
-  p.then(function(result) {
-    res.status(200).send(result);
-  }).catch(function(err){
+router.post('/send_fcm', async function(req, res, next) {
+  let sender: UserModel = req["user"];
+  let response: string;
+  try {
+    if (req.body.user_id && req.body.user_id.length > 0) {
+      let receiver = await UserModel.getByLocalId(req.body.user_id);
+      response = await receiver.sendFcmMsg(req.body.message, sender._id, "admin");
+    } else {
+      response = await UserModel.sendGlobalFcmMsg(req.body.message, sender._id, "admin");
+    }
+    res.send(response);
+  } catch (err) {
     logger.error(err);
     res.status(500).send({errcode: errcode.SERVER_FAULT, message:err});
-  });
+  }
 });
 
 /*

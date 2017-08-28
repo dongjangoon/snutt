@@ -16,6 +16,7 @@ import {CourseBookModel} from '../../model/courseBook';
 import {LectureModel, LectureDocument} from '../../model/lecture';
 import {NotificationModel, Type as NotificationType} from '../../model/notification';
 import {TagListModel} from '../../model/tagList';
+import {UserModel} from '../../model/user';
 import fcm = require('../../lib/fcm');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
@@ -49,7 +50,7 @@ async function getUpdateCandidate():Promise<[[number, number]]> {
       semester = 3; // Fall
     }
     logger.info("No recent coursebook found, infer from the current date.");
-    logger.info("Inferred {} {}", year, semester);
+    logger.info("Inferred ", year, semester);
     return [[year, semester]];
   }
   let year = recentCoursebook.year;
@@ -59,7 +60,7 @@ async function getUpdateCandidate():Promise<[[number, number]]> {
   let nextSemester = semester + 1;
   if (nextSemester > 4) {
     nextYear++;
-    nextSemester = 0;
+    nextSemester = 1;
   }
 
   return [[year, semester],
@@ -134,7 +135,7 @@ export async function fetchAndInsert(year:number, semesterIndex:number, fcm_enab
     .exec();
 
   if (!doc) {
-    if (fcm_enabled) await fcm.send_msg(null, noti_msg, "update_lectures.ts", "new coursebook");
+    if (fcm_enabled) await UserModel.sendGlobalFcmMsg(noti_msg, "batch/coursebook", "new coursebook");
     await NotificationModel.createNotification(null, noti_msg, NotificationType.COURSEBOOK, null, "unused");
     logger.info("Notification inserted");
   }

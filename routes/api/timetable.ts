@@ -5,7 +5,7 @@ import {timeJsonToMask} from '../../lib/util';
 
 import {TimetableModel, TimetableDocument} from '../../model/timetable';
 import {LectureModel, UserLectureModel} from '../../model/lecture';
-import {UserModel, UserDocument} from '../../model/user';
+import {UserModel} from '../../model/user';
 import util = require('../../lib/util');
 import errcode = require('../../lib/errcode');
 import Color = require('../../lib/color');
@@ -13,7 +13,7 @@ import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
 router.get('/', function(req, res, next) { //timetable list
-  var user:UserDocument = <UserDocument>req["user"];
+  var user:UserModel = <UserModel>req["user"];
   TimetableModel.getTimetables(user._id, {lean:true}, function(err, timetables) {
     if (err) {
       logger.error(err);
@@ -24,7 +24,7 @@ router.get('/', function(req, res, next) { //timetable list
 });
 
 router.get('/recent', function(req, res, next) {
-  var user:UserDocument = <UserDocument>req["user"];
+  var user:UserModel = <UserModel>req["user"];
   TimetableModel.getRecent(user._id, {lean:true}, function(err, timetable) {
     if (err) {
       logger.error(err);
@@ -36,7 +36,7 @@ router.get('/recent', function(req, res, next) {
 });
 
 router.get('/:id', function(req, res, next) { //get
-  var user:UserDocument = <UserDocument>req["user"];
+  var user:UserModel = <UserModel>req["user"];
   TimetableModel.getTimetable(user._id, req.params.id, {lean:true}, function(err, timetable) {
     if(err) {
       logger.error(err);
@@ -48,7 +48,7 @@ router.get('/:id', function(req, res, next) { //get
 });
 
 router.get('/:year/:semester', function(req, res, next) {
-  var user:UserDocument = <UserDocument>req["user"];
+  var user:UserModel = <UserModel>req["user"];
   TimetableModel.getTimetablesBySemester(user._id, req.params.year, req.params.semester, {lean:true},
     function(err, timetable) {
       if(err) {
@@ -61,7 +61,7 @@ router.get('/:year/:semester', function(req, res, next) {
 });
 
 router.post('/', function(req, res, next) { //create
-  var user:UserDocument = <UserDocument>req["user"];
+  var user:UserModel = <UserModel>req["user"];
   if (!req.body.year || !req.body.semester || !req.body.title)
     return res.status(400).json({errcode: errcode.NOT_ENOUGH_TO_CREATE_TIMETABLE, message:'not enough parameters'});
 
@@ -96,7 +96,7 @@ router.post('/', function(req, res, next) { //create
  * Lecture id from search query
  */
 router.post('/:timetable_id/lecture/:lecture_id', function(req, res, next) {
-  var user:UserDocument = <UserDocument>req["user"];
+  var user:UserModel = <UserModel>req["user"];
   TimetableModel.findOne({'user_id': user._id, '_id' : req.params.timetable_id}).exec()
     .then(function(timetable){
       if(!timetable) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
@@ -154,7 +154,7 @@ function set_timemask(lecture_raw): boolean {
  * json object of lecture to add
  */
 router.post('/:id/lecture', function(req, res, next) {
-  var user:UserDocument = <UserDocument>req["user"];
+  var user:UserModel = <UserModel>req["user"];
   TimetableModel.findOne({'user_id': user._id, '_id' : req.params.id})
     .exec(function(err, timetable){
       if(err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
@@ -221,7 +221,7 @@ router.post('/:id/lecture', function(req, res, next) {
  */
 
 router.put('/:table_id/lecture/:lecture_id', function(req, res, next) {
-  var user:UserDocument = <UserDocument>req["user"];
+  var user:UserModel = <UserModel>req["user"];
   var lecture_raw = req.body;
   if(!lecture_raw) return res.status(400).json({errcode: errcode.NO_LECTURE_INPUT, message:"empty body"});
 
@@ -261,7 +261,7 @@ router.put('/:table_id/lecture/:lecture_id', function(req, res, next) {
 });
 
 router.put('/:table_id/lecture/:lecture_id/reset', function(req, res, next) {
-  var user:UserDocument = <UserDocument>req["user"];
+  var user:UserModel = <UserModel>req["user"];
 
   if (!req.params.lecture_id)
     return res.status(400).json({errcode: errcode.NO_LECTURE_ID, message:"need lecture_id"});
@@ -297,7 +297,7 @@ router.put('/:table_id/lecture/:lecture_id/reset', function(req, res, next) {
  * delete a lecture from a timetable
  */
 router.delete('/:table_id/lecture/:lecture_id', function(req, res, next) {
-  var user:UserDocument = <UserDocument>req["user"];
+  var user:UserModel = <UserModel>req["user"];
   TimetableModel.findOneAndUpdate(
     {'user_id': user._id, '_id' : req.params.table_id},
     { $pull: {lecture_list : {_id: req.params.lecture_id} } }, {new: true})
@@ -316,7 +316,7 @@ router.delete('/:table_id/lecture/:lecture_id', function(req, res, next) {
  * delete a timetable
  */
 router.delete('/:id', function(req, res, next) { // delete
-  var user:UserDocument = <UserDocument>req["user"];
+  var user:UserModel = <UserModel>req["user"];
   TimetableModel.findOneAndRemove({'user_id': user._id, '_id' : req.params.id}).lean()
   .exec(function(err, timetable) {
     if(err) return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"delete timetable failed"});
@@ -333,7 +333,7 @@ router.delete('/:id', function(req, res, next) { // delete
  * copy a timetable
  */
 router.post('/:id/copy', function(req, res, next) {
-  var user:UserDocument = <UserDocument>req["user"];
+  var user:UserModel = <UserModel>req["user"];
   TimetableModel.findOne({'user_id': user._id, '_id' : req.params.id})
     .exec(function(err, timetable){
       if(err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
@@ -349,7 +349,7 @@ router.post('/:id/copy', function(req, res, next) {
 });
 
 router.put('/:id', function(req, res, next) {
-  var user:UserDocument = <UserDocument>req["user"];
+  var user:UserModel = <UserModel>req["user"];
   if (!req.body.title) return res.status(400).json({errcode: errcode.NO_TIMETABLE_TITLE, message:"should provide title"});
   TimetableModel.findOne({'user_id': user._id, '_id' : req.params.id})
     .exec(function(err, timetable) {

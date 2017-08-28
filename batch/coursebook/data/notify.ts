@@ -2,6 +2,7 @@ import { LectureDiff } from './compare';
 import errcode = require('../../../lib/errcode');
 import { Type as NotificationType, NotificationModel } from '../../../model/notification';
 import { TimetableModel, TimetableDocument } from '../../../model/timetable';
+import { UserModel } from '../../../model/user';
 import * as fcm from '../../../lib/fcm';
 import * as async from 'async';
 
@@ -124,7 +125,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
         });
       }
       
-    ], function(err) {
+    ], async function(err) {
       if(fcm_enabled) {
         var users = [];
         for (var user_id in Object.keys(num_updated_per_user)) {
@@ -136,6 +137,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
           users.push(user_id);
         }
 
+        let promises = [];
         for (var i=0; i<users.length; i++) {
           var updated_num = num_updated_per_user[user_id];
           var removed_num = num_removed_per_user[user_id];
@@ -149,8 +151,11 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
           else
             continue;
           /* It takes too long to await each requests */
-          fcm.send_msg(users[i], msg, "update_lectures.ts", "lecture updated");
+          promises.push(UserModel.getByMongooseId(users[i]).then(function (user) {
+            return user.sendFcmMsg(msg, "batch/coursebook", "lecture updated");
+          }));
         }
+        await Promise.all(promises);
       }
       if (err) return reject(err);
       return resolve();

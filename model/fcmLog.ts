@@ -1,14 +1,5 @@
 import mongoose = require('mongoose');
 
-export interface FcmLogDocument extends mongoose.Document {
-  date: Date,
-  author: string,
-  to: string,
-  message: string,
-  cause: string,
-  response: string
-}
-
 var FcmLogSchema = new mongoose.Schema({
   date: {type:Date, default: Date.now()},
   author: String,
@@ -18,4 +9,15 @@ var FcmLogSchema = new mongoose.Schema({
   response: String
 });
 
-export let FcmLogModel = mongoose.model<FcmLogDocument>('FcmLog', FcmLogSchema);
+var mongooseModel = mongoose.model('FcmLog', FcmLogSchema);
+
+export function writeFcmLog(to: string, author: string, message: string, cause: string, response: string) {
+  var log = new mongooseModel({
+    author: author,
+    cause: cause,
+    to : to,
+    message: message,
+    response: response
+  });
+  return log.save();
+}

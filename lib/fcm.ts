@@ -5,14 +5,13 @@
  * @author ryeolj5911@gmail.com
  */
 
-import {UserModel, UserDocument} from '../model/user';
-import {FcmLogModel} from '../model/fcmLog';
+import {UserModel} from '../model/user';
 import request = require('request-promise-native');
 import config = require('../config/config');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
-function fcm_create_noti_key(key_name:string, registration_ids:[string]): Promise<string> {
+export function createNotiKey(key_name:string, registration_ids:[string]): Promise<string> {
   return request({
       method: 'POST',
       uri: 'https://android.googleapis.com/gcm/notification',
@@ -35,7 +34,7 @@ function fcm_create_noti_key(key_name:string, registration_ids:[string]): Promis
     });
 }
 
-function fcm_get_noti_key(key_name:string): Promise<string> {
+export function getNotiKey(key_name:string): Promise<string> {
   return request({
       method: 'GET',
       uri: 'https://android.googleapis.com/gcm/notification',
@@ -56,7 +55,7 @@ function fcm_get_noti_key(key_name:string): Promise<string> {
     });
 }
 
-function fcm_add_device(key_name:string, key:string, registration_ids:[string]): Promise<string> {
+export function addDevice(key_name:string, key:string, registration_ids:[string]): Promise<string> {
   return request({
       method: 'POST',
       uri: 'https://android.googleapis.com/gcm/notification',
@@ -80,7 +79,7 @@ function fcm_add_device(key_name:string, key:string, registration_ids:[string]):
     });
 }
 
-function fcm_remove_device(key_name:string, key:string, registration_ids:[string]): Promise<string> {
+export function removeDevice(key_name:string, key:string, registration_ids:[string]): Promise<string> {
   return request({
       method: 'POST',
       uri: 'https://android.googleapis.com/gcm/notification',
@@ -104,7 +103,7 @@ function fcm_remove_device(key_name:string, key:string, registration_ids:[string
     });
 }
 
-function fcm_add_topic(registration_id:string): Promise<any> {
+export function addTopic(registration_id:string): Promise<any> {
   return request({
       method: 'POST',
       uri: 'https://iid.googleapis.com/iid/v1/'+registration_id+'/rel/topics/global',
@@ -119,7 +118,7 @@ function fcm_add_topic(registration_id:string): Promise<any> {
     });
 }
 
-function fcm_remove_topic_batch(registration_tokens:[string]): Promise<any> {
+export function removeTopicBatch(registration_tokens:[string]): Promise<any> {
   return request({
       method: 'POST',
       uri: 'https://iid.googleapis.com/iid/v1:batchRemove',
@@ -139,7 +138,7 @@ function fcm_remove_topic_batch(registration_tokens:[string]): Promise<any> {
     });
 }
 
-function fcm_send_msg(to:string, title:string, body:string): Promise<any> {
+export function sendMsg(to:string, title:string, body:string): Promise<string> {
   return request({
       method: 'POST',
       uri: 'https://fcm.googleapis.com/fcm/send',
@@ -161,122 +160,4 @@ function fcm_send_msg(to:string, title:string, body:string): Promise<any> {
       logger.error("fcm_send_msg: " + err.response.statusMessage);
       return Promise.reject(err.response.statusMessage);
     });
-}
-
-function get_or_create_key(user:UserDocument, registration_id:string): Promise<string> {
-  var key_name = "user-"+user._id;
-  var promise:Promise<any> = fcm_create_noti_key(key_name, [registration_id]);
-  promise = promise.catch(function (err) {
-    if (err == "notification_key already exists") {
-      return fcm_get_noti_key(key_name)
-    } else {
-      return Promise.reject(err);
-    }
-  });
-  promise = promise.then(function(fcm_key){
-    user.fcm_key = fcm_key;
-    return user.save();
-  });
-  promise = promise.then(function(user) {
-    return Promise.resolve(user.fcm_key);
-  });
-  return promise;
-}
-
-/*
- * create_device
- * Add this registration_id for the user
- * and add topic
- */
-export function create_device(user:UserDocument, registration_id:string): Promise<string> {
-  var promise;
-  if (!user.fcm_key) {
-    promise = get_or_create_key(user, registration_id);
-  } else {
-    promise = Promise.resolve(user.fcm_key);
-  }
-
-  promise = promise.then(function(fcm_key) {
-    return fcm_add_device("user-"+user._id, fcm_key, [registration_id]).catch(function(err){
-      // User fcm key could be invalid
-      return get_or_create_key(user, registration_id).then(function(fcm_key){
-        return fcm_add_device("user-"+user._id, fcm_key, [registration_id]);
-      });
-    });;
-  });
-
-  promise = promise.then(function(fcm_key){
-    return fcm_add_topic(registration_id);
-  });
-
-  return promise;
-}
-
-/*
- * remove_device
- * Remove this registration_id for the user
- */
-export function remove_device(user:UserDocument, registration_id:string) {
-  var promise;
-  if (!user.fcm_key) {
-    promise = get_or_create_key(user, registration_id);
-  } else {
-    promise = Promise.resolve(user.fcm_key);
-  }
-
-  promise = promise.then(function(fcm_key) {
-    return fcm_remove_device("user-"+user._id, fcm_key, [registration_id]).catch(function(err){
-      // User fcm key could be invalid
-      return get_or_create_key(user, registration_id).then(function(fcm_key){
-        return fcm_remove_device("user-"+user._id, fcm_key, [registration_id]);
-      });
-    });;
-  });
-
-  promise = promise.then(function(fcm_key) {
-    return fcm_remove_topic_batch([registration_id]);
-  });
-  return promise;
-}
-
-/*
- * send_msg
- * If user_id is null, it's a global message
- */
-export function send_msg(user_id:string, message:string, author:string, cause:string, cb?): Promise<string> {
-  var promise:Promise<any>;
-
-  if (user_id && user_id.length > 0) {
-    promise = UserModel.getFCMKey(user_id);
-    promise = promise.then(function(fcmkey){
-      return Promise.resolve(fcmkey);
-    }).catch(function(err){
-      return Promise.reject("failed to get FCM Key"); 
-    });
-  } else {
-    promise = Promise.resolve("/topics/global")
-  }
-
-  promise = promise.then(function(to) {
-    return fcm_send_msg(to, "SNUTT", message).then(function(body){
-      var log = new FcmLogModel({
-        author: author,
-        cause: cause,
-        to : user_id,
-        message: message,
-        response: JSON.stringify(body)
-      });
-      return log.save();;
-    });
-  });
-
-  promise = promise.then(function(result){
-    if(cb) cb(null, result);
-    return Promise.resolve(result);
-  }).catch(function(err){
-    if(cb) cb(err);
-    return Promise.reject(err);
-  });
-
-  return promise;
 }
