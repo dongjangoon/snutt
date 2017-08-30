@@ -11,6 +11,7 @@ class SnuttConfig {
     port:string;
     fcm_api_key:string;
     fcm_project_id:string;
+    mongoUri: string;
 
     constructor() {
         try {
@@ -21,6 +22,7 @@ class SnuttConfig {
             this.port = config.port;
             this.fcm_api_key = config.fcm.api_key;
             this.fcm_project_id = config.fcm.project_id;
+            this.mongoUri = config.mongo;
         } catch (e) {
             console.error(e.message);
             console.error("Could not find config file.");

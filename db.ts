@@ -1,10 +1,11 @@
 import mongoose = require('mongoose');
+import config = require('./config/config');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 mongoose.Promise = global.Promise;
 
 // connect mongoose
-mongoose.connect('mongodb://localhost/snutt', function(err) {
+mongoose.connect(config.mongoUri, function(err) {
   if(err) {
     logger.error(err);
     throw err;

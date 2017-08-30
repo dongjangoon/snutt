@@ -14,6 +14,7 @@ import cors = require("cors");
 import routes = require('./routes/routes');
 import http = require('http');
 import fs = require('fs');
+import config = require('./config/config');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -79,8 +80,6 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-
-import config = require('./config/config');
 var debug = require('debug')('snutt:server');
 
 /**
