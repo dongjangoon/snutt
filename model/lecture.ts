@@ -25,8 +25,8 @@ interface BaseLectureDocument extends mongoose.Document {
   remark: string,                                   // 비고
   category: string
 
-  is_equal(lecture:BaseLectureDocument):boolean;
-  is_custom():boolean;
+  equals(lecture:BaseLectureDocument):boolean;
+  isCustom():boolean;
 }
 
 export interface LectureDocument extends BaseLectureDocument {
@@ -46,7 +46,8 @@ export interface UserLectureDocument extends BaseLectureDocument {
 }
 
 export interface _UserLectureModel extends mongoose.Model<UserLectureDocument> {
-  validate_color(lecture:any):boolean;
+  validateColor(lecture:any):boolean;
+  setTimemask(rawLecture):void;
 }
 
 function BaseSchema(add){
@@ -68,7 +69,7 @@ function BaseSchema(add){
     category: String
   });
 
-  schema.methods.is_custom = function() {
+  schema.methods.isCustom = function() {
     return !this.course_number && !this.lecture_number;
   }
 
@@ -78,9 +79,9 @@ function BaseSchema(add){
    * param =======================================
    * lecture : target for comparison
    */
-  schema.methods.is_equal = function(lecture) {
+  schema.methods.equals = function(lecture) {
     /* User-created lectures are always different */
-    if (this.is_custom()) return false;
+    if (this.isCustom()) return false;
     var ret = true;
     if (this.year && lecture.year)
       ret = ret && (this.year == lecture.year);
@@ -91,18 +92,34 @@ function BaseSchema(add){
     this.lecture_number == lecture.lecture_number);
   };
 
-  schema.statics.is_equal = function(lecture1, lecture2) {
-    if (!lecture1.is_equal) return false;
-    return lecture1.is_equal(lecture2);
+  schema.statics.equals = function(lecture1, lecture2) {
+    if (!lecture1.equals) return false;
+    return lecture1.equals(lecture2);
   };
 
-  schema.statics.validate_color = function(lecture:any):boolean {
+  schema.statics.validateColor = function(lecture:any):boolean {
     if (lecture.colorIndex > libcolor.numColor) return false;
     if (lecture.color) {
       if (lecture.color.fg && !Util.isColor(lecture.color.fg)) return false;
       if (lecture.color.bg && !Util.isColor(lecture.color.bg)) return false;
     }
     return true;
+  }
+
+  schema.statics.setTimemask = function(lecture_raw): void {
+    if (lecture_raw.class_time_json) {
+      if (!lecture_raw.class_time_mask) {
+        lecture_raw.class_time_mask = Util.timeJsonToMask(lecture_raw.class_time_json, true);
+      } else {
+        var timemask = Util.timeJsonToMask(lecture_raw.class_time_json);
+        for (var i=0; i<timemask.length; i++) {
+          if (timemask[i] != lecture_raw.class_time_mask[i])
+            throw errcode.INVALID_TIMEMASK;
+        }
+      }
+    } else if (lecture_raw.class_time_mask) {
+      throw errcode.INVALID_TIMEMASK;
+    }
   }
 
   schema.index({ year: 1, semester: 1, course_number: 1, lecture_number: 1});

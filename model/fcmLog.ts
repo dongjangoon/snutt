@@ -11,13 +11,13 @@ var FcmLogSchema = new mongoose.Schema({
 
 var mongooseModel = mongoose.model('FcmLog', FcmLogSchema);
 
-export function writeFcmLog(to: string, author: string, message: string, cause: string, response: string) {
+export function writeFcmLog(to: string, author: string, message: string, cause: string, response: any) {
   var log = new mongooseModel({
     author: author,
     cause: cause,
     to : to,
     message: message,
-    response: response
+    response: JSON.stringify(response)
   });
   return log.save();
 }

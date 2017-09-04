@@ -249,6 +249,10 @@ export class UserModel {
     return response;
   }
 
+  getRegDate(): Date {
+    return this.regDate;
+  }
+
   private async createDefaultTimetable(): Promise<TimetableDocument> {
     let userId = this._id;
     return CourseBookModel.getRecent({lean:true}).then(function(coursebook){

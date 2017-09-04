@@ -1,9 +1,7 @@
 import express = require('express');
 var router = express.Router();
 
-import {timeJsonToMask} from '../../lib/util';
-
-import {TimetableModel, TimetableDocument} from '../../model/timetable';
+import {TimetableModel} from '../../model/timetable';
 import {LectureModel, UserLectureModel} from '../../model/lecture';
 import {UserModel} from '../../model/user';
 import util = require('../../lib/util');
@@ -12,81 +10,75 @@ import Color = require('../../lib/color');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
-router.get('/', function(req, res, next) { //timetable list
+router.get('/', async function(req, res, next) { //timetable list
   var user:UserModel = <UserModel>req["user"];
-  TimetableModel.getTimetables(user._id, {lean:true}, function(err, timetables) {
-    if (err) {
-      logger.error(err);
-      return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'fetch timetable list failed'});
-    }
-    res.json(timetables);
-  });
+  try {
+    let result = await TimetableModel.getAbstractList(user._id);
+    res.json(result);
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'fetch timetable list failed'});
+  }
 });
 
-router.get('/recent', function(req, res, next) {
+router.get('/recent', async function(req, res, next) {
   var user:UserModel = <UserModel>req["user"];
-  TimetableModel.getRecent(user._id, {lean:true}, function(err, timetable) {
-    if (err) {
-      logger.error(err);
-      return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'find table failed'});
-    }
-    if (!timetable) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:'no timetable'});
-    res.json(timetable);
-  });
+  try {
+    let result = await TimetableModel.getRecentRaw(user._id);
+    if (!result) res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:'no timetable'});
+    else res.json(result);
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'find table failed'});
+  }
 });
 
-router.get('/:id', function(req, res, next) { //get
+router.get('/:id', async function(req, res, next) { //get
   var user:UserModel = <UserModel>req["user"];
-  TimetableModel.getTimetable(user._id, req.params.id, {lean:true}, function(err, timetable) {
-    if(err) {
-      logger.error(err);
-      return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
-    }
-    if(!timetable) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:'timetable not found'});
-    res.json(timetable);
-  });
+  try {
+    let result = await TimetableModel.getByTableIdRaw(user._id, req.params.id);
+    if (!result) res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:'timetable not found'});
+    else res.json(result);
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
+  }
 });
 
-router.get('/:year/:semester', function(req, res, next) {
+router.get('/:year/:semester', async function(req, res, next) {
   var user:UserModel = <UserModel>req["user"];
-  TimetableModel.getTimetablesBySemester(user._id, req.params.year, req.params.semester, {lean:true},
-    function(err, timetable) {
-      if(err) {
-        logger.error(err);
-        return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
-      }
-      if(!timetable) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"No timetable for given semester"});
-      res.json(timetable);
-  });
+  try {
+    let result = await TimetableModel.getBySemesterRaw(user._id, req.params.year, req.params.semester);
+    if (!result) res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"No timetable for given semester"});
+    else res.json(result);
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
+  }
 });
 
-router.post('/', function(req, res, next) { //create
+router.post('/', async function(req, res, next) { //create
   var user:UserModel = <UserModel>req["user"];
   if (!req.body.year || !req.body.semester || !req.body.title)
     return res.status(400).json({errcode: errcode.NOT_ENOUGH_TO_CREATE_TIMETABLE, message:'not enough parameters'});
 
-  TimetableModel.createTimetable({
-    user_id : user._id,
-    year : req.body.year,
-    semester : req.body.semester,
-    title : req.body.title})
-    .then(function(doc) {
-      TimetableModel.getTimetables(user._id, {lean:true}, function(err, timetables){
-        if (err) {
-          logger.error(err);
-          return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'get timetable list failed'});
-        }
-        res.json(timetables);
-      });
-    })
-    .catch(function(err) {
-      if (err == errcode.DUPLICATE_TIMETABLE_TITLE) {
-        return res.status(403).json({errcode: errcode.DUPLICATE_TIMETABLE_TITLE, message: err});
-      } else {
-        logger.error(err);
-        return res.status(500).json({errcode: errcode.SERVER_FAULT, message: 'server fault'});
-      }
+  try {
+    await TimetableModel.createFromParam({
+      user_id : user._id,
+      year : req.body.year,
+      semester : req.body.semester,
+      title : req.body.title
     });
+
+    let tableList = await TimetableModel.getAbstractList(user._id);
+    res.json(tableList);
+  } catch (err) {
+    if (err == errcode.DUPLICATE_TIMETABLE_TITLE) {
+      return res.status(403).json({errcode: errcode.DUPLICATE_TIMETABLE_TITLE, message: err});
+    }
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'server fault'});
+  }
 });
 
 /**
@@ -95,57 +87,27 @@ router.post('/', function(req, res, next) { //create
  * param ===================================
  * Lecture id from search query
  */
-router.post('/:timetable_id/lecture/:lecture_id', function(req, res, next) {
+router.post('/:timetable_id/lecture/:lecture_id', async function(req, res, next) {
   var user:UserModel = <UserModel>req["user"];
-  TimetableModel.findOne({'user_id': user._id, '_id' : req.params.timetable_id}).exec()
-    .then(function(timetable){
-      if(!timetable) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
-      LectureModel.findOne({'_id': req.params.lecture_id}).lean()
-        .exec(function(err, ref_lecture){
-          util.object_del_id(ref_lecture);
-          if (ref_lecture["year"] != timetable.year || ref_lecture["semester"] != timetable.semester) {
-            return res.status(403).json({errcode: errcode.WRONG_SEMESTER, message:"wrong semester"});
-          }
-          var lecture = new UserLectureModel(ref_lecture);
-          lecture.color = timetable.get_new_color_legacy(); // For legacy
-          lecture.colorIndex = timetable.get_new_color();
-          timetable.add_lecture(lecture, function(err, timetable){
-            if(err) {
-              if (err === errcode.DUPLICATE_LECTURE)
-                return res.status(403).json({errcode:err, message:"duplicate lecture"});
-              else if (err == errcode.LECTURE_TIME_OVERLAP)
-                return res.status(403).json({errcode:err, message:"lecture time overlap"});
-              else {
-                logger.error(err);
-                return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"insert lecture failed"});
-              }
-            }
-            res.json(timetable);
-          });
-        });
-    })
-    .catch(function(err) {
-      logger.error(err);
-      return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
-    });
-});
+  try {
+    let table = await TimetableModel.getByTableId(user._id, req.params.timetable_id);
+    if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+    await table.addRefLecture(req.params.lecture_id);
+    res.json(table.mongooseDocument);
+  } catch (err) {
+    if (err === errcode.DUPLICATE_LECTURE)
+      return res.status(403).json({errcode:err, message:"duplicate lecture"});
+    else if (err == errcode.LECTURE_TIME_OVERLAP)
+      return res.status(403).json({errcode:err, message:"lecture time overlap"});
+    else if (err == errcode.REF_LECTURE_NOT_FOUND)
+      return res.status(404).json({errcode: errcode.REF_LECTURE_NOT_FOUND, message:"ref lecture not found"});
+    else if (err == errcode.WRONG_SEMESTER)
+      return res.status(403).json({errcode: errcode.WRONG_SEMESTER, message:"wrong semester"});
 
-function set_timemask(lecture_raw): boolean {
-  if (lecture_raw.class_time_json) {
-    if (!lecture_raw.class_time_mask) {
-      lecture_raw.class_time_mask = timeJsonToMask(lecture_raw.class_time_json, true);
-    } else {
-      var timemask = timeJsonToMask(lecture_raw.class_time_json);
-      for (var i=0; i<timemask.length; i++) {
-        if (timemask[i] != lecture_raw.class_time_mask[i])
-          return false;
-      }
-    }
-  } else if (lecture_raw.class_time_mask) {
-    return false;
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"insert lecture failed"});
   }
-  return true;
-}
+});
 
 /**
  * POST /tables/:id/lecture
@@ -153,64 +115,31 @@ function set_timemask(lecture_raw): boolean {
  * param ===================================
  * json object of lecture to add
  */
-router.post('/:id/lecture', function(req, res, next) {
+router.post('/:id/lecture', async function(req, res, next) {
   var user:UserModel = <UserModel>req["user"];
-  TimetableModel.findOne({'user_id': user._id, '_id' : req.params.id})
-    .exec(function(err, timetable){
-      if(err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
-      if(!timetable) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
-      var json = req.body;
-
-      /* If no time json is found, mask is invalid */
-      try {
-        if (!set_timemask(json))
-          return res.status(400).json({errcode: errcode.INVALID_TIMEMASK, message:"invalid timemask"});
-      } catch (err) {
-        if (err == errcode.LECTURE_TIME_OVERLAP)
-          return res.status(403).json({errcode: err, message:"lecture time overlapped"});
-        else {
-          logger.error(err);
-          return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
-        }
-      }
-
-      if (!json.course_title)
-        return res.status(400).json({errcode: errcode.NO_LECTURE_TITLE, message:"no lecture title"});
-      
-      if (json.course_number || json.lecture_number)
-        return res.status(403).json({errcode: errcode.NOT_CUSTOM_LECTURE, message:"only custom lectures allowed"});
-
-      if (json["year"] && json["semester"] && (json["year"] != timetable.year || json["semester"] != timetable.semester)) {
-        return res.status(403).json({errcode: errcode.WRONG_SEMESTER, message:"wrong semester"});
-      }
-      
-      if (!json.color) {
-        json.color = timetable.get_new_color_legacy(); // for legacy
-        if (!json.colorIndex) json.colorIndex = timetable.get_new_color();
-      }
-
-      /*
-       * Sanitize json using object_del_id.
-       * If you don't do it,
-       * the existing lecture gets overwritten
-       * which is potential security breach.
-       */
-      util.object_del_id(json);
-      var lecture = new UserLectureModel(json);
-      timetable.add_lecture(lecture, function(err, timetable){
-        if(err) {
-          if (err === errcode.DUPLICATE_LECTURE)
-            return res.status(403).json({errcode:err, message:"duplicate lecture"});
-          if (err == errcode.LECTURE_TIME_OVERLAP)
-            return res.status(403).json({errcode:err, message:"lecture time overlap"});
-          if (err == errcode.INVALID_COLOR)
-            return res.status(400).json({errcode:err, message:"invalid color"});  
-          logger.error(err)
-          return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"insert lecture failed"});
-        }
-        res.json(timetable);
-      });
-    });
+  try {
+    let table = await TimetableModel.getByTableId(user._id, req.params.id);
+    if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+    await table.addLecture(req.body);
+    res.json(table.mongooseDocument);
+  } catch (err) {
+    if (err == errcode.INVALID_TIMEMASK)
+      return res.status(403).json({errcode: err, message:"invalid timemask"});
+    if (err === errcode.DUPLICATE_LECTURE)
+      return res.status(403).json({errcode:err, message:"duplicate lecture"});
+    if (err == errcode.LECTURE_TIME_OVERLAP)
+      return res.status(403).json({errcode:err, message:"lecture time overlap"});
+    if (err == errcode.INVALID_COLOR)
+      return res.status(400).json({errcode:err, message:"invalid color"});
+    if (err == errcode.NO_LECTURE_TITLE)
+      return res.status(400).json({errcode: errcode.NO_LECTURE_TITLE, message:"no lecture title"});
+    if (err == errcode.NOT_CUSTOM_LECTURE)
+      return res.status(403).json({errcode: errcode.NOT_CUSTOM_LECTURE, message:"only custom lectures allowed"});
+    if (err == errcode.WRONG_SEMESTER)
+      return res.status(403).json({errcode: errcode.WRONG_SEMESTER, message:"wrong semester"});
+    logger.error(err)
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"insert lecture failed"});
+  }
 });
 
 /**
