@@ -149,152 +149,128 @@ router.post('/:id/lecture', async function(req, res, next) {
  * json object of lecture to update
  */
 
-router.put('/:table_id/lecture/:lecture_id', function(req, res, next) {
+router.put('/:table_id/lecture/:lecture_id', async function(req, res, next) {
   var user:UserModel = <UserModel>req["user"];
-  var lecture_raw = req.body;
-  if(!lecture_raw) return res.status(400).json({errcode: errcode.NO_LECTURE_INPUT, message:"empty body"});
+  var rawLecture = req.body;
+  if(!rawLecture) return res.status(400).json({errcode: errcode.NO_LECTURE_INPUT, message:"empty body"});
 
   if (!req.params.lecture_id)
     return res.status(400).json({errcode: errcode.NO_LECTURE_ID, message:"need lecture_id"});
 
-  TimetableModel.findOne({'user_id': user._id, '_id' : req.params.table_id})
-    .exec(function(err, timetable){
-      if(err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
-      if(!timetable) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
-      /* If no time json is found, mask is invalid */
-      try {
-        if (!set_timemask(lecture_raw))
-          return res.status(400).json({errcode: errcode.INVALID_TIMEMASK, message:"invalid timemask"});
-      } catch (err) {
-        if (err == errcode.LECTURE_TIME_OVERLAP)
-          return res.status(403).json({errcode: err, message:"lecture time overlapped"});
-        else {
-          logger.error(err);
-          return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
-        }
-      }
-      timetable.update_lecture(req.params.lecture_id, lecture_raw, function(err, doc) {
-        if(err) {
-          if (err == errcode.ATTEMPT_TO_MODIFY_IDENTITY)
-            return res.status(403).json({errcode:err, message:"modifying identities forbidden"})
-          if (err == errcode.INVALID_COLOR)
-            return res.status(400).json({errcode:err, message:"invalid color"})
-          if (err == errcode.LECTURE_TIME_OVERLAP)
-            return res.status(403).json({errcode:err, message:"lecture time overlapped"})
-          logger.error(err);
-          return res.status(500).json({errcode:err, message:"update lecture failed"});
-        }
-        res.json(doc);
-      });
-    });
+  try {
+    let table = await TimetableModel.getByTableId(user._id, req.params.table_id);
+    if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+
+    UserLectureModel.setTimemask(rawLecture);
+    await table.updateLecture(req.params.lecture_id, rawLecture);
+  } catch (err) {
+    if (err == errcode.INVALID_TIMEMASK)
+      return res.status(400).json({errcode: errcode.INVALID_TIMEMASK, message:"invalid timemask"});
+    if (err == errcode.LECTURE_TIME_OVERLAP)
+      return res.status(403).json({errcode: err, message:"lecture time overlapped"});
+    if (err == errcode.ATTEMPT_TO_MODIFY_IDENTITY)
+      return res.status(403).json({errcode:err, message:"modifying identities forbidden"})
+    if (err == errcode.INVALID_COLOR)
+      return res.status(400).json({errcode:err, message:"invalid color"})
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
+  }
 });
 
-router.put('/:table_id/lecture/:lecture_id/reset', function(req, res, next) {
+router.put('/:table_id/lecture/:lecture_id/reset', async function(req, res, next) {
   var user:UserModel = <UserModel>req["user"];
 
   if (!req.params.lecture_id)
     return res.status(400).json({errcode: errcode.NO_LECTURE_ID, message:"need lecture_id"});
 
-  var promise = TimetableModel.findOne({'user_id': user._id, '_id' : req.params.table_id}).exec()
-    .then(function(timetable){
-      if(!timetable) return Promise.reject(errcode.TIMETABLE_NOT_FOUND);
-      return timetable.reset_lecture(req.params.lecture_id);
-    });
-  
-  promise.then(function(timetable){
-    res.json(timetable);
-  }).catch(function(err) {
+  try {
+    let table = await TimetableModel.getByTableId(user._id, req.params.table_id);
+    if (!table) return res.status(404).json({errcode:errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+    table.resetLecture(req.params.lecture_id);
+  } catch (err) {
     if (err === errcode.IS_CUSTOM_LECTURE) {
       return res.status(403).json({errcode:err, message:"cannot reset custom lectures"});
     } else if (err === errcode.REF_LECTURE_NOT_FOUND) {
       return res.status(404).json({errcode:err, message:"ref lecture not found"});
     } else if (err === errcode.LECTURE_NOT_FOUND) {
       return res.status(404).json({errcode:err, message:"lecture not found"});
-    } else if (err === errcode.TIMETABLE_NOT_FOUND) {
-      return res.status(404).json({errcode:err, message:"timetable not found"});
     } else if (err === errcode.LECTURE_TIME_OVERLAP) {
       return res.status(403).json({errcode:err, message:"lecture time overlap"});
     } else {
-      console.log("lecture reset: ",err);
+      logger.error(err);
       return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"reset lecture failed"});
     }
-  });
+  }
 });
 
 /**
  * DELETE /tables/:table_id/lecture/:lecture_id
  * delete a lecture from a timetable
  */
-router.delete('/:table_id/lecture/:lecture_id', function(req, res, next) {
+router.delete('/:table_id/lecture/:lecture_id', async function(req, res, next) {
   var user:UserModel = <UserModel>req["user"];
-  TimetableModel.findOneAndUpdate(
-    {'user_id': user._id, '_id' : req.params.table_id},
-    { $pull: {lecture_list : {_id: req.params.lecture_id} } }, {new: true})
-    .exec(function (err, doc) {
-      if (err) {
-        logger.error(err);
-        return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"delete lecture failed"});
-      }
-      if (!doc) return res.status(404).json({errcode:errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
-      res.json(doc);
-    });
+  try {
+    let document = await TimetableModel.removeLecture(user._id, req.params.table_id, req.params.lecture_id);
+    if (!document) return res.status(404).json({errcode:errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+    res.json(document);
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"delete lecture failed"});
+  }
 });
 
 /**
  * DELETE /tables/:id
  * delete a timetable
  */
-router.delete('/:id', function(req, res, next) { // delete
+router.delete('/:id', async function(req, res, next) { // delete
   var user:UserModel = <UserModel>req["user"];
-  TimetableModel.findOneAndRemove({'user_id': user._id, '_id' : req.params.id}).lean()
-  .exec(function(err, timetable) {
-    if(err) return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"delete timetable failed"});
-    if (!timetable) return res.status(404).json({errcode:errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
-    TimetableModel.getTimetables(user._id, {lean:true}, function(err, timetables) {
-      if (err) return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"failed to get list"});
-      res.json(timetables);
-    });
-  });
+  try {
+    await TimetableModel.remove(user._id, req.params.id);
+    let tableList = await TimetableModel.getAbstractList(user._id);
+    res.json(tableList);
+  } catch (err) {
+    if (err == errcode.TIMETABLE_NOT_FOUND) 
+      return res.status(404).json({errcode:errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+    logger.error(err);
+    return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"delete timetable failed"});
+  }
 });
 
 /**
  * POST /tables/:id/copy
  * copy a timetable
  */
-router.post('/:id/copy', function(req, res, next) {
+router.post('/:id/copy', async function(req, res, next) {
   var user:UserModel = <UserModel>req["user"];
-  TimetableModel.findOne({'user_id': user._id, '_id' : req.params.id})
-    .exec(function(err, timetable){
-      if(err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
-      if(!timetable) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
-      timetable.copy(timetable.title, function(err, doc) {
-        if(err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"timetable copy failed"});
-        TimetableModel.getTimetables(user._id, {lean:true}, function(err, timetables) {
-          if (err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"failed to get list"});
-          res.json(timetables);
-        });
-      });
-    });
+  try {
+    let table = await TimetableModel.getByTableId(user._id, req.params.id);
+    if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+    await table.copy(table.title);
+    let tableList = await TimetableModel.getAbstractList(user._id);
+    res.json(tableList);
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"copy table failed"});
+  }
 });
 
-router.put('/:id', function(req, res, next) {
+router.put('/:id', async function(req, res, next) {
   var user:UserModel = <UserModel>req["user"];
   if (!req.body.title) return res.status(400).json({errcode: errcode.NO_TIMETABLE_TITLE, message:"should provide title"});
-  TimetableModel.findOne({'user_id': user._id, '_id' : req.params.id})
-    .exec(function(err, timetable) {
-      if(err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"update timetable title failed"});
-      timetable.title = req.body.title;
-      timetable.checkDuplicate(function(err) {
-        if (err) return res.status(403).json({errcode: errcode.DUPLICATE_TIMETABLE_TITLE, message:"duplicate title"});
-        timetable.save(function (err, doc) {
-          if (err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"update timetable title failed"});
-          TimetableModel.getTimetables(user._id, {lean:true}, function(err, timetables) {
-            if (err) return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"failed to get list"});
-            res.json(timetables);
-          });
-        });
-      });
-    });
+  
+  try {
+    await TimetableModel.changeTitle(user._id, req.params.id, req.body.title);
+    let tableList = await TimetableModel.getAbstractList(user._id);
+    res.json(tableList);
+  } catch (err) {
+    if (err == errcode.DUPLICATE_TIMETABLE_TITLE)
+      return res.status(403).json({errcode: errcode.DUPLICATE_TIMETABLE_TITLE, message:"duplicate title"});
+    if (err == errcode.TIMETABLE_NOT_FOUND)
+      return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"update timetable title failed"});
+  }
 });
 
 export = router;

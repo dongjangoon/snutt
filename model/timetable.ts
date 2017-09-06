@@ -211,6 +211,31 @@ export class TimetableModel {
     else return availableColors[Math.floor(Math.random() * availableColors.length)]
   }
 
+  static async removeLecture(userId, tableId, lectureId): Promise<any> {
+    let document = await mongooseModel.findOneAndUpdate(
+      {'user_id': userId, '_id' : tableId},
+      { $pull: {lecture_list : {_id: lectureId} } }, {new: true})
+      .exec();
+    return document;
+  }
+
+  static async remove(userId, tableId): Promise<void> {
+    let document = await mongooseModel.findOneAndRemove({'user_id': userId, '_id' : tableId}).lean().exec();
+    if (!document) throw errcode.TIMETABLE_NOT_FOUND;
+  }
+
+  static async changeTitle(userId, tableId, newTitle): Promise<void> {
+    let document = await mongooseModel.findOne({'user_id': userId, '_id' : tableId}).exec();
+    if (!document) throw errcode.TIMETABLE_NOT_FOUND;
+    if (document['title'] == newTitle) return;
+
+    let duplicate = TimetableModel.getByTitleRaw(userId, document['year'], document['semester'], newTitle);
+    if (duplicate !== null) throw errcode.DUPLICATE_TIMETABLE_TITLE;
+    
+    document['title'] = newTitle;
+    await document.save();
+  }
+
   static async createFromParam(params): Promise<TimetableModel> {
     if (!params || !params.user_id || !params.year || !params.semester || !params.title) {
       throw errcode.NOT_ENOUGH_TO_CREATE_TIMETABLE;
@@ -230,7 +255,6 @@ export class TimetableModel {
     mongooseDocument.save();
     return new TimetableModel(mongooseDocument);
   };
-
 
   static getAbstractList(userId: string): Promise<
       [{year: number,
