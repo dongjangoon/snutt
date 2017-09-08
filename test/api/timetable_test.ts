@@ -114,7 +114,7 @@ export = function(app, db, request) {
       });
   });
 
-  it ('Create timetable with the same title but differen semester will succeed', function(done){
+  it ('Create timetable with the same title but different semester will succeed', function(done){
     request.post('/tables/')
       .set('x-access-token', token)
       .send({year:2016, semester:1, title:"MyTimeTable"})
@@ -191,7 +191,7 @@ export = function(app, db, request) {
       })
   });
 
-  it ('Create a user lecture', function(done) {
+  it ('Create a lecture from ref', function(done) {
     request.post('/tables/'+table_id+'/lecture/'+ref_lecture._id)
       .set('x-access-token', token)
       .expect(200)
@@ -209,7 +209,7 @@ export = function(app, db, request) {
       });
   });
 
-  it ('Create a user lecture with wrong semester will fail', function(done) {
+  it ('Create a lecture from ref with wrong semester will fail', function(done) {
     request.post('/tables/'+table_ws_id+'/lecture/'+ref_lecture._id)
       .set('x-access-token', token)
       .expect(403)
@@ -228,10 +228,18 @@ export = function(app, db, request) {
       .set('x-access-token', token)
       .expect(200)
       .end(function(err, res) {
+        if (err) {
+          console.log(res.body);
+          return done(err);
+        }
         request.get('/tables/'+table_id)
           .set('x-access-token', token)
           .expect(200)
           .end(function(err, res) {
+            if (err) {
+              console.log(res.body);
+              return done(err);
+            }
             assert.equal(res.body.lecture_list[0].course_number, "400.320");
             assert.equal(res.body.lecture_list[0].class_time_json[0].place, "302-308");
             done(err);

@@ -2,6 +2,7 @@ import mongoose = require('mongoose');
 import assert = require('assert');
 import _ = require('lodash');
 import errcode = require('./errcode');
+import { List } from 'immutable';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -109,48 +110,41 @@ export function timeJsonToMask(timeJson:Array<TimePlace>, duplicateCheck?:boolea
   return timeMasks;
 }
 
+function deleteObjectIdRecur(obj: any, stack: List<object>) {
+  for (let i=0; i< stack.size; i++) {
+    if (i > 10) {
+      logger.warn("deleteObjectIdRecur: Too deep stack");
+      logger.warn(obj);
+      return;
+    }
+    if (obj === stack[i]) {
+      logger.warn("deleteObjectIdRecur: recurrence found");
+      logger.warn(obj);
+      return;
+    }
+  }
+  if (obj !== null && typeof(obj) == 'object') {
+    if (obj instanceof Promise) {
+      logger.warn("deleteObjectIdRecur: Object is promise");
+    } else if (Array.isArray(obj)) {
+      for (let i = 0; i < obj.length; i++) {
+        if (obj[i] && obj[i]._id) deleteObjectIdRecur(obj[i], stack.push(obj));  //recursive del calls on array elements
+      }
+    } else {
+      delete obj._id;
+      Object.keys(obj).forEach(function(key) {
+        if (obj[key] && obj[key]._id) deleteObjectIdRecur(obj[key], stack.push(obj)); //recursive del calls on object elements
+      });
+    }
+  }
+}
+
 /**
  * Delete '_id' prop of the object and its sub-object recursively
  * This is for copying mongo objects or sanitizing json objects by removing all _id properties
  */
-export function object_del_id(object) {
-  if (object && typeof(object) != 'string' &&
-    typeof(object) != 'number' && typeof(object) != 'boolean') {
-    //for array length is defined however for objects length is undefined
-    if (typeof(object.length) == 'undefined' && '_id' in object) {
-      delete object._id;
-      for (var key in object) {
-        if (object.hasOwnProperty(key)) object_del_id(object[key]); //recursive del calls on object elements
-      }
-    } else {
-      for (var i = 0; i < object.length; i++) {
-        object_del_id(object[i]);  //recursive del calls on array elements
-      }
-    }
-  }
-};
-
-/**
- * New '_id' prop of the object and its sub-object recursively
- * for deep-copying a mongoose document.
- * Then save the object.
- * http://www.connecto.io/blog/deep-copyingcloning-of-mongoose-object/
- */
-export function object_new_id(object) {
-  if (object && typeof(object) != 'string' &&
-    typeof(object) != 'number' && typeof(object) != 'boolean') {
-    //for array length is defined however for objects length is undefined
-    if (typeof(object.length) == 'undefined' && '_id' in object) {
-      object._id = mongoose.Types.ObjectId();
-      for (var key in object) {
-        if (object.hasOwnProperty(key)) object_new_id(object[key]); //recursive del calls on object elements
-      }
-    } else {
-      for (var i = 0; i < object.length; i++) {
-        object_new_id(object[i]);  //recursive del calls on array elements
-      }
-    }
-  }
+export function deleteObjectId(object) {
+  return deleteObjectIdRecur(object, List<object>());
 };
 
 export function compareLecture(oldl, newl) {

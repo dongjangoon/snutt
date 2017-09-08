@@ -3,7 +3,7 @@ import config = require('../config/config');
 import bcrypt = require('bcrypt');
 import crypto = require('crypto');
 import errcode = require('../lib/errcode');
-import {TimetableModel, TimetableDocument} from './timetable';
+import {TimetableModel} from './timetable';
 import {CourseBookModel} from './courseBook';
 import {writeFcmLog} from './fcmLog';
 import * as log4js from 'log4js';
@@ -253,10 +253,10 @@ export class UserModel {
     return this.regDate;
   }
 
-  private async createDefaultTimetable(): Promise<TimetableDocument> {
+  private async createDefaultTimetable(): Promise<TimetableModel> {
     let userId = this._id;
     return CourseBookModel.getRecent({lean:true}).then(function(coursebook){
-      return TimetableModel.createTimetable({
+      return TimetableModel.createFromParam({
         user_id : userId,
         year : coursebook.year,
         semester : coursebook.semester,

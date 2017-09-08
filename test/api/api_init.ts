@@ -100,6 +100,7 @@ describe('API Test', function() {
           0,
           12,
           0,
+          0,
           0
         ],
         "class_time_json": [
@@ -181,8 +182,4 @@ describe('API Test', function() {
   describe('Timetable', function () {
     require('./timetable_test')(app, db, request);
   });
-
-/*  describe('Cousebook Import', function () {
-    require('./import_test')(app, db, request);
-  });*/
 });

@@ -51,33 +51,45 @@ export class TimetableModel {
     this.mongooseDocument = mongooseDocument;
   }
 
-  async copy(newTitle:string): Promise<TimetableModel> {
+  async copy(): Promise<TimetableModel> {
+    for (let trial = 1; true; trial++) {
+      let newTitle = this.title + " (" + trial + ")";
+      try {
+        return await this.copyWithTitle(newTitle);
+      } catch (err) {
+        if (err === errcode.DUPLICATE_TIMETABLE_TITLE) {
+          continue;
+        }
+        throw err;
+      }
+    }
+  }
+
+  async copyWithTitle(newTitle:string): Promise<TimetableModel> {
     if (newTitle == this.title) throw errcode.DUPLICATE_TIMETABLE_TITLE;
-    if (await TimetableModel.getByTitleRaw(this.userId, this.year, this.semester, this.title)) throw errcode.DUPLICATE_TIMETABLE_TITLE;
-    let newMongooseDocument:any = new mongooseModel(JSON.parse(JSON.stringify(this.mongooseDocument)));
-    Util.object_new_id(newMongooseDocument);
+    if (await TimetableModel.getByTitleRaw(this.userId, this.year, this.semester, newTitle)) throw errcode.DUPLICATE_TIMETABLE_TITLE;
+    let copied = JSON.parse(JSON.stringify(this.mongooseDocument));
+    Util.deleteObjectId(copied);
+    let newMongooseDocument:any = new mongooseModel(copied);
     newMongooseDocument.title = newTitle;
-    newMongooseDocument.save();
+    await newMongooseDocument.save();
     return new TimetableModel(newMongooseDocument);
   }
 
   async addRefLecture(lectureId: string): Promise<void> {
-    let refLecture = await LectureModel.findOne({'_id': lectureId}).lean().exec();
+    let refLecture:any = await LectureModel.findOne({'_id': lectureId}).lean().exec();
     if (!refLecture) throw errcode.REF_LECTURE_NOT_FOUND;
     if (refLecture["year"] != this.year || refLecture["semester"] != this.semester) {
       throw errcode.WRONG_SEMESTER;
     }
 
-    Util.object_del_id(refLecture);
-    let userLecture = new UserLectureModel(refLecture);
-    userLecture.colorIndex = this.getAnyAvailableColor();
-    await this.addLecture(userLecture);
+    refLecture.colorIndex = this.getAnyAvailableColor();
+    await this.addLecture(refLecture);
   }
 
-  async addLecture(rawLecture: any): Promise<void> {
+  async addCustomLecture(rawLecture: any): Promise<void> {
     /* If no time json is found, mask is invalid */
     UserLectureModel.setTimemask(rawLecture);
-
     if (!rawLecture.course_title) throw errcode.NO_LECTURE_TITLE;
     
     if (rawLecture.course_number || rawLecture.lecture_number) throw errcode.NOT_CUSTOM_LECTURE;
@@ -87,13 +99,17 @@ export class TimetableModel {
 
     if (!rawLecture.color && !rawLecture.colorIndex) rawLecture.colorIndex = this.getAnyAvailableColor();
 
+    await this.addLecture(rawLecture);
+  }
+
+  private async addLecture(rawLecture: any): Promise<void> {
     /*
      * Sanitize json using object_del_id.
      * If you don't do it,
      * the existing lecture gets overwritten
      * which is potential security breach.
      */
-    Util.object_del_id(rawLecture);
+    Util.deleteObjectId(rawLecture);
     let lecture = new UserLectureModel(rawLecture);
 
     for (var i = 0; i<this.lectureList.length; i++){
@@ -119,7 +135,7 @@ export class TimetableModel {
     return this.lectureList.id(lectureId);
   }
 
-  async updateLecture(lectureId, rawLecture): Promise<void> {
+  private rawLectureToUpdateSet(lectureId, rawLecture): any {
     if (rawLecture.course_number || rawLecture.lecture_number) {
       throw errcode.ATTEMPT_TO_MODIFY_IDENTITY;
     }
@@ -139,17 +155,25 @@ export class TimetableModel {
     rawLecture.updated_at = Date.now();
   
     var update_set = {};
-    Util.object_del_id(rawLecture);
+    Util.deleteObjectId(rawLecture);
     for (var field in rawLecture) {
       update_set['lecture_list.$.' + field] = rawLecture[field];
     }
-  
+    return update_set;
+  }
+
+  async updateLecture(lectureId: string, rawLecture: any): Promise<void> {
+    if (!lectureId || lectureId == "undefined") {
+      throw "lectureId cannot be null nor undefined";
+    }
+    let updateSet = this.rawLectureToUpdateSet(lectureId, rawLecture);
     let newMongooseDocument: any = await mongooseModel.findOneAndUpdate({ "_id" : this._id, "lecture_list._id" : lectureId},
-      {$set : update_set}, {new: true}).exec();
+      {$set : updateSet}, {new: true}).exec();
     
     if (newMongooseDocument === null) throw errcode.TIMETABLE_NOT_FOUND;
-    if (newMongooseDocument.lecture_list.id(lectureId)) throw errcode.LECTURE_NOT_FOUND;
+    if (!newMongooseDocument.lecture_list.id(lectureId)) throw errcode.LECTURE_NOT_FOUND;
     this.mongooseDocument = newMongooseDocument;
+    this.lectureList = this.mongooseDocument['lecture_list'];
   };
 
 
@@ -170,12 +194,31 @@ export class TimetableModel {
     await this.updateLecture(lectureId, refLecture);
   }
 
+  static async deleteLectureWithUser(userId: string, tableId: string, lectureId: string): Promise<TimetableModel> {
+    let document = await mongooseModel.findOneAndUpdate(
+      {'_id' : tableId, 'user_id' : userId},
+      { $pull: {lecture_list : {_id: lectureId} } }, {new: true})
+      .exec();
+    if (!document) throw errcode.TIMETABLE_NOT_FOUND;
+    return new TimetableModel(document);
+  }
+
+  static async deleteLecture(tableId: string, lectureId: string): Promise<TimetableModel> {
+    let document = await mongooseModel.findOneAndUpdate(
+      {'_id' : tableId},
+      { $pull: {lecture_list : {_id: lectureId} } }, {new: true})
+      .exec();
+    if (!document) throw errcode.TIMETABLE_NOT_FOUND;
+    return new TimetableModel(document);
+  }
+
   async deleteLecture(lectureId): Promise<void> {
     let newMongooseDocument = await mongooseModel.findOneAndUpdate(
       {'_id' : this._id},
       { $pull: {lecture_list : {_id: lectureId} } }, {new: true})
       .exec();
     this.mongooseDocument = newMongooseDocument;
+    this.lectureList = this.mongooseDocument['lecture_list'];
   };
 
 
@@ -211,12 +254,12 @@ export class TimetableModel {
     else return availableColors[Math.floor(Math.random() * availableColors.length)]
   }
 
-  static async removeLecture(userId, tableId, lectureId): Promise<any> {
-    let document = await mongooseModel.findOneAndUpdate(
-      {'user_id': userId, '_id' : tableId},
-      { $pull: {lecture_list : {_id: lectureId} } }, {new: true})
-      .exec();
-    return document;
+  findLectureId(courseNumber, lectureNumber): string {
+    for (let i=0; i<this.lectureList.length; i++) {
+      if (this.lectureList[i]['course_number'] == courseNumber &&
+          this.lectureList[i]['lecture_number'] == lectureNumber) return this.lectureList[i]['_id'];
+    }
+    throw errcode.LECTURE_NOT_FOUND;
   }
 
   static async remove(userId, tableId): Promise<void> {
@@ -229,7 +272,7 @@ export class TimetableModel {
     if (!document) throw errcode.TIMETABLE_NOT_FOUND;
     if (document['title'] == newTitle) return;
 
-    let duplicate = TimetableModel.getByTitleRaw(userId, document['year'], document['semester'], newTitle);
+    let duplicate = await TimetableModel.getByTitleRaw(userId, document['year'], document['semester'], newTitle);
     if (duplicate !== null) throw errcode.DUPLICATE_TIMETABLE_TITLE;
     
     document['title'] = newTitle;
@@ -241,7 +284,7 @@ export class TimetableModel {
       throw errcode.NOT_ENOUGH_TO_CREATE_TIMETABLE;
     }
 
-    let duplicate = TimetableModel.getByTitleRaw(params.user_id, params.year, params.semester, params.title);
+    let duplicate = await TimetableModel.getByTitleRaw(params.user_id, params.year, params.semester, params.title);
     if (duplicate !== null) throw errcode.DUPLICATE_TIMETABLE_TITLE;
 
     let mongooseDocument = new mongooseModel({
@@ -252,7 +295,7 @@ export class TimetableModel {
       lecture_list : []
     });
 
-    mongooseDocument.save();
+    await mongooseDocument.save();
     return new TimetableModel(mongooseDocument);
   };
 
@@ -287,7 +330,7 @@ export class TimetableModel {
     return new TimetableModel(result);
   }
 
-  static getByTableIdRaw(userId: string, tableId: string): Promise<any> {
+  static getByTableIdRaw(userId: string, tableId: string): Promise<mongoose.Document> {
     var query:any = mongooseModel.findOne({'user_id': userId, '_id' : tableId});
     return query.exec();
   }
@@ -296,6 +339,31 @@ export class TimetableModel {
     let mongooseDocument = await TimetableModel.getByTableIdRaw(userId, tableId);
     if (mongooseDocument === null) return null;
     return new TimetableModel(mongooseDocument);
+  }
+
+  static getWithLectureRaw(year: number, semester: number, courseNumber: string, lectureNumber: string): Promise<mongoose.Document[]> {
+    return mongooseModel.find(
+        {
+          year: year,
+          semester: semester,
+          lecture_list: {
+            $elemMatch : {
+              course_number: courseNumber,
+              lecture_number: lectureNumber
+            }
+          }
+        }).exec();
+  }
+
+  static async getWithLecture(year: number, semester: number, courseNumber: string, lectureNumber: string): Promise<TimetableModel[]> {
+    let mongooseDocuments = await TimetableModel.getWithLectureRaw(year, semester, courseNumber, lectureNumber);
+    if (mongooseDocuments === null) return null;
+    if (mongooseDocuments.length == 0) return [];
+    let ret: TimetableModel[] = [];
+    for (let i=0; i<mongooseDocuments.length; i++) {
+      ret.push(new TimetableModel(mongooseDocuments[i]));
+    }
+    return ret;
   }
 
   static getRecentRaw(user_id): Promise<any> {

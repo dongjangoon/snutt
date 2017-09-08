@@ -1,36 +1,10 @@
 import { LectureDiff } from './compare';
 import errcode = require('../../../lib/errcode');
 import { Type as NotificationType, NotificationModel } from '../../../model/notification';
-import { TimetableModel, TimetableDocument } from '../../../model/timetable';
+import { TimetableModel } from '../../../model/timetable';
 import { UserModel } from '../../../model/user';
 import * as fcm from '../../../lib/fcm';
 import * as async from 'async';
-
-
-function findTableWithLecture(year:number, semesterIndex:number, course_number:string,
-  lecture_number:string, cb?:(err, timetables:TimetableDocument[])=>any): Promise<TimetableDocument[]> {
-  return TimetableModel.find(
-      {
-        year: year,
-        semester: semesterIndex,
-        lecture_list: {
-          $elemMatch : {
-            course_number: course_number,
-            lecture_number: lecture_number
-          }
-        }
-      },
-      {
-        user_id : 1,
-        title: 1,
-        lecture_list: {
-          $elemMatch : {
-            course_number: course_number,
-            lecture_number: lecture_number
-          }
-        }
-  }, cb).exec();
-}
 
 export async function notifyUpdated(year:number, semesterIndex:number, diff:LectureDiff,
     fcm_enabled:boolean):Promise<void> {
@@ -41,38 +15,33 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
     async.series([
       function (callback) {
         async.each(diff.updated, async function(updated_lecture, callback) {
-          let timetables = await findTableWithLecture(
+          let timetables = await TimetableModel.getWithLecture(
             year, semesterIndex, updated_lecture.course_number, updated_lecture.lecture_number);
           async.each(timetables, async function(timetable, callback) {
-            if (timetable.lecture_list.length != 1) {
-              return callback({
-                message: "Lecture update error",
-                timetable_id: timetable,
-                lecture: updated_lecture
-              });
-            }
             var noti_detail = {
               timetable_id : timetable._id,
               lecture : updated_lecture
             };
 
+            let lectureId = timetable.findLectureId(updated_lecture.course_number, updated_lecture.lecture_number);
+
             try {
-              await timetable.update_lecture(timetable.lecture_list[0]._id, updated_lecture.after);
-              if (num_updated_per_user[timetable.user_id]) num_updated_per_user[timetable.user_id]++;
-              else num_updated_per_user[timetable.user_id] = 1;
+              await timetable.updateLecture(lectureId, updated_lecture.after);
+              if (num_updated_per_user[timetable.userId]) num_updated_per_user[timetable.userId]++;
+              else num_updated_per_user[timetable.userId] = 1;
               await NotificationModel.createNotification(
-                timetable.user_id,
+                timetable.userId,
                 "'"+timetable.title+"' 시간표의 '"+updated_lecture.course_title+"' 강의가 업데이트 되었습니다.",
                 NotificationType.LECTURE_UPDATE,
                 noti_detail,
                 "unused");
             } catch (err) {
               if (err == errcode.LECTURE_TIME_OVERLAP) {
-                await timetable.delete_lecture(timetable.lecture_list[0]._id);
-                if (num_removed_per_user[timetable.user_id]) num_removed_per_user[timetable.user_id]++;
-                else num_removed_per_user[timetable.user_id] = 1; 
+                await timetable.deleteLecture(lectureId);
+                if (num_removed_per_user[timetable.userId]) num_removed_per_user[timetable.userId]++;
+                else num_removed_per_user[timetable.userId] = 1; 
                 await NotificationModel.createNotification(
-                  timetable.user_id,
+                  timetable.userId,
                   "'"+timetable.title+"' 시간표의 '"+updated_lecture.course_title+
                     "' 강의가 업데이트되었으나, 시간표가 겹쳐 삭제되었습니다.",
                   NotificationType.LECTURE_REMOVE,
@@ -91,27 +60,22 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
 
       function (callback) {
         async.each(diff.removed, async function(removed_lecture, callback) {
-          let timetables = await findTableWithLecture(
+          let timetables = await TimetableModel.getWithLecture(
             year, semesterIndex, removed_lecture.course_number, removed_lecture.lecture_number);
           
           async.each(timetables, async function(timetable, callback) {
-            if (timetable.lecture_list.length != 1) {
-              return callback({
-                message: "Lecture update error",
-                timetable_id: timetable,
-                lecture: removed_lecture
-              });
-            }
             var noti_detail = {
               timetable_id : timetable._id,
               lecture : removed_lecture
             };
+
+            let lectureId = timetable.findLectureId(removed_lecture.course_number, removed_lecture.lecture_number);
             
-            await timetable.delete_lecture(timetable.lecture_list[0]._id);
-            if (num_removed_per_user[timetable.user_id]) num_removed_per_user[timetable.user_id]++;
-            else num_removed_per_user[timetable.user_id] = 1; 
+            await timetable.deleteLecture(lectureId);
+            if (num_removed_per_user[timetable.userId]) num_removed_per_user[timetable.userId]++;
+            else num_removed_per_user[timetable.userId] = 1; 
             await NotificationModel.createNotification(
-              timetable.user_id,
+              timetable.userId,
               "'"+timetable.title+"' 시간표의 '"+removed_lecture.course_title+"' 강의가 폐강되어 삭제되었습니다.",
               NotificationType.LECTURE_REMOVE,
               noti_detail,

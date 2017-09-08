@@ -120,7 +120,7 @@ router.post('/:id/lecture', async function(req, res, next) {
   try {
     let table = await TimetableModel.getByTableId(user._id, req.params.id);
     if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
-    await table.addLecture(req.body);
+    await table.addCustomLecture(req.body);
     res.json(table.mongooseDocument);
   } catch (err) {
     if (err == errcode.INVALID_TIMEMASK)
@@ -163,6 +163,7 @@ router.put('/:table_id/lecture/:lecture_id', async function(req, res, next) {
 
     UserLectureModel.setTimemask(rawLecture);
     await table.updateLecture(req.params.lecture_id, rawLecture);
+    res.json(table.mongooseDocument);
   } catch (err) {
     if (err == errcode.INVALID_TIMEMASK)
       return res.status(400).json({errcode: errcode.INVALID_TIMEMASK, message:"invalid timemask"});
@@ -186,7 +187,8 @@ router.put('/:table_id/lecture/:lecture_id/reset', async function(req, res, next
   try {
     let table = await TimetableModel.getByTableId(user._id, req.params.table_id);
     if (!table) return res.status(404).json({errcode:errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
-    table.resetLecture(req.params.lecture_id);
+    await table.resetLecture(req.params.lecture_id);
+    res.json(table.mongooseDocument);
   } catch (err) {
     if (err === errcode.IS_CUSTOM_LECTURE) {
       return res.status(403).json({errcode:err, message:"cannot reset custom lectures"});
@@ -210,10 +212,11 @@ router.put('/:table_id/lecture/:lecture_id/reset', async function(req, res, next
 router.delete('/:table_id/lecture/:lecture_id', async function(req, res, next) {
   var user:UserModel = <UserModel>req["user"];
   try {
-    let document = await TimetableModel.removeLecture(user._id, req.params.table_id, req.params.lecture_id);
-    if (!document) return res.status(404).json({errcode:errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
-    res.json(document);
+    let table = await TimetableModel.deleteLectureWithUser(user._id, req.params.table_id, req.params.lecture_id);
+    res.json(table.mongooseDocument);
   } catch (err) {
+    if (err == errcode.TIMETABLE_NOT_FOUND) 
+      return res.status(404).json({errcode:errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
     logger.error(err);
     return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"delete lecture failed"});
   }
@@ -246,11 +249,11 @@ router.post('/:id/copy', async function(req, res, next) {
   try {
     let table = await TimetableModel.getByTableId(user._id, req.params.id);
     if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
-    await table.copy(table.title);
+    await table.copy();
     let tableList = await TimetableModel.getAbstractList(user._id);
     res.json(tableList);
   } catch (err) {
-    logger.error(err);
+    logger.error("/:id/copy ", err);
     return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"copy table failed"});
   }
 });
