@@ -1,5 +1,6 @@
 import {LectureModel, LectureDocument} from './lecture';
 import errcode = require('../lib/errcode');
+import * as mongoose from 'mongoose';
 
 //something similar to LIKE query in SQL
 function like(str: string, matchStartChar?: boolean): string {
@@ -15,6 +16,12 @@ function isHangulCode(c:number) {
   if( 0x3130<=c && c<=0x318F ) return true;
   if( 0xAC00<=c && c<=0xD7A3 ) return true;
   return false;
+}
+
+export function writeLog(obj:any) {
+  let cloned = JSON.parse(JSON.stringify(obj));
+  cloned.timestamp = Date.now();
+  mongoose.connection.db.collection("query_logs").insert(cloned);
 }
 
 /*

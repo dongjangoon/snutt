@@ -2,7 +2,7 @@ import express = require('express');
 var router = express.Router();
 import Util = require('../../lib/util');
 import errcode = require('../../lib/errcode');
-import {LectureQuery, extendedSearch} from '../../model/query';
+import {LectureQuery, extendedSearch, writeLog} from '../../model/query';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -22,6 +22,7 @@ router.post('/', async function(req, res, next) {
 
   var query:LectureQuery = req.body;
   try {
+    writeLog(query);
     var lectures = await extendedSearch(query);
     return res.json(lectures);
   } catch (err) {
