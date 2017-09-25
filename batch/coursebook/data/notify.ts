@@ -116,7 +116,13 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
             continue;
           /* It takes too long to await each requests */
           promises.push(UserModel.getByMongooseId(users[i]).then(function (user) {
-            return user.sendFcmMsg(msg, "batch/coursebook", "lecture updated");
+            return user.sendFcmMsg(msg, "batch/coursebook", "lecture updated")
+                .then(function(res){
+                  return Promise.resolve();
+                }).catch(function(err) {
+                  if (err != errcode.USER_HAS_NO_FCM_KEY) return Promise.reject(err);
+                  else return Promise.resolve();
+                });
           }));
         }
         await Promise.all(promises);

@@ -27,8 +27,11 @@ router.post('/send_fcm', async function(req, res, next) {
     } else {
       response = await UserModel.sendGlobalFcmMsg(req.body.message, sender._id, "admin");
     }
-    res.send(response);
+
+    res.send({message: "ok", response: response});
   } catch (err) {
+    if (err == errcode.USER_NOT_FOUND) return res.status(404).send({errcode: err, message: "user not found"});
+    if (err == errcode.USER_HAS_NO_FCM_KEY) return res.status(404).send({errcode: err, message: "user has no fcm key"});
     logger.error(err);
     res.status(500).send({errcode: errcode.SERVER_FAULT, message:err});
   }
