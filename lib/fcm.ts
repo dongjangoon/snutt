@@ -138,7 +138,7 @@ export function removeTopicBatch(registration_tokens:[string]): Promise<any> {
     });
 }
 
-export function sendMsg(to:string, title:string, body:string): Promise<string> {
+export function sendNotificationMsg(to:string, title:string, body:string): Promise<string> {
   return request({
       method: 'POST',
       uri: 'https://fcm.googleapis.com/fcm/send',
@@ -157,7 +157,28 @@ export function sendMsg(to:string, title:string, body:string): Promise<string> {
       },
       json:true,
     }).catch(function(err){
-      logger.error("fcm_send_msg: " + err.response.statusMessage);
+      logger.error("lib/fcm/sendNotificationMsg: " + err.response.statusMessage);
+      return Promise.reject(err.response.statusMessage);
+    });
+}
+
+export function sendDataMsg(to:string, data: any): Promise<string> {
+  return request({
+      method: 'POST',
+      uri: 'https://fcm.googleapis.com/fcm/send',
+      headers: {
+        "Content-Type":"application/json",
+        "Authorization":"key="+config.fcm_api_key
+      },
+      body: {
+            "to": to,
+            "data" : data,
+            "priority" : "high",
+            "content_available" : true
+      },
+      json:true,
+    }).catch(function(err){
+      logger.error("lib/fcm/sendDataMsg: " + err.response.statusMessage);
       return Promise.reject(err.response.statusMessage);
     });
 }
