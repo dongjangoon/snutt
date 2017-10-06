@@ -10,3 +10,4 @@ data/data.zip
 *.db
 dashboard/src/samples/
 snutt.yml
+*.js.map
