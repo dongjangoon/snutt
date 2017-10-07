@@ -15,7 +15,7 @@ import {notifyUpdated} from './data/notify';
 import {CourseBookModel} from '../../model/courseBook';
 import {LectureModel, LectureDocument} from '../../model/lecture';
 import {NotificationModel, Type as NotificationType} from '../../model/notification';
-import {TagListModel} from '../../model/tagList';
+import {TagList} from '../../model/tagList';
 import {UserModel} from '../../model/user';
 import fcm = require('../../lib/fcm');
 import * as log4js from 'log4js';
@@ -106,22 +106,13 @@ export async function fetchAndInsert(year:number, semesterIndex:number, fcm_enab
   var docs = await LectureModel.insertMany(parsed.new_lectures);
   logger.info("Insert complete with " + docs.length + " success and "+ (parsed.new_lectures.length - docs.length) + " errors");
 
-  await TagListModel.remove({ year: year, semester: semesterIndex}).exec();
-  logger.info("Removed existing tags");
-
   logger.info("Inserting tags from new lectures...");
   for (var key in parsed.tags) {
     if (parsed.tags.hasOwnProperty(key)){
       parsed.tags[key].sort();
     }
   }
-  var tagList = new TagListModel({
-    year: Number(year),
-    semester: semesterIndex,
-    tags: parsed.tags,
-    updated_at: Date.now()
-  });
-  await tagList.save();
+  await TagList.createOrUpdateTags(Number(year), semesterIndex, parsed.tags);
   logger.info("Inserted tags");
 
   logger.info("saving coursebooks...");
