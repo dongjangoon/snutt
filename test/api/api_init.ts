@@ -182,4 +182,8 @@ describe('API Test', function() {
   describe('Timetable', function () {
     require('./timetable_test')(app, db, request);
   });
+
+  describe('TagList', function () {
+    require('./tag_list_test')(app, db, request);
+  });
 });
