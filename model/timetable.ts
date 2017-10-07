@@ -67,11 +67,12 @@ export class TimetableModel {
 
   async copyWithTitle(newTitle:string): Promise<TimetableModel> {
     if (newTitle == this.title) throw errcode.DUPLICATE_TIMETABLE_TITLE;
-    if (await TimetableModel.getByTitleRaw(this.userId, this.year, this.semester, newTitle)) throw errcode.DUPLICATE_TIMETABLE_TITLE;
+    let duplicatePromise = TimetableModel.getByTitleRaw(this.userId, this.year, this.semester, newTitle);
     let copied = JSON.parse(JSON.stringify(this.mongooseDocument));
     Util.deleteObjectId(copied);
     let newMongooseDocument:any = new mongooseModel(copied);
     newMongooseDocument.title = newTitle;
+    if (await duplicatePromise) throw errcode.DUPLICATE_TIMETABLE_TITLE;
     await newMongooseDocument.save();
     return new TimetableModel(newMongooseDocument);
   }
@@ -284,8 +285,7 @@ export class TimetableModel {
       throw errcode.NOT_ENOUGH_TO_CREATE_TIMETABLE;
     }
 
-    let duplicate = await TimetableModel.getByTitleRaw(params.user_id, params.year, params.semester, params.title);
-    if (duplicate !== null) throw errcode.DUPLICATE_TIMETABLE_TITLE;
+    let duplicatePromise = TimetableModel.getByTitleRaw(params.user_id, params.year, params.semester, params.title);
 
     let mongooseDocument = new mongooseModel({
       user_id : params.user_id,
@@ -295,6 +295,7 @@ export class TimetableModel {
       lecture_list : []
     });
 
+    if (await duplicatePromise !== null) throw errcode.DUPLICATE_TIMETABLE_TITLE;
     await mongooseDocument.save();
     return new TimetableModel(mongooseDocument);
   };
