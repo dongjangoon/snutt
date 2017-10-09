@@ -53,8 +53,8 @@ export class TagList {
   static async getUpdateTime(year: number, semester: number): Promise<number> {
     let mongooseDocument = await mongooseModel.findOne({'year' : year, 'semester' : semester},'updated_at').exec();
     if (!mongooseDocument) throw errcode.TAG_NOT_FOUND;
-    let updateDate: Date = mongooseDocument['updated_at'];
-    return updateDate.getTime();
+    let updateDate: number = mongooseDocument['updated_at'];
+    return updateDate;
   }
 
   static async createOrUpdateTags(year: number, semester: number, tags: {
