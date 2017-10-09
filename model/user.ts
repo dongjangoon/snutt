@@ -245,7 +245,7 @@ export class UserModel {
     if (!this.fcmKey) throw errcode.USER_HAS_NO_FCM_KEY;
     let destination = this.fcmKey;
     let response = await fcm.sendMsg(destination, message, "");
-    await writeFcmLog(destination, author, message, cause, response);
+    await writeFcmLog(this._id, author, message, cause, response);
     return response;
   }
 
@@ -266,7 +266,7 @@ export class UserModel {
   static async sendGlobalFcmMsg(message: string, author: string, cause: string) {
     let destination = "/topics/global";
     let response = await fcm.sendMsg(destination, message, "");
-    await writeFcmLog(destination, author, message, cause, response);
+    await writeFcmLog("global", author, message, cause, response);
     return response;
   }
 
