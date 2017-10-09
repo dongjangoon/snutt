@@ -255,13 +255,12 @@ export class UserModel {
 
   private async createDefaultTimetable(): Promise<TimetableModel> {
     let userId = this._id;
-    return CourseBookModel.getRecent({lean:true}).then(function(coursebook){
-      return TimetableModel.createFromParam({
+    let coursebook = await CourseBookModel.getRecent();
+    return await TimetableModel.createFromParam({
         user_id : userId,
         year : coursebook.year,
         semester : coursebook.semester,
         title : "나의 시간표"});
-    });
   }
 
   static async sendGlobalFcmMsg(message: string, author: string, cause: string) {

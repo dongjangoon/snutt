@@ -42,24 +42,22 @@ router.use(function(req, res, next) {
   });
 });
 
-router.get('/course_books', function(req, res, next) {
-  CourseBookModel.getAll({lean: true}, function (err, courseBooks) {
-    if (err) {
-      logger.error(err);
-      return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server fault"});
-    }
-    res.json(courseBooks);
-  });
+router.get('/course_books', async function(req, res, next) {
+  try {
+    res.json(await CourseBookModel.getAll());
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server fault"});
+  }
 });
 
-router.get('/course_books/recent', function(req, res, next) {
-  CourseBookModel.getRecent({lean: true}, function (err, courseBook) {
-    if (err) {
-      logger.error(err);
-      return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server fault"});
-    }
-    res.json(courseBook);
-  });
+router.get('/course_books/recent', async function(req, res, next) {
+  try {
+    res.json(await CourseBookModel.getRecent());
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server fault"});
+  }
 });
 
 router.get('/course_books/official', function(req, res, next) {

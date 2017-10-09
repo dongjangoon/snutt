@@ -7,9 +7,8 @@ export interface CourseBookDocument extends mongoose.Document{
 }
 
 interface _CourseBookModel extends mongoose.Model<CourseBookDocument>{
-  getAll(flags?, cb?:(err, docs:mongoose.Types.DocumentArray<CourseBookDocument>)=>void)
-      :Promise<mongoose.Types.DocumentArray<CourseBookDocument>>;
-  getRecent(flags?, cb?:(err, doc:CourseBookDocument)=>void):Promise<CourseBookDocument>;
+  getAll():Promise<mongoose.Types.DocumentArray<CourseBookDocument>>;
+  getRecent():Promise<CourseBookDocument>;
 }
 
 var CourseBookSchema = new mongoose.Schema({
@@ -25,14 +24,12 @@ CourseBookSchema.pre('save', function(next) {
 
 CourseBookSchema.statics.getAll = function() {
   var query:mongoose.Query<any> = CourseBookModel.find({}, '-_id year semester updated_at')
-  .lean()
   .sort([["year", -1], ["semester", -1]]);
   return query.exec();
 };
 
 CourseBookSchema.statics.getRecent = function() {
   var query:mongoose.Query<any> = CourseBookModel.findOne({}, '-_id year semester updated_at')
-  .lean()
   .sort([["year", -1], ["semester", -1]]);
   return query.exec();
 };
