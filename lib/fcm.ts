@@ -150,9 +150,9 @@ export function sendMsg(to:string, title:string, body:string): Promise<string> {
             "to": to,
             "notification" : {
               "body" : body,
-              "title" : title
+              "title" : title,
+              "sound": "default"
             },
-            "sound": "default",
             "priority" : "high",
             "content_available" : true
       },
