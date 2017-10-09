@@ -21,8 +21,8 @@ let UserSchema = new mongoose.Schema({
   },
   credentialHash : {type: String, default: null},
   isAdmin: {type: Boolean, default: false},
-  regDate: {type: Date, default: Date.now()},
-  notificationCheckedAt: {type: Date, default: Date.now()},
+  regDate: {type: Number, default: Date.now()},
+  notificationCheckedAt: {type: Number, default: Date.now()},
   email: String,
   fcmKey: String,
 
@@ -45,8 +45,8 @@ export class UserModel {
   };
   private credentialHash : string;
   isAdmin: boolean;
-  private regDate: Date;
-  private notificationCheckedAt: Date;
+  private regDate: number;
+  private notificationCheckedAt: number;
   email: string;
   fcmKey: string;
   active: boolean;
@@ -101,7 +101,7 @@ export class UserModel {
   }
 
   async updateNotificationCheckDate(): Promise<void> {
-    this.notificationCheckedAt = new Date();
+    this.notificationCheckedAt = Date.now();
     (<any>this.mongooseDocument).notificationCheckedAt = this.notificationCheckedAt;
     this.mongooseDocument = await this.mongooseDocument.save();
   }
@@ -249,7 +249,7 @@ export class UserModel {
     return response;
   }
 
-  getRegDate(): Date {
+  getRegDate(): number {
     return this.regDate;
   }
 

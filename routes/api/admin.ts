@@ -5,6 +5,10 @@
 import express = require('express');
 import errcode = require('../../lib/errcode');
 import {UserModel} from '../../model/user';
+import {CourseBookModel} from '../../model/courseBook';
+import {getRecentFcmLog} from '../../model/fcmLog';
+import {getRecentFeedbacks} from '../../model/feedback';
+import {getStatistics} from '../../model/admin';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -35,6 +39,26 @@ router.post('/send_fcm', async function(req, res, next) {
     logger.error(err);
     res.status(500).send({errcode: errcode.SERVER_FAULT, message:err});
   }
+});
+
+router.get('/recent_fcm_log', async function(req, res, next) {
+  let logs = await getRecentFcmLog();
+  return res.json(logs);
+});
+
+router.get('/coursebooks', async function(req, res, next) {
+  let coursebooks = await CourseBookModel.getAll();
+  return res.json(coursebooks);
+});
+
+router.get('/feedbacks', async function(req, res, next) {
+  let feedbacks = await getRecentFeedbacks();
+  return res.json(feedbacks);
+});
+
+router.get('/statistics', async function(req, res, next) {
+  let statistics = await getStatistics();
+  return res.json(statistics);
 });
 
 /*

@@ -41,6 +41,7 @@ class ErrorCode {
   static LECTURE_TIME_OVERLAP = 0x300C;
   static IS_CUSTOM_LECTURE = 0x300D;
   static USER_HAS_NO_FCM_KEY = 0x300E;
+  static INVALID_EMAIL = 0x300F;
 
   /* 404 - Not found */
   static TAG_NOT_FOUND = 0x4000;

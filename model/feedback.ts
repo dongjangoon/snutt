@@ -5,15 +5,19 @@
 import mongoose = require('mongoose');
 
 export interface FeedbackDocument extends mongoose.Document {
-  date: Date,
+  date: number,
   email: string,
   message: string
 }
 
 var FeedbackSchema = new mongoose.Schema({
-  date: {type:Date, default: Date.now()},
+  date: {type:Number, default: Date.now()},
   email: String,
   message: String
 });
 
 export let FeedbackModel = mongoose.model<FeedbackDocument>('Feedback', FeedbackSchema);
+
+export function getRecentFeedbacks(): Promise<any[]> {
+  return FeedbackModel.find().sort({'date': -1}).limit(10).exec();
+}

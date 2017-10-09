@@ -3,9 +3,7 @@ import mongoose = require('mongoose');
 export interface CourseBookDocument extends mongoose.Document{
   year: number,
   semester: number,
-  updated_at: Date,
-  start_date: Date,
-  end_date: Date
+  updated_at: number
 }
 
 interface _CourseBookModel extends mongoose.Model<CourseBookDocument>{
@@ -17,9 +15,7 @@ interface _CourseBookModel extends mongoose.Model<CourseBookDocument>{
 var CourseBookSchema = new mongoose.Schema({
   year: { type: Number, required: true },
   semester: { type: Number, required: true },
-  updated_at: {type: Date, default: Date.now()},
-  start_date: {type: Date },
-  end_date: {type: Date }
+  updated_at: {type: Number, default: Date.now()}
 });
 
 CourseBookSchema.pre('save', function(next) {
@@ -27,18 +23,18 @@ CourseBookSchema.pre('save', function(next) {
   next();
 });
 
-CourseBookSchema.statics.getAll = function(flags, callback) {
+CourseBookSchema.statics.getAll = function() {
   var query:mongoose.Query<any> = CourseBookModel.find({}, '-_id year semester updated_at')
+  .lean()
   .sort([["year", -1], ["semester", -1]]);
-  if (flags && flags.lean === true) query = query.lean();
-  return query.exec(callback);
+  return query.exec();
 };
 
-CourseBookSchema.statics.getRecent = function(flags, callback) {
+CourseBookSchema.statics.getRecent = function() {
   var query:mongoose.Query<any> = CourseBookModel.findOne({}, '-_id year semester updated_at')
+  .lean()
   .sort([["year", -1], ["semester", -1]]);
-  if (flags && flags.lean === true) query = query.lean();
-  return query.exec(callback);
+  return query.exec();
 };
 
 export let CourseBookModel = <_CourseBookModel>mongoose.model<CourseBookDocument>('CourseBook', CourseBookSchema);

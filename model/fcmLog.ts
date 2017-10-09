@@ -1,7 +1,7 @@
 import mongoose = require('mongoose');
 
 var FcmLogSchema = new mongoose.Schema({
-  date: {type:Date, default: Date.now()},
+  date: {type:Number, default: Date.now()},
   author: String,
   to: String,
   message: String,
@@ -20,4 +20,8 @@ export function writeFcmLog(to: string, author: string, message: string, cause: 
     response: JSON.stringify(response)
   });
   return log.save();
+}
+
+export function getRecentFcmLog(): Promise<any[]>{
+  return mongooseModel.find().sort({date: -1}).limit(10).exec();
 }
