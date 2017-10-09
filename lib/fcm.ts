@@ -152,6 +152,7 @@ export function sendMsg(to:string, title:string, body:string): Promise<string> {
               "body" : body,
               "title" : title
             },
+            "sound": "default",
             "priority" : "high",
             "content_available" : true
       },
