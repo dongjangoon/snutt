@@ -1,7 +1,7 @@
 import mongoose = require('mongoose');
 
 var FcmLogSchema = new mongoose.Schema({
-  date: {type:Number, default: Date.now()},
+  date: Date,
   author: String,
   to: String,
   message: String,
@@ -13,6 +13,7 @@ var mongooseModel = mongoose.model('FcmLog', FcmLogSchema);
 
 export function writeFcmLog(to: string, author: string, message: string, cause: string, response: any) {
   var log = new mongooseModel({
+    date: Date.now(),
     author: author,
     cause: cause,
     to : to,

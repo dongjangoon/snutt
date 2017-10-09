@@ -3,7 +3,7 @@ import mongoose = require('mongoose');
 export interface CourseBookDocument extends mongoose.Document{
   year: number,
   semester: number,
-  updated_at: number
+  updated_at: Date
 }
 
 interface _CourseBookModel extends mongoose.Model<CourseBookDocument>{
@@ -14,7 +14,7 @@ interface _CourseBookModel extends mongoose.Model<CourseBookDocument>{
 var CourseBookSchema = new mongoose.Schema({
   year: { type: Number, required: true },
   semester: { type: Number, required: true },
-  updated_at: {type: Number, default: Date.now()}
+  updated_at: Date
 });
 
 CourseBookSchema.pre('save', function(next) {

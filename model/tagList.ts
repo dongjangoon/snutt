@@ -7,7 +7,7 @@ import errcode = require('../lib/errcode');
 var TagListSchema = new mongoose.Schema({
   year: {type: Number, required: true},
   semester: {type: Number, required: true},
-  updated_at: {type: Number, default: Date.now()},
+  updated_at: Date,
   tags: {
     classification: {type: [String]},
     department: {type: [String]},
@@ -25,7 +25,7 @@ let mongooseModel = mongoose.model('TagList', TagListSchema);
 export class TagList {
   year: number;
   semester: number;
-  updated_at: number;
+  updated_at: Date;
   tags: {
     classification: string[],
     department: string[],

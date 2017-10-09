@@ -12,7 +12,7 @@ let TimetableSchema = new mongoose.Schema({
   semester : {type : Number, required : true, min:1, max:4 },
   title : {type : String, required : true },
   lecture_list: [UserLectureModel.schema],
-  updated_at : Number
+  updated_at : Date
 });
 
 TimetableSchema.index({ year: 1, semester: 1, user_id: 1 });
@@ -126,8 +126,8 @@ export class TimetableModel {
       throw errcode.INVALID_COLOR;
     }
   
-    lecture.created_at = Date.now();
-    lecture.updated_at = Date.now();
+    lecture.created_at = new Date();
+    lecture.updated_at = new Date();
     this.lectureList.push(lecture); // shallow copy of this.mongooseDocuemnt.lecture_list
     await this.mongooseDocument.save();
   }

@@ -11,7 +11,7 @@ export interface FeedbackDocument extends mongoose.Document {
 }
 
 var FeedbackSchema = new mongoose.Schema({
-  date: {type:Number, default: Date.now()},
+  date: Date,
   email: String,
   message: String
 });

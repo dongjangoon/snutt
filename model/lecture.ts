@@ -39,8 +39,8 @@ export interface LectureDocument extends BaseLectureDocument {
 export interface UserLectureDocument extends BaseLectureDocument {
   course_number: string,
   lecture_number: string,
-  created_at: number,
-  updated_at: number,
+  created_at: Date,
+  updated_at: Date,
   color: {fg : string, bg : string},
   colorIndex: number
 }
@@ -141,8 +141,8 @@ export let LectureModel = mongoose.model<LectureDocument>('Lecture', BaseSchema(
 export let UserLectureModel = <_UserLectureModel>mongoose.model<UserLectureDocument>('UserLecture', BaseSchema({
   course_number: String,
   lecture_number: String,
-  created_at: Number,
-  updated_at: Number,
+  created_at: Date,
+  updated_at: Date,
   color: {fg : String, bg : String},
   colorIndex: { type: Number, required: true, default: 0 }
 }));
