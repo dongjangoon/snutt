@@ -13,7 +13,7 @@ router.post('/request_temp', async function(req, res, next) {
   try {
     let tempUser = await UserModel.createTemp();
     let token = tempUser.getCredentialHash();
-    res.json({message:"ok", token: token});
+    res.json({message:"ok", token: token, user_id: tempUser._id});
   } catch (err) {
     logger.error(err);
     res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
@@ -31,7 +31,7 @@ router.post('/login_local', async function(req, res, next) {
     if (!user) return res.status(403).json({errcode: errcode.WRONG_ID, message: "wrong id"});
     let passwordMatch = await user.verifyPassword(req.body.password);
     if (!passwordMatch) return res.status(403).json({errcode: errcode.WRONG_PASSWORD, message: "wrong password"});
-    res.json({token: user.getCredentialHash()});
+    res.json({token: user.getCredentialHash(), user_id: user._id});
   } catch (err) {
     logger.error(err);
     return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
@@ -47,7 +47,7 @@ router.post('/register_local', async function (req, res, next) {
   try {
     let user = await UserModel.createLocal(req.body.id, req.body.password);
     await user.setUserInfo(req.body.email);
-    res.json({message: "ok", token: user.getCredentialHash()});
+    res.json({message: "ok", token: user.getCredentialHash(), user_id: user._id});
   } catch (err) {
     if (err == errcode.INVALID_ID)
       return res.status(403).json({errcode:err, message:"invalid id"});
@@ -67,7 +67,7 @@ router.post('/login_fb', async function(req, res, next) {
   try {
     let fbInfo = await facebook.getFbInfo(req.body.fb_id, req.body.fb_token);
     let user = await UserModel.getFbOrCreate(fbInfo.fbName, fbInfo.fbId);
-    res.json({token: user.getCredentialHash()});
+    res.json({token: user.getCredentialHash(), user_id: user._id});
   } catch (err) {
     if (err == errcode.WRONG_FB_TOKEN)
       return res.status(403).json({ errcode:errcode.WRONG_FB_TOKEN, message: "wrong fb token"});
