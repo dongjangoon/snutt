@@ -76,4 +76,18 @@ router.post('/login_fb', async function(req, res, next) {
   }
 });
 
+router.post('/logout', async function(req, res, next) {
+  let userId = req.body.user_id;
+  let registrationId = req.body.registration_id;
+  try {
+    let user = await UserModel.getByMongooseId(userId);
+    if (!user) return res.status(404).json({ errcode: errcode.USER_NOT_FOUND, message: 'user not found'});
+    await user.detachDevice(registrationId);
+    res.json({message: "ok"});
+  } catch (err) {
+    logger.error(err);
+    return res.status(500).json({ errcode:errcode.SERVER_FAULT, message: 'failed to logout' });
+  }
+});
+
 export = router;
