@@ -110,38 +110,10 @@ router.get('/facebook', function (req, res, next) {
   return res.json({attached: user.hasFb(), name: user.getFbName()});
 });
 
-// Deprecated
-router.post('/device', async function (req, res, next) {
-  var user:UserModel = req["user"];
-  if (!req.body.registration_id) return res.status(400).json({errcode: errcode.NO_REGISTRATION_ID, message: "no registration_id"});
-
-  try {
-    await user.attachDevice(req.body.registration_id);
-  } catch (err) {
-    logger.error(err);
-    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
-  }
-  res.json({message:"ok"});
-});
-
 router.post('/device/:registration_id', async function (req, res, next) {
   var user:UserModel = req["user"];
   try {
     await user.attachDevice(req.params.registration_id);
-  } catch (err) {
-    logger.error(err);
-    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
-  }
-  res.json({message:"ok"});
-});
-
-// Deprecated
-router.delete('/device', async function (req, res, next) {
-  var user:UserModel = req["user"];
-  if (!req.body.registration_id) return res.status(400).json({errcode: errcode.NO_REGISTRATION_ID, message: "no registration_id"});
-
-  try {
-    await user.detachDevice(req.body.registration_id);
   } catch (err) {
     logger.error(err);
     return res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
