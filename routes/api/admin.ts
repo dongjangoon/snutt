@@ -8,7 +8,7 @@ import {UserModel} from '../../model/user';
 import {CourseBookModel} from '../../model/courseBook';
 import {getRecentFcmLog} from '../../model/fcmLog';
 import {getRecentFeedbacks} from '../../model/feedback';
-import {getStatistics} from '../../model/admin';
+import {getStatistics, getLogFileContent} from '../../model/admin';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -36,6 +36,16 @@ router.post('/send_fcm', async function(req, res, next) {
   } catch (err) {
     if (err == errcode.USER_NOT_FOUND) return res.status(404).send({errcode: err, message: "user not found"});
     if (err == errcode.USER_HAS_NO_FCM_KEY) return res.status(404).send({errcode: err, message: "user has no fcm key"});
+    logger.error(err);
+    res.status(500).send({errcode: errcode.SERVER_FAULT, message:err});
+  }
+});
+
+router.get('/log_content/:fileName', async function(req, res, next) {
+  let fileName: string = req.params.fileName;
+  try {
+    res.send(await getLogFileContent(fileName));
+  } catch (err) {
     logger.error(err);
     res.status(500).send({errcode: errcode.SERVER_FAULT, message:err});
   }

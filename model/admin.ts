@@ -1,4 +1,6 @@
 import mongoose = require('mongoose');
+import * as fs from 'fs';
+import {getLogFilePath} from '../log/log';
 
 export async function getStatistics() {
     let yesterdayTime = Date.now() - 24 * 3600000;
@@ -11,4 +13,9 @@ export async function getStatistics() {
         tableCount: await tableCountPromise,
         recentQueryCount: await recentQueryCountPromise
     }
+}
+
+export async function getLogFileContent(fileName: string): Promise<string> {
+    let filePath = getLogFilePath(fileName);
+    return fs.readFileSync(filePath, 'utf8');
 }
