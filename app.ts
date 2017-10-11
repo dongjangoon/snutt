@@ -16,18 +16,35 @@ import http = require('http');
 import fs = require('fs');
 import config = require('./config/config');
 import * as log4js from 'log4js';
+import {getLogFilePath} from './log/log';
 var logger = log4js.getLogger();
 
-log4js.configure({
-  appenders: { 
-    'out': { type : 'stdout', layout: { type: "basic" } },
-  },
-  categories: {
-    default: { appenders: [ 'out' ], level: 'info' }
-  }
-});
-
 var app = express();
+
+if (app.get('env') !== 'mocha') {
+  log4js.configure({
+    appenders: { 
+      'stderr': { type : 'stderr' },
+      'file' : { type : 'file',
+          filename: getLogFilePath('api.log'),
+          layout: { type: "basic" },
+          maxLogSize: 20480,
+          backups: 10 }
+    },
+    categories: {
+      default: { appenders: [ 'stderr', 'file' ], level: 'info' }
+    }
+  });
+} else {
+  log4js.configure({
+    appenders: { 
+      'stderr': { type : 'stderr' }
+    },
+    categories: {
+      default: { appenders: [ 'stderr' ], level: 'info' }
+    }
+  });
+}
 
 // view engine setup
 //app.set('views', path.join(__dirname, 'views'));

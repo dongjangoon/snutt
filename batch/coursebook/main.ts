@@ -17,16 +17,22 @@ import {LectureModel, LectureDocument} from '../../model/lecture';
 import {NotificationModel, Type as NotificationType} from '../../model/notification';
 import {TagList} from '../../model/tagList';
 import {UserModel} from '../../model/user';
+import {getLogFilePath} from '../../log/log';
 import fcm = require('../../lib/fcm');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
 log4js.configure({
   appenders: { 
-    'out': { type : 'stdout', layout: { type: "basic" } },
+    'stdout': { type : 'stdout' },
+    'file' : { type : 'file',
+        filename: getLogFilePath('coursebook.log'),
+        layout: { type: "basic" },
+        maxLogSize: 20480,
+        backups: 10 }
   },
   categories: {
-    default: { appenders: [ 'out' ], level: 'info' }
+    default: { appenders: [ 'stdout', 'file' ], level: 'info' }
   }
 });
 
@@ -151,7 +157,11 @@ async function main() {
       continue;
     }
   }
-  process.exit(0);  
+
+  // Wait for log4js to flush its logs
+  setTimeout(function() {
+    process.exit(0);
+  }, 100);
 }
 
 if (!module.parent) {
