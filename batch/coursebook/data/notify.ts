@@ -116,7 +116,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
             continue;
           /* It takes too long to await each requests */
           promises.push(UserModel.getByMongooseId(users[i]).then(function (user) {
-            return user.sendFcmMsg(msg, "batch/coursebook", "lecture updated")
+            return user.sendFcmMsg("수강편람 업데이트", msg, "batch/coursebook", "lecture updated")
                 .then(function(res){
                   return Promise.resolve();
                 }).catch(function(err) {

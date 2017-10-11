@@ -27,9 +27,9 @@ router.post('/send_fcm', async function(req, res, next) {
   try {
     if (req.body.user_id && req.body.user_id.length > 0) {
       let receiver = await UserModel.getByLocalId(req.body.user_id);
-      response = await receiver.sendFcmMsg(req.body.message, sender._id, "admin");
+      response = await receiver.sendFcmMsg(req.body.title, req.body.body, sender._id, "admin");
     } else {
-      response = await UserModel.sendGlobalFcmMsg(req.body.message, sender._id, "admin");
+      response = await UserModel.sendGlobalFcmMsg(req.body.title, req.body.body, sender._id, "admin");
     }
 
     res.send({message: "ok", response: response});

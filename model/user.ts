@@ -241,11 +241,11 @@ export class UserModel {
     await fcm.removeTopicBatch([registration_id]);
   }
 
-  async sendFcmMsg(message: string, author: string, cause: string) {
+  async sendFcmMsg(title:string, body: string, author: string, cause: string) {
     if (!this.fcmKey) throw errcode.USER_HAS_NO_FCM_KEY;
     let destination = this.fcmKey;
-    let response = await fcm.sendMsg(destination, message, "");
-    await writeFcmLog(this._id, author, message, cause, response);
+    let response = await fcm.sendMsg(destination, title, body);
+    await writeFcmLog(this._id, author, title + '\n' + body, cause, response);
     return response;
   }
 
@@ -263,10 +263,10 @@ export class UserModel {
         title : "나의 시간표"});
   }
 
-  static async sendGlobalFcmMsg(message: string, author: string, cause: string) {
+  static async sendGlobalFcmMsg(title:string, body: string, author: string, cause: string) {
     let destination = "/topics/global";
-    let response = await fcm.sendMsg(destination, message, "");
-    await writeFcmLog("global", author, message, cause, response);
+    let response = await fcm.sendMsg(destination, title, body);
+    await writeFcmLog("global", author, title + '\n' + body, cause, response);
     return response;
   }
 
