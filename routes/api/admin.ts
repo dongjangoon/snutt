@@ -26,8 +26,6 @@ router.post('/send_fcm', async function(req, res, next) {
   let sender: UserModel = req["user"];
   let response: string;
 
-  console.log(req.body);
-
   let userId: string = req.body.user_id;
   let title: string = req.body.title;
   let body: string = req.body.body;
