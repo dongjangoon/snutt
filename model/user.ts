@@ -149,19 +149,17 @@ export class UserModel {
     return this.credential.localId !== null;
   }
 
-  attachLocal(id:string, password:string):Promise<void> {
+  async attachLocal(id:string, password:string):Promise<void> {
     if (!id || !id.match(/^[a-z0-9]{4,32}$/i)) {
-      var err = errcode.INVALID_ID;
-      return Promise.reject(err);
+      throw errcode.INVALID_ID;
     }
 
-    if (!password || !password.match(/^(?=.*\d)(?=.*[a-z])\S{6,20}$/i)) {
-      var err = errcode.INVALID_PASSWORD;
-      return Promise.reject(err);
+    if (await UserModel.getByLocalId(id)) {
+      throw errcode.DUPLICATE_ID;
     }
 
     this.credential.localId = id;
-    return this.changeLocalPassword(password);
+    await this.changeLocalPassword(password);
   }
 
   getUserInfo() {
@@ -301,11 +299,6 @@ export class UserModel {
   }
 
   static async createLocal(id:string, password:string) : Promise<UserModel> {
-    if (!id) throw errcode.INVALID_ID;
-    if (!password) throw errcode.INVALID_PASSWORD;
-    if (await UserModel.getByLocalId(id)) {
-      throw errcode.DUPLICATE_ID;
-    }
     let mongooseDocument = new MongooseUserModel();
     let user = new UserModel(mongooseDocument);
     await Promise.all([user.attachLocal(id, password), user.createDefaultTimetable()]);

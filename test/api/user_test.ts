@@ -547,6 +547,18 @@ export = function(app, db, request) {
         });
     });
 
+    it('attach local id with duplicate id fails', function(done){
+      request.post('/user/password')
+        .set('x-access-token', token)
+        .send({id: "snutt", password:"abc1234"})
+        .expect(403)
+        .end(function(err, res){
+          if (err) console.log(err);
+          assert.equal(res.body.errcode, errcode.DUPLICATE_ID);
+          done(err);
+        });
+    });
+
     it('attach local id without id fails', function(done){
       request.post('/user/password')
         .set('x-access-token', token)
