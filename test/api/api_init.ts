@@ -19,7 +19,7 @@ import {FeedbackModel} from '../../model/feedback';
 
 let request = supertest(app);
 describe('API Test', function() {
-  before(function(done) {
+  before('valid snutt.yml', function(done) {
     if (config.secretKey && config.host && config.port)
       return done();
     else
@@ -27,7 +27,7 @@ describe('API Test', function() {
   });
 
   // Change connection into test DB in order not to corrupt production DB
-  before(function(done) {
+  before('close snutt db and open snutt_test', function(done) {
     if (!db.connection.readyState)
       return done(new Error("DB not connected"));
     db.connection.close(function() {
@@ -40,40 +40,24 @@ describe('API Test', function() {
   // Clean Test DB
   // mongoose.connection.db.dropDatabase()
   // dose not actually drop the db, but actually clears it
-  before(function(done) {
+  before('clear snutt_test db', function(done) {
     db.connection.db.dropDatabase(function(err) {
       done(err);
     });
   });
 
   // Add 2 coursebooks, 2016-2 and 2015-W
-  before(function(done) {
-    CourseBookModel.findOneAndUpdate({ year: 2016, semester: 3 },
-      { updated_at: Date.now() },
-      {
-        new: true,   // return new doc
-        upsert: true // insert the document if it does not exist
-      })
-      .exec(function(err, doc) {
-        if (err) return done(err);
-        assert.equal(doc.year, 2016);
-        assert.equal(doc.semester, 3);
-        CourseBookModel.findOneAndUpdate({ year: 2015, semester: 4 },
-          { updated_at: Date.now() },
-          {
-            new: true,   // return new doc
-            upsert: true // insert the document if it does not exist
-          })
-          .exec(function(err, doc) {
-            if (err) return done(err);
-            assert.equal(doc.year, 2015);
-            assert.equal(doc.semester, 4);
-            done(err);
-        });
+  before('add initial coursebooks for test', function(done) {
+    let promise1 = new CourseBookModel({ year: 2015, semester: 4, updated_at: Date.now()}).save();
+    let promise2 = new CourseBookModel({ year: 2016, semester: 3, updated_at: Date.now()}).save();
+    Promise.all([promise1, promise2]).catch(function(err) {
+      done(err);
+    }).then(function(result) {
+      done();
     });
   });
 
-  before(function(done) {
+  before('insert initial lecture for test', function(done) {
     var myLecture = new LectureModel({
         "year": 2016,
         "semester": 3,
@@ -124,7 +108,7 @@ describe('API Test', function() {
   });
 
   // Register test user
-  before(function(done) {
+  before('register initial test user', function(done) {
     request.post('/auth/register_local')
       .send({id:"snutt", password:"abc1234"})
       .expect(200)

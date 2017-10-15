@@ -39,6 +39,8 @@ router.post('/password', async function (req, res, next) {
   } catch (err) {
     if (err == errcode.INVALID_PASSWORD)
       return res.status(403).json({errcode: err, message:"invalid password"});
+    else if (err == errcode.INVALID_ID)
+      return res.status(403).json({errcode: err, message:"invalid id"});
     logger.error(err);
     return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
   }
