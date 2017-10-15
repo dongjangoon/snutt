@@ -9,6 +9,7 @@ import {CourseBookModel} from '../../model/courseBook';
 import {getRecentFcmLog} from '../../model/fcmLog';
 import {getRecentFeedbacks} from '../../model/feedback';
 import {getStatistics, getLogFileContent} from '../../model/admin';
+import {NotificationModel, Type as NotificationType} from '../../model/notification';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -24,13 +25,22 @@ router.use(function(req, res, next) {
 router.post('/send_fcm', async function(req, res, next) {
   let sender: UserModel = req["user"];
   let response: string;
+
+  let userId: string = req.body.user_id;
+  let title: string = req.body.title;
+  let body: string = req.body.body;
+  let insertNotification: boolean = req.body.insert_notification;
+
   try {
-    if (req.body.user_id && req.body.user_id.length > 0) {
-      let receiver = await UserModel.getByLocalId(req.body.user_id);
-      response = await receiver.sendFcmMsg(req.body.title, req.body.body, sender._id, "admin");
+    if (userId && userId.length > 0) {
+      let receiver = await UserModel.getByLocalId(userId);
+      response = await receiver.sendFcmMsg(title, body, sender._id, "admin");
     } else {
-      response = await UserModel.sendGlobalFcmMsg(req.body.title, req.body.body, sender._id, "admin");
+      response = await UserModel.sendGlobalFcmMsg(title, body, sender._id, "admin");
     }
+
+    if (insertNotification)
+      await NotificationModel.createNotification(null, body, NotificationType.NORMAL, null, "unused");
 
     res.send({message: "ok", response: response});
   } catch (err) {
