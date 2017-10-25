@@ -31,6 +31,8 @@ let UserSchema = new mongoose.Schema({
   active: {type: Boolean, default: true}
 });
 
+UserSchema.index({ "credential.localId": 1, "credential.fbId": 1, credentialHash: 1 });
+
 let MongooseUserModel = mongoose.model('User', UserSchema);
 
 export class UserModel {

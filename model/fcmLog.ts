@@ -9,6 +9,8 @@ var FcmLogSchema = new mongoose.Schema({
   response: String
 });
 
+FcmLogSchema.index({date: -1})
+
 var mongooseModel = mongoose.model('FcmLog', FcmLogSchema);
 
 export function writeFcmLog(to: string, author: string, message: string, cause: string, response: any) {
