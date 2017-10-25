@@ -7,7 +7,7 @@ mongoose.Promise = global.Promise;
 // connect mongoose
 mongoose.connect(config.mongoUri, function(err) {
   if(err) {
-    logger.error(err);
+    logger.error(err.message);
     throw err;
   }
   if (process.env.NODE_ENV == 'mocha')
