@@ -298,10 +298,16 @@ export class UserModel {
     });
   }
 
-  static async createLocal(id:string, password:string) : Promise<UserModel> {
-    let mongooseDocument = new MongooseUserModel();
+  private static async create(): Promise<UserModel> {
+    let mongooseDocument = new MongooseUserModel({regDate: new Date});
     let user = new UserModel(mongooseDocument);
-    await Promise.all([user.attachLocal(id, password), user.createDefaultTimetable()]);
+    await user.createDefaultTimetable();
+    return user;
+  }
+
+  static async createLocal(id:string, password:string) : Promise<UserModel> {
+    let user = await this.create();
+    await user.attachLocal(id, password);
     return user;
   }
   
@@ -312,9 +318,8 @@ export class UserModel {
   }
 
   static async createFb(name:string, id:string): Promise<UserModel> {
-    let mongooseDocument = new MongooseUserModel();
-    let user = new UserModel(mongooseDocument);
-    await Promise.all([user.attachFb(name, id), user.createDefaultTimetable()]);
+    let user = await this.create();
+    await user.attachFb(name, id);
     return user;
   }
 
@@ -325,13 +330,12 @@ export class UserModel {
   }
 
   static async createTemp() : Promise<UserModel> {
-    let mongooseDocument = new MongooseUserModel();
-    let user = new UserModel(mongooseDocument);
+    let user = await this.create();
     user.credential = {
       tempDate: new Date(),
       tempSeed: Math.floor(Math.random() * 1000)
     }
-    await Promise.all([user.saveCredential(), user.createDefaultTimetable()]);
+    await user.saveCredential();
     return user;
   }
 }
