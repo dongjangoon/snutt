@@ -122,8 +122,6 @@ function BaseSchema(add){
     }
   }
 
-  schema.index({ year: 1, semester: 1, course_number: 1, lecture_number: 1});
-
   if (add) {
     schema.add(add);
   }
@@ -131,12 +129,17 @@ function BaseSchema(add){
   return schema;
 }
 
-export let LectureModel = mongoose.model<LectureDocument>('Lecture', BaseSchema({
+let lectureSchema = BaseSchema({
   year: { type: Number, required: true },           // 연도
   semester: { type: Number, required: true },       // 학기
   course_number: { type: String, required: true},   // 교과목 번호
   lecture_number: { type: String, required: true},  // 강좌 번호
-}));
+});
+
+lectureSchema.index({ year: 1, semester: 1});
+lectureSchema.index({ course_number: 1, lecture_number: 1 })
+
+export let LectureModel = mongoose.model<LectureDocument>('Lecture', lectureSchema);
 
 export let UserLectureModel = <_UserLectureModel>mongoose.model<UserLectureDocument>('UserLecture', BaseSchema({
   course_number: String,

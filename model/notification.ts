@@ -33,7 +33,8 @@ var NotificationSchema = new mongoose.Schema({
   fcm_status : { type : String, default : null }
 });
 
-NotificationSchema.index({user_id: 1, created_at: -1});
+NotificationSchema.index({user_id: 1});
+NotificationSchema.index({created_at: -1});
 
 NotificationSchema.statics.getNewest = function (user: UserModel, offset, limit, callback) {
   let query = {
