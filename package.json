@@ -7,7 +7,8 @@
     "start": "node ./app.js",
     "build": "tsc -p .",
     "apikey": "node config/apiKey list",
-    "coursebook": "node batch/coursebook/main"
+    "coursebook": "node batch/coursebook/main",
+    "prune_log": "node batch/prune_log/main"
   },
   "dependencies": {
     "@types/assert": "0.0.31",
@@ -41,6 +42,7 @@
     "lodash": "^4.17.4",
     "log4js": "^2.3.3",
     "mocha": "~2.4.5",
+    "mongodb": "^2.2.33",
     "mongoose": "4.7.2",
     "morgan": "^1.8.2",
     "request": "^2.74.0",
