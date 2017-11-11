@@ -34,13 +34,13 @@ router.post('/send_fcm', async function(req, res, next) {
   try {
     if (userId && userId.length > 0) {
       let receiver = await UserModel.getByLocalId(userId);
-      response = await receiver.sendFcmMsg(title, body, sender._id, "admin");
       if (insertNotification)
         await NotificationModel.createNotification(receiver._id, body, NotificationType.NORMAL, null, "unused");
+      response = await receiver.sendFcmMsg(title, body, sender._id, "admin");
     } else {
-      response = await UserModel.sendGlobalFcmMsg(title, body, sender._id, "admin");
       if (insertNotification)
         await NotificationModel.createNotification(null, body, NotificationType.NORMAL, null, "unused");
+      response = await UserModel.sendGlobalFcmMsg(title, body, sender._id, "admin");
     }
 
     res.send({message: "ok", response: response});
