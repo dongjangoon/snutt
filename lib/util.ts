@@ -27,7 +27,18 @@ export function timeAndPlaceToJson(timesString: string, locationsString: string)
 
   var locations = locationsString.split('/');
   var times = timesString.split('/');
-  assert.equal(locations.length, times.length, "locations does not match with times");
+  if (locations.length != times.length) {
+    if (locations.length == 1) {
+      for (let i=1; i<times.length; i++) {
+        locations.push(locations[0]);
+      }
+    } else {
+      logger.error("locations does not match with times");
+      logger.error(JSON.stringify(times));
+      logger.error(JSON.stringify(locations));
+      return [];
+    }
+  }
 
   var classes = times.map(function(time, idx) { 
     return new TimePlace({
