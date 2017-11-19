@@ -4,20 +4,32 @@
 
 import mongoose = require('mongoose');
 
-export interface FeedbackDocument extends mongoose.Document {
-  date: number,
+interface FeedbackDocument extends mongoose.Document {
   email: string,
-  message: string
+  message: string,
+  timestamp: number
 }
 
 var FeedbackSchema = new mongoose.Schema({
-  date: Date,
   email: String,
-  message: String
+  message: String,
+  timestamp: Number
 });
 
-export let FeedbackModel = mongoose.model<FeedbackDocument>('Feedback', FeedbackSchema);
+FeedbackSchema.index({timestamp: -1});
 
-export function getRecentFeedbacks(): Promise<any[]> {
-  return FeedbackModel.find().sort({'date': -1}).limit(10).exec();
+let FeedbackModel = mongoose.model<FeedbackDocument>('Feedback', FeedbackSchema);
+
+export async function insertFeedback(email: string, message: string): Promise<void> {
+  let feedback = {
+    email: email,
+    message: message,
+    timestamp: Date.now()
+  };
+  var feedbackDocument = new FeedbackModel(feedback);
+  await feedbackDocument.save();
+}
+
+export function getFeedback(limit: number, offset: number): Promise<any[]> {
+  return FeedbackModel.find().sort({'timestamp': -1}).skip(offset).limit(limit).exec();
 }

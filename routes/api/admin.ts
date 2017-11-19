@@ -7,7 +7,7 @@ import errcode = require('../../lib/errcode');
 import {UserModel} from '../../model/user';
 import {CourseBookModel} from '../../model/courseBook';
 import {getRecentFcmLog} from '../../model/fcmLog';
-import {getRecentFeedbacks} from '../../model/feedback';
+import {getFeedback} from '../../model/feedback';
 import {getStatistics, getLogFileContent} from '../../model/admin';
 import {NotificationModel, Type as NotificationType} from '../../model/notification';
 import * as log4js from 'log4js';
@@ -73,7 +73,11 @@ router.get('/coursebooks', async function(req, res, next) {
 });
 
 router.get('/feedbacks', async function(req, res, next) {
-  let feedbacks = await getRecentFeedbacks();
+  let limit = 10;
+  let offset = 0;
+  if (req.body.limit) limit = req.body.limit;
+  if (req.body.offset) offset = req.body.offset;
+  let feedbacks = await getFeedback(limit, offset);
   return res.json(feedbacks);
 });
 

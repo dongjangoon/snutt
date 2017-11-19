@@ -15,7 +15,6 @@ import app = require('../../app');
 
 var CourseBookModel = require('../../model/courseBook').CourseBookModel;
 import {LectureModel} from '../../model/lecture';
-import {FeedbackModel} from '../../model/feedback';
 
 let request = supertest(app);
 describe('API Test', function() {
@@ -137,23 +136,6 @@ describe('API Test', function() {
         done(err);
       });
   });
-
-  it('Send Feedback', function(done) {
-    request.post('/feedback')
-      .send({
-        "email": "abcd@gmail.com",
-        "message": "What is this?"
-      })
-      .expect(200)
-      .end(function(err, res) {
-        if (err) return done(err);
-        FeedbackModel.find({}, function(err, docs) {
-          assert.equal(docs.length, 1);
-          assert.equal(docs[0].email, "abcd@gmail.com");
-          done(err);
-        })
-      })
-  })
 
   describe('etc', function () {
     require('./etc')(app, db, request);

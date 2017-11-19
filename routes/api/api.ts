@@ -19,7 +19,7 @@ import userRouter = require('./user');
 import adminRouter = require('./admin');
 var apiKey = require('../../config/apiKey');
 import {UserModel} from '../../model/user';
-import {FeedbackModel, FeedbackDocument} from '../../model/feedback';
+import {insertFeedback} from '../../model/feedback';
 
 import errcode = require('../../lib/errcode');
 import libcolor = require('../../lib/color');
@@ -111,14 +111,13 @@ router.get('/app_version', function(req, res, next) {
 });
 
 router.post('/feedback', async function(req, res, next) {
-  /*
-   * date: Date
-   * email: string
-   * message: string
-   */
-  var feedback = new FeedbackModel(req.body);
-  await feedback.save();
-  res.json({message:"ok"});
+  try {
+    await insertFeedback(req.body.email, req.body.message);
+    res.json({message:"ok"});
+  } catch (err) {
+    logger.error(err);
+    res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server fault"});
+  }
 });
 
 router.use('/auth', authRouter);
@@ -145,7 +144,7 @@ router.use(function(req, res, next) {
     req["user"] = user;
     next();
   }, function (err) {
-    console.log(err);
+    logger.error(err);
     return res.status(403).json({ errcode: errcode.WRONG_USER_TOKEN, message: 'Failed to authenticate token.' });
   });
 });
