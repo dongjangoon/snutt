@@ -111,6 +111,11 @@ export class TimetableModel {
      * which is potential security breach.
      */
     Util.deleteObjectId(rawLecture);
+
+    if (rawLecture.credit && (typeof rawLecture.credit === 'string' || rawLecture.credit instanceof String)) {
+      rawLecture.credit = Number(rawLecture.credit);
+    }
+
     let lecture = new UserLectureModel(rawLecture);
 
     for (var i = 0; i<this.lectureList.length; i++){
