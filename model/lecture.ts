@@ -8,7 +8,7 @@ import errcode = require('../lib/errcode');
 import Util = require('../lib/util');
 import libcolor = require('../lib/color');
 
-interface BaseLectureDocument extends mongoose.Document {
+interface BaseLectureDocument {
   classification: string,                           // 교과 구분
   department: string,                               // 학부
   academic_year: string,                            // 학년
@@ -93,7 +93,7 @@ export function validateLectureColor(lecture: UserLectureDocument): boolean {
   return true;
 }
 
-export function setLectureTimemask(lecture): void {
+export function setLectureTimemask(lecture: BaseLectureDocument): void {
   if (lecture.class_time_json) {
     if (!lecture.class_time_mask) {
       lecture.class_time_mask = Util.timeJsonToMask(lecture.class_time_json, true);
@@ -128,9 +128,9 @@ export let userLectureSchema = BaseSchema({
   colorIndex: { type: Number, required: true, default: 0 }
 });
 
-let LectureModel = mongoose.model<LectureDocument>('Lecture', refLectureSchema);
+let LectureModel = mongoose.model('Lecture', refLectureSchema);
 
-let UserLectureModel = mongoose.model<UserLectureDocument>('UserLecture', userLectureSchema);
+let UserLectureModel = mongoose.model('UserLecture', userLectureSchema);
 
 export function newRefLecture(lecture) {
   return new LectureModel(lecture);
@@ -139,6 +139,11 @@ export function newRefLecture(lecture) {
 export function newUserLecture(lecture) {
   return new UserLectureModel(lecture);
 }
+
+/*
+ * Mongoose 객체를 바로 open하지 않고 매개 함수를 이용,
+ * 디비와 비즈니스 로직을 분리
+ */
 
 export function queryRefLecture(query, limit, offset): Promise<LectureDocument[]> {
   return <any>LectureModel.find(query).sort('course_title').lean()
