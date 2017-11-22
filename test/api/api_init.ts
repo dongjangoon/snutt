@@ -14,7 +14,7 @@ import db = require('../../db');
 import app = require('../../app');
 
 var CourseBookModel = require('../../model/courseBook').CourseBookModel;
-import {LectureModel} from '../../model/lecture';
+import {newRefLecture} from '../../model/lecture';
 
 let request = supertest(app);
 describe('API Test', function() {
@@ -57,7 +57,7 @@ describe('API Test', function() {
   });
 
   before('insert initial lecture for test', function(done) {
-    var myLecture = new LectureModel({
+    var myLecture = newRefLecture({
         "year": 2016,
         "semester": 3,
         "classification": "전선",

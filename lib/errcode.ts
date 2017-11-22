@@ -43,6 +43,7 @@ class ErrorCode {
   static IS_CUSTOM_LECTURE = 0x300D;
   static USER_HAS_NO_FCM_KEY = 0x300E;
   static INVALID_EMAIL = 0x300F;
+  static INPUT_OUT_OF_RANGE = 0x3010;
 
   /* 404 - Not found */
   static TAG_NOT_FOUND = 0x4000;

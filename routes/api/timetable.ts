@@ -2,7 +2,7 @@ import express = require('express');
 var router = express.Router();
 
 import {TimetableModel} from '../../model/timetable';
-import {LectureModel, UserLectureModel} from '../../model/lecture';
+import {setLectureTimemask} from '../../model/lecture';
 import {UserModel} from '../../model/user';
 import util = require('../../lib/util');
 import errcode = require('../../lib/errcode');
@@ -163,7 +163,7 @@ router.put('/:table_id/lecture/:lecture_id', async function(req, res, next) {
     let table = await TimetableModel.getByTableId(user._id, req.params.table_id);
     if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
 
-    UserLectureModel.setTimemask(rawLecture);
+    setLectureTimemask(rawLecture);
     await table.updateLecture(req.params.lecture_id, rawLecture);
     res.json(table.mongooseDocument);
   } catch (err) {
