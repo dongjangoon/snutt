@@ -14,6 +14,7 @@ class ErrorCode {
   static INVALID_TIMEMASK = 0x1009;
   static INVALID_COLOR = 0x100A;
   static NO_LECTURE_TITLE = 0x100B;
+  static INVALID_TIMEJSON = 0x100C;
 
   /* 401, 403 - Authorization-related */
   static WRONG_API_KEY = 0x2000;

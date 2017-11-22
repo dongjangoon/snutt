@@ -95,6 +95,7 @@ export function timeJsonToMask(timeJson:Array<TimePlace>, duplicateCheck?:boolea
   timeJson.forEach(function(lecture, lectureIdx) {
     var dayIdx = Number(lecture.day);
     var end = Number(lecture.start) + Number(lecture.len);
+    if (Number(lecture.len) <= 0) throw errcode.INVALID_TIMEJSON;
     if (lecture.start >= 15) logger.warn("timeJsonToMask: lecture start bigger than 15");
     if (duplicateCheck) {
       for (var i = lecture.start * 2; i < end*2; i++) {

@@ -125,6 +125,8 @@ router.post('/:id/lecture', async function(req, res, next) {
   } catch (err) {
     if (err == errcode.INVALID_TIMEMASK)
       return res.status(403).json({errcode: err, message:"invalid timemask"});
+    if (err == errcode.INVALID_TIMEJSON)
+      return res.status(400).json({errcode: err, message:"invalid timejson"});
     if (err === errcode.DUPLICATE_LECTURE)
       return res.status(403).json({errcode:err, message:"duplicate lecture"});
     if (err == errcode.LECTURE_TIME_OVERLAP)
@@ -167,6 +169,8 @@ router.put('/:table_id/lecture/:lecture_id', async function(req, res, next) {
   } catch (err) {
     if (err == errcode.INVALID_TIMEMASK)
       return res.status(400).json({errcode: errcode.INVALID_TIMEMASK, message:"invalid timemask"});
+    if (err == errcode.INVALID_TIMEJSON)
+      return res.status(400).json({errcode: err, message:"invalid timejson"});
     if (err == errcode.LECTURE_TIME_OVERLAP)
       return res.status(403).json({errcode: err, message:"lecture time overlapped"});
     if (err == errcode.ATTEMPT_TO_MODIFY_IDENTITY)
