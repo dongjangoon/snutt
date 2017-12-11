@@ -34,8 +34,8 @@ var api_info;
 router.use(function(req, res, next) {
   var token = req.headers['x-access-apikey'];
   res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-  apiKey.validateKey(token).then(function(value){
-    api_info = value;
+  apiKey.validateKey(token).then(function(platform){
+    req["api_platform"] = platform;
     next();
   }, function(err) {
     res.status(403).json({errcode: errcode.WRONG_API_KEY, message: err});
@@ -112,7 +112,7 @@ router.get('/app_version', function(req, res, next) {
 
 router.post('/feedback', async function(req, res, next) {
   try {
-    await insertFeedback(req.body.email, req.body.message);
+    await insertFeedback(req.body.email, req.body.message, req["api_platform"]);
     res.json({message:"ok"});
   } catch (err) {
     logger.error(err);

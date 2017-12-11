@@ -20,11 +20,12 @@ FeedbackSchema.index({timestamp: -1});
 
 let FeedbackModel = mongoose.model<FeedbackDocument>('Feedback', FeedbackSchema);
 
-export async function insertFeedback(email: string, message: string): Promise<void> {
+export async function insertFeedback(email: string, message: string, platform: string): Promise<void> {
   let feedback = {
     email: email,
     message: message,
-    timestamp: Date.now()
+    timestamp: Date.now(),
+    platform: platform
   };
   var feedbackDocument = new FeedbackModel(feedback);
   await feedbackDocument.save();

@@ -71,7 +71,7 @@ function issueKey(api_obj) {
 export function validateKey(api_key:string):Promise<string> {
   if (process.env.NODE_ENV == 'mocha') {
     return new Promise(function(resolve, reject) {
-      resolve();
+      resolve('mocha');
     });
   }
   return new Promise(function(resolve, reject){
