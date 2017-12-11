@@ -1,5 +1,5 @@
 import {LectureLine} from './fetch';
-import {LectureModel, LectureDocument} from '../../../model/lecture';
+import {LectureDocument, newRefLecture} from '../../../model/lecture';
 import Util = require('../../../lib/util');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
@@ -69,7 +69,7 @@ export function parseLines(year:number, semesterIndex:number, lines:LectureLine[
       }
     }
 
-    new_lectures.push(new LectureModel({
+    new_lectures.push(newRefLecture({
       year: year,
       semester: semesterIndex,
       classification: line.classification,

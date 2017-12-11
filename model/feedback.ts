@@ -7,13 +7,15 @@ import mongoose = require('mongoose');
 interface FeedbackDocument extends mongoose.Document {
   email: string,
   message: string,
-  timestamp: number
+  timestamp: number,
+  platform: string
 }
 
 var FeedbackSchema = new mongoose.Schema({
   email: String,
   message: String,
-  timestamp: Number
+  timestamp: Number,
+  platform: String
 });
 
 FeedbackSchema.index({timestamp: -1});

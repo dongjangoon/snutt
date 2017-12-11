@@ -1,6 +1,8 @@
-import {LectureModel, LectureDocument} from './lecture';
+import {LectureDocument, queryRefLecture} from './lecture';
 import errcode = require('../lib/errcode');
 import * as mongoose from 'mongoose';
+import * as log4js from 'log4js';
+var logger = log4js.getLogger();
 
 //something similar to LIKE query in SQL
 function like(str: string, matchStartChar?: boolean): string {
@@ -127,12 +129,8 @@ export async function explicitSearch(lquery: LectureQuery): Promise<LectureDocum
   if (!lquery.limit) limit = 20;
   else limit = lquery.limit;
 
-  return <Promise<LectureDocument[]>>
-    LectureModel.find(mquery).sort('course_title').lean()
-    .skip(offset)
-    .limit(limit)
-    .exec().catch(function(err){
-      console.error(err);
+  return queryRefLecture(mquery, limit, offset).catch(function(err){
+      logger.error(err);
       return Promise.reject(errcode.SERVER_FAULT);
     });
 }
@@ -217,12 +215,8 @@ export async function extendedSearch(lquery: LectureQuery): Promise<LectureDocum
   if (!lquery.limit) limit = 20;
   else limit = lquery.limit;
 
-  return <Promise<LectureDocument[]>>
-    LectureModel.find(mquery).sort('course_title').lean()
-    .skip(offset)
-    .limit(limit)
-    .exec().catch(function(err){
-      console.error(err);
+  return queryRefLecture(mquery, limit, offset).catch(function(err){
+      logger.error(err);
       return Promise.reject(errcode.SERVER_FAULT);
     });
 }

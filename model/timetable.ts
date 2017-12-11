@@ -1,5 +1,14 @@
 import mongoose = require('mongoose');
-import {UserLectureDocument, UserLectureModel, LectureDocument, LectureModel} from './lecture';
+import {UserLectureDocument,
+  userLectureSchema,
+  LectureDocument,
+  setLectureTimemask,
+  newUserLecture,
+  validateLectureColor,
+  isCustomLecture,
+  findRefLectureWithCourseNumber,
+  findRefLectureWithMongooseId,
+  isEqualLecture} from './lecture';
 import Util = require('../lib/util');
 import errcode = require('../lib/errcode');
 import Color = require('../lib/color');
@@ -11,7 +20,7 @@ let TimetableSchema = new mongoose.Schema({
   year : {type : Number, required : true },
   semester : {type : Number, required : true, min:1, max:4 },
   title : {type : String, required : true },
-  lecture_list: [UserLectureModel.schema],
+  lecture_list: [userLectureSchema],
   updated_at : Date
 });
 
@@ -78,7 +87,7 @@ export class TimetableModel {
   }
 
   async addRefLecture(lectureId: string): Promise<void> {
-    let refLecture:any = await LectureModel.findOne({'_id': lectureId}).lean().exec();
+    let refLecture:any = await findRefLectureWithMongooseId(lectureId);
     if (!refLecture) throw errcode.REF_LECTURE_NOT_FOUND;
     if (refLecture["year"] != this.year || refLecture["semester"] != this.semester) {
       throw errcode.WRONG_SEMESTER;
@@ -90,7 +99,7 @@ export class TimetableModel {
 
   async addCustomLecture(rawLecture: any): Promise<void> {
     /* If no time json is found, mask is invalid */
-    UserLectureModel.setTimemask(rawLecture);
+    setLectureTimemask(rawLecture);
     if (!rawLecture.course_title) throw errcode.NO_LECTURE_TITLE;
     
     if (rawLecture.course_number || rawLecture.lecture_number) throw errcode.NOT_CUSTOM_LECTURE;
@@ -116,10 +125,10 @@ export class TimetableModel {
       rawLecture.credit = Number(rawLecture.credit);
     }
 
-    let lecture = new UserLectureModel(rawLecture);
+    let lecture = newUserLecture(rawLecture);
 
     for (var i = 0; i<this.lectureList.length; i++){
-      if (lecture.equals(this.lectureList[i])) {
+      if (isEqualLecture(lecture, this.lectureList[i])) {
         throw errcode.DUPLICATE_LECTURE;
       }
     }
@@ -127,7 +136,7 @@ export class TimetableModel {
       throw errcode.LECTURE_TIME_OVERLAP;
     }
   
-    if (!UserLectureModel.validateColor(lecture)) {
+    if (!validateLectureColor(lecture)) {
       throw errcode.INVALID_COLOR;
     }
   
@@ -154,7 +163,7 @@ export class TimetableModel {
       throw errcode.LECTURE_TIME_OVERLAP;
     }
   
-    if (rawLecture['color'] && !UserLectureModel.validateColor(rawLecture)) {
+    if (rawLecture['color'] && !validateLectureColor(rawLecture)) {
       throw errcode.INVALID_COLOR;
     }
   
@@ -185,13 +194,12 @@ export class TimetableModel {
 
   async resetLecture(lectureId: string): Promise<void> {
     var lecture:UserLectureDocument = this.getLecture(lectureId);
-    if (lecture.isCustom()) {
+    if (isCustomLecture(lecture)) {
       throw errcode.IS_CUSTOM_LECTURE;
     }
 
-    let refLecture: any = await LectureModel.findOne({'year':this.year, 'semester':this.semester,
-      'course_number':lecture.course_number, 'lecture_number':lecture.lecture_number}).lean()
-      .exec();
+    let refLecture: any = await findRefLectureWithCourseNumber
+        (this.year, this.semester, lecture.course_number, lecture.lecture_number);
 
     if (refLecture === null) throw errcode.REF_LECTURE_NOT_FOUND;
 

@@ -13,7 +13,7 @@ import {TagStruct, parseLines} from './data/parse';
 import {LectureDiff, compareLectures} from './data/compare';
 import {notifyUpdated} from './data/notify';
 import {CourseBookModel} from '../../model/courseBook';
-import {LectureModel, LectureDocument} from '../../model/lecture';
+import {LectureDocument, deleteAllSemester, insertManyRefLecture} from '../../model/lecture';
 import {NotificationModel, Type as NotificationType} from '../../model/notification';
 import {TagList} from '../../model/tagList';
 import {UserModel} from '../../model/user';
@@ -105,11 +105,11 @@ export async function fetchAndInsert(year:number, semesterIndex:number, fcm_enab
   logger.info("Sending notifications...");
   await notifyUpdated(year, semesterIndex, compared, fcm_enabled);
 
-  await LectureModel.remove({ year: year, semester: semesterIndex}).exec();
+  await deleteAllSemester(year, semesterIndex);
   logger.info("Removed existing lecture for this semester");
 
   logger.info("Inserting new lectures...");
-  var docs = await LectureModel.insertMany(parsed.new_lectures);
+  var docs = await insertManyRefLecture(parsed.new_lectures);
   logger.info("Insert complete with " + docs.length + " success and "+ (parsed.new_lectures.length - docs.length) + " errors");
 
   logger.info("Inserting tags from new lectures...");
