@@ -69,7 +69,7 @@ export function parseLines(year:number, semesterIndex:number, lines:LectureLine[
       }
     }
 
-    new_lectures.push(newRefLecture({
+    new_lectures.push(<any>newRefLecture({
       year: year,
       semester: semesterIndex,
       classification: line.classification,

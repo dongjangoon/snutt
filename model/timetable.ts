@@ -125,7 +125,7 @@ export class TimetableModel {
       rawLecture.credit = Number(rawLecture.credit);
     }
 
-    let lecture = newUserLecture(rawLecture);
+    let lecture = <any>newUserLecture(rawLecture);
 
     for (var i = 0; i<this.lectureList.length; i++){
       if (isEqualLecture(lecture, this.lectureList[i])) {
@@ -238,7 +238,7 @@ export class TimetableModel {
 
   validateLectureTime(lectureId:string, lecture:UserLectureDocument): boolean {
     for (var i=0; i<this.lectureList.length; i++) {
-      var tableLecture:LectureDocument = this.lectureList[i];
+      var tableLecture:any = this.lectureList[i];
       if (lectureId == tableLecture._id) continue;
       for (var j=0; j<tableLecture.class_time_mask.length; j++)
         if ((tableLecture.class_time_mask[j] & lecture.class_time_mask[j]) != 0) return false;
