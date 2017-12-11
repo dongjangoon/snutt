@@ -80,7 +80,7 @@ export function validateKey(api_key:string):Promise<string> {
       if (!decoded.string || !decoded.key_version) return reject("invalid api key");
       if (api_list[decoded.string] &&
         api_list[decoded.string].key_version == decoded.key_version)
-        return resolve(api_list[decoded.string]);
+        return resolve(decoded.string);
     });
   });
 };
