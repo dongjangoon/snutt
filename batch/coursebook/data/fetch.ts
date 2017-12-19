@@ -255,7 +255,7 @@ async function getExcelAndPush(destination:LectureLine[], year:number, semester:
   let sheetWrap = new SheetWrapper(sheet);
   let rowsize = sheetWrap.getRowSize();
   logger.debug(workbook.SheetNames[0] + ": " + rowsize + " rows");
-  for (let i=4; i<=rowsize; i++) {
+  for (let i=3; i<rowsize; i++) {
     let line = getLineFromSheetAndRowIndex(sheetWrap, i, lectureCategory);
     if (line !== null) destination.push(line);
   }
