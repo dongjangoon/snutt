@@ -106,6 +106,11 @@ async function main() {
     } catch (err) {
         logger.error(err);
     }
+
+    // Wait for log4js to flush its logs
+    setTimeout(function() {
+        process.exit(0);
+    }, 100);
   }
   
 if (!module.parent) {
