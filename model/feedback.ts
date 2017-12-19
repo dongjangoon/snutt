@@ -4,7 +4,7 @@
 
 import mongoose = require('mongoose');
 
-interface FeedbackDocument extends mongoose.Document {
+export interface FeedbackDocument extends mongoose.Document {
   email: string,
   message: string,
   timestamp: number,
@@ -33,6 +33,10 @@ export async function insertFeedback(email: string, message: string, platform: s
   await feedbackDocument.save();
 }
 
-export function getFeedback(limit: number, offset: number): Promise<any[]> {
+export function getFeedback(limit: number, offset: number): Promise<FeedbackDocument[]> {
   return FeedbackModel.find().sort({'timestamp': -1}).skip(offset).limit(limit).exec();
+}
+
+export async function removeFeedback(ids: any[]): Promise<any> {
+  return FeedbackModel.remove({_id: { $in: ids }}).exec();
 }

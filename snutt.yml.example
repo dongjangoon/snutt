@@ -6,3 +6,7 @@ mongo: mongodb://localhost/snutt
 fcm:
   api_key: testapikey
   project_id: testprojectid
+feedback2github:
+  token: testapikey
+  repo_owner: wafflestudio
+  repo_name: snutt-feedbacks

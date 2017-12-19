@@ -8,7 +8,8 @@
     "build": "tsc -p .",
     "apikey": "node config/apiKey list",
     "coursebook": "node batch/coursebook/main",
-    "prune_log": "node batch/prune_log/main"
+    "prune_log": "node batch/prune_log/main",
+    "feedback2github": "node batch/feedback2github"
   },
   "dependencies": {
     "@types/assert": "0.0.31",
