@@ -5,6 +5,7 @@
  * @author Jang Ryeol, ryeolj5911@gmail.com
  */
 
+const db = require('../db');
 import config = require('../config/config');
 import * as request from 'request-promise-native';
 import {FeedbackDocument, getFeedback, removeFeedback} from '../model/feedback';
