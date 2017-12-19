@@ -34,7 +34,7 @@ export async function insertFeedback(email: string, message: string, platform: s
 }
 
 export function getFeedback(limit: number, offset: number): Promise<FeedbackDocument[]> {
-  return FeedbackModel.find().sort({'timestamp': -1}).skip(offset).limit(limit).exec();
+  return FeedbackModel.find().sort({'timestamp': 1}).skip(offset).limit(limit).exec();
 }
 
 export async function removeFeedback(ids: any[]): Promise<any> {
