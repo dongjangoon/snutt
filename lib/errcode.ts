@@ -15,6 +15,7 @@ class ErrorCode {
   static INVALID_COLOR = 0x100A;
   static NO_LECTURE_TITLE = 0x100B;
   static INVALID_TIMEJSON = 0x100C;
+  static INVALID_NOTIFICATION_DETAIL = 0x100D;
 
   /* 401, 403 - Authorization-related */
   static WRONG_API_KEY = 0x2000;

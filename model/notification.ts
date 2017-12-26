@@ -3,6 +3,7 @@
  * Jang Ryeol, ryeolj5911@gmail.com
  */
 import mongoose = require('mongoose');
+import errcode = require('../lib/errcode');
 import {UserModel} from './user';
 import fcm = require('../lib/fcm');
 
@@ -20,8 +21,7 @@ interface _NotificationModel extends mongoose.Model<NotificationDocument>{
       cb?:(err, docs:mongoose.Types.DocumentArray<NotificationDocument>)=>void)
       :Promise<mongoose.Types.DocumentArray<NotificationDocument>>;
   countUnread(user:UserModel, cb?:(err, count:number)=>void):Promise<number>;
-  createNotification(user_id:string, message:string, type:Number, detail:any, fcm_status:string,
-      cb?:(err, doc:NotificationDocument)=>void):Promise<NotificationDocument>;
+  createNotification(user_id:string, message:string, type:Number, detail:any, fcm_status:string):Promise<NotificationDocument>;
 }
 
 var NotificationSchema = new mongoose.Schema({
@@ -62,17 +62,20 @@ NotificationSchema.statics.countUnread = function (user, callback) {
  * - Type.COURSEBOOK  : Course Book Changes. Detail contains lecture difference
  * - Type.LECTURE     : Lecture Changes. Course book changes are for all users.
  *                      Lecture changes contains per-user update log.
+ * - Type.LINK_ADDR   : 사용자가 클릭하면 브라우저로 연결되도록 하는 알림
  */
 export let Type = {
   NORMAL : 0,
   COURSEBOOK : 1,
   LECTURE_UPDATE : 2,
-  LECTURE_REMOVE : 3
+  LECTURE_REMOVE : 3,
+  LINK_ADDR : 4
 };
 
 // if user_id_array is null or not array, create it as global
-NotificationSchema.statics.createNotification = function (user_id, message, type, detail, fcm_status, callback) {
+NotificationSchema.statics.createNotification = function (user_id, message, type, detail, fcm_status) {
   if (!type) type = 0;
+  if (type == Type.LINK_ADDR && typeof(detail) != "string") return Promise.reject(errcode.INVALID_NOTIFICATION_DETAIL);
   var notification = new NotificationModel({
     user_id : user_id,
     message : message,
@@ -82,7 +85,7 @@ NotificationSchema.statics.createNotification = function (user_id, message, type
     fcm_status : fcm_status
   });
 
-  return notification.save(callback);
+  return notification.save();
 };
 
 export let NotificationModel = <_NotificationModel>mongoose.model<NotificationDocument>('Notification', NotificationSchema);
