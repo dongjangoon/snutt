@@ -73,7 +73,7 @@ NotificationSchema.statics.countUnread = function (user, callback) {
 // if user_id_array is null or not array, create it as global
 NotificationSchema.statics.createNotification = function (user_id, message, type, detail) {
   if (!type) type = 0;
-  if (type == Type.LINK_ADDR && typeof(detail) != "string") return Promise.reject(errcode.INVALID_NOTIFICATION_DETAIL);
+  if (Number(type) == Type.LINK_ADDR && typeof(detail) != "string") return Promise.reject(errcode.INVALID_NOTIFICATION_DETAIL);
   var notification = new NotificationModel({
     user_id : user_id,
     message : message,
