@@ -141,6 +141,7 @@ router.use(function(req, res, next) {
     if (!user)
       return res.status(403).json({ errcode: errcode.WRONG_USER_TOKEN, message: 'Failed to authenticate token.' });
     res.setHeader('Cache-Control', 'private, max-age=0, must-revalidate');
+    user.updateLastLoginTimestamp();
     req["user"] = user;
     next();
   }, function (err) {

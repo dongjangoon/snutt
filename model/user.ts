@@ -16,24 +16,27 @@ let UserSchema = new mongoose.Schema({
     localPw: {type: String, default: null},
     fbName: {type: String, default: null},
     fbId: {type: String, default: null},
-    tempDate: {type: Date, default: null},
-    tempSeed: {type: Number, default: null}
+
+    // 위 항목이 없어도 unique credentialHash을 생성할 수 있도록
+    tempDate: {type: Date, default: null},          // 임시 가입 날짜
+    tempSeed: {type: Number, default: null}         // 랜덤 seed
   },
-  credentialHash : {type: String, default: null},
-  isAdmin: {type: Boolean, default: false},
-  regDate: Date,
-  notificationCheckedAt: Date,
+  credentialHash : {type: String, default: null},   // credential이 변경될 때 마다 SHA 해싱 (model/user.ts 참조)
+  isAdmin: {type: Boolean, default: false},         // admin 항목 접근 권한
+  regDate: Date,                                    // 회원가입 날짜
+  lastLoginTimestamp: Number,                       // routes/api/api.ts의 토큰 인증에서 업데이트
+  notificationCheckedAt: Date,                      // 새로운 알림이 있는지 확인하는 용도
   email: String,
-  fcmKey: String,
+  fcmKey: String,                                   // Firebase Message Key
 
   // if the user remove its account, active status becomes false
   // Should not remove user object, because we must preserve the user data and its related objects
   active: {type: Boolean, default: true}
 });
 
-UserSchema.index({ credentialHash : 1 })
-UserSchema.index({ "credential.localId": 1 })
-UserSchema.index({ "credential.fbId": 1 })
+UserSchema.index({ credentialHash : 1 })            // 토큰 인증 시
+UserSchema.index({ "credential.localId": 1 })       // ID로 로그인 시
+UserSchema.index({ "credential.fbId": 1 })          // 페이스북으로 로그인 시
 
 let MongooseUserModel = mongoose.model('User', UserSchema);
 
@@ -54,6 +57,7 @@ export class UserModel {
   email: string;
   fcmKey: string;
   active: boolean;
+  lastLoginTimestamp: number;
 
   mongooseDocument: mongoose.Document;
 
@@ -72,6 +76,7 @@ export class UserModel {
     this.email = wrapper.email;
     this.fcmKey = wrapper.fcmKey;
     this.active = wrapper.active;
+    this.lastLoginTimestamp = wrapper.lastLoginTimestamp;
 
     this.mongooseDocument = mongooseDocument;
   }
@@ -263,6 +268,13 @@ export class UserModel {
         year : coursebook.year,
         semester : coursebook.semester,
         title : "나의 시간표"});
+  }
+
+  updateLastLoginTimestamp(): void {
+    let timestamp = Date.now();
+    this.lastLoginTimestamp = timestamp;
+    this.mongooseDocument["lastLoginTimestamp"] = timestamp;
+    this.mongooseDocument.save(); // 토큰 인증 시 매번 save하므로 기다리면 안됨
   }
 
   static async sendGlobalFcmMsg(title:string, body: string, author: string, cause: string) {
