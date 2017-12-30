@@ -43,7 +43,7 @@ router.post('/insert_noti', async function(req, res, next) {
       if (insertFcm) {
         await UserModel.sendGlobalFcmMsg(title, body, sender._id, "admin");
       }
-      await NotificationModel.createNotification(null, body, type, null);
+      await NotificationModel.createNotification(null, body, type, detail);
     }
     res.send({message: "ok"});
   } catch (err) {
