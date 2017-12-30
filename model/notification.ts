@@ -7,6 +7,22 @@ import errcode = require('../lib/errcode');
 import {UserModel} from './user';
 import fcm = require('../lib/fcm');
 
+/**
+ * Types
+ * - Type.NORMAL      : Normal Messages. Detail would be null
+ * - Type.COURSEBOOK  : Course Book Changes. Detail contains lecture difference
+ * - Type.LECTURE     : Lecture Changes. Course book changes are for all users.
+ *                      Lecture changes contains per-user update log.
+ * - Type.LINK_ADDR   : 사용자가 클릭하면 브라우저로 연결되도록 하는 알림
+ */
+export let Type = {
+  NORMAL : 0,
+  COURSEBOOK : 1,
+  LECTURE_UPDATE : 2,
+  LECTURE_REMOVE : 3,
+  LINK_ADDR : 4
+};
+
 export interface NotificationDocument extends mongoose.Document{
   user_id : mongoose.Schema.Types.ObjectId,
   message : String,
@@ -28,7 +44,7 @@ var NotificationSchema = new mongoose.Schema({
   user_id : { type: mongoose.Schema.Types.ObjectId, ref: 'User', default : null},
   message : { type : String, required : true },
   created_at : { type : Date, required : true},
-  type : { type: Number, required : true, default : 0 },
+  type : { type: Number, required : true, default : Type.NORMAL },
   detail : { type: mongoose.Schema.Types.Mixed, default : null },
   fcm_status : { type : String, default : null }
 });
@@ -56,22 +72,6 @@ NotificationSchema.statics.countUnread = function (user, callback) {
     .exec(callback);
 };
 
-/**
- * Types
- * - Type.NORMAL      : Normal Messages. Detail would be null
- * - Type.COURSEBOOK  : Course Book Changes. Detail contains lecture difference
- * - Type.LECTURE     : Lecture Changes. Course book changes are for all users.
- *                      Lecture changes contains per-user update log.
- * - Type.LINK_ADDR   : 사용자가 클릭하면 브라우저로 연결되도록 하는 알림
- */
-export let Type = {
-  NORMAL : 0,
-  COURSEBOOK : 1,
-  LECTURE_UPDATE : 2,
-  LECTURE_REMOVE : 3,
-  LINK_ADDR : 4
-};
-
 // if user_id_array is null or not array, create it as global
 NotificationSchema.statics.createNotification = function (user_id, message, type, detail, fcm_status) {
   if (!type) type = 0;
@@ -80,7 +80,7 @@ NotificationSchema.statics.createNotification = function (user_id, message, type
     user_id : user_id,
     message : message,
     created_at : Date.now(),
-    type : type,
+    type : Number(type),
     detail : detail,
     fcm_status : fcm_status
   });
