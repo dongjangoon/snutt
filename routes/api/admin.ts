@@ -22,27 +22,34 @@ router.use(function(req, res, next) {
   }
 });
 
-router.post('/send_fcm', async function(req, res, next) {
+router.post('/insert_noti', async function(req, res, next) {
   let sender: UserModel = req["user"];
   let response: string;
 
-  let userId: string = req.body.user_id;
-  let title: string = req.body.title;
-  let body: string = req.body.body;
-  let insertNotification: boolean = req.body.insert_notification ? true : false;
+  let userId: string     = req.body.user_id;
+  let title: string      = req.body.title;
+  let body: string       = req.body.body;
+  let insertFcm: boolean = req.body.insert_fcm ? true            : false;
+  let type               = req.body.type       ? req.body.type   : NotificationType.NORMAL;
+  let detail             = req.body.detail     ? req.body.detail : null;
 
   try {
     if (userId && userId.length > 0) {
       let receiver = await UserModel.getByLocalId(userId);
-      if (insertNotification)
-        await NotificationModel.createNotification(receiver._id, body, NotificationType.NORMAL, null, "unused");
-      response = await receiver.sendFcmMsg(title, body, sender._id, "admin");
+      if (insertFcm) {
+        response = await receiver.sendFcmMsg(title, body, sender._id, "admin");
+      } else {
+        response = "nofcm";
+      }
+      await NotificationModel.createNotification(receiver._id, body, type, detail, response);
     } else {
-      if (insertNotification)
-        await NotificationModel.createNotification(null, body, NotificationType.NORMAL, null, "unused");
-      response = await UserModel.sendGlobalFcmMsg(title, body, sender._id, "admin");
+      if (insertFcm) {
+        response = await UserModel.sendGlobalFcmMsg(title, body, sender._id, "admin");
+      } else {
+        response = "nofcm";
+      }
+      await NotificationModel.createNotification(null, body, NotificationType.NORMAL, null, response);
     }
-
     res.send({message: "ok", response: response});
   } catch (err) {
     if (err == errcode.USER_NOT_FOUND) return res.status(404).send({errcode: err, message: "user not found"});
