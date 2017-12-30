@@ -24,7 +24,6 @@ router.use(function(req, res, next) {
 
 router.post('/insert_noti', async function(req, res, next) {
   let sender: UserModel = req["user"];
-  let response: string;
 
   let userId: string     = req.body.user_id;
   let title: string      = req.body.title;
@@ -37,20 +36,16 @@ router.post('/insert_noti', async function(req, res, next) {
     if (userId && userId.length > 0) {
       let receiver = await UserModel.getByLocalId(userId);
       if (insertFcm) {
-        response = await receiver.sendFcmMsg(title, body, sender._id, "admin");
-      } else {
-        response = "nofcm";
+        await receiver.sendFcmMsg(title, body, sender._id, "admin");
       }
-      await NotificationModel.createNotification(receiver._id, body, type, detail, response);
+      await NotificationModel.createNotification(receiver._id, body, type, detail);
     } else {
       if (insertFcm) {
-        response = await UserModel.sendGlobalFcmMsg(title, body, sender._id, "admin");
-      } else {
-        response = "nofcm";
+        await UserModel.sendGlobalFcmMsg(title, body, sender._id, "admin");
       }
-      await NotificationModel.createNotification(null, body, NotificationType.NORMAL, null, response);
+      await NotificationModel.createNotification(null, body, NotificationType.NORMAL, null);
     }
-    res.send({message: "ok", response: response});
+    res.send({message: "ok"});
   } catch (err) {
     if (err == errcode.USER_NOT_FOUND) return res.status(404).send({errcode: err, message: "user not found"});
     if (err == errcode.USER_HAS_NO_FCM_KEY) return res.status(404).send({errcode: err, message: "user has no fcm key"});

@@ -133,7 +133,7 @@ export async function fetchAndInsert(year:number, semesterIndex:number, fcm_enab
 
   if (!doc) {
     if (fcm_enabled) await UserModel.sendGlobalFcmMsg("신규 수강편람", noti_msg, "batch/coursebook", "new coursebook");
-    await NotificationModel.createNotification(null, noti_msg, NotificationType.COURSEBOOK, null, "unused");
+    await NotificationModel.createNotification(null, noti_msg, NotificationType.COURSEBOOK, null);
     logger.info("Notification inserted");
   }
   return;

@@ -33,8 +33,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
                 timetable.userId,
                 "'"+timetable.title+"' 시간표의 '"+updated_lecture.course_title+"' 강의가 업데이트 되었습니다.",
                 NotificationType.LECTURE_UPDATE,
-                noti_detail,
-                "unused");
+                noti_detail);
             } catch (err) {
               if (err == errcode.LECTURE_TIME_OVERLAP) {
                 await timetable.deleteLecture(lectureId);
@@ -45,8 +44,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
                   "'"+timetable.title+"' 시간표의 '"+updated_lecture.course_title+
                     "' 강의가 업데이트되었으나, 시간표가 겹쳐 삭제되었습니다.",
                   NotificationType.LECTURE_REMOVE,
-                  noti_detail,
-                  "unused");
+                  noti_detail);
               } else throw err;
             }
             callback();
@@ -78,8 +76,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
               timetable.userId,
               "'"+timetable.title+"' 시간표의 '"+removed_lecture.course_title+"' 강의가 폐강되어 삭제되었습니다.",
               NotificationType.LECTURE_REMOVE,
-              noti_detail,
-              "unused");
+              noti_detail);
             callback();
           }, function(err) {
             callback(err);

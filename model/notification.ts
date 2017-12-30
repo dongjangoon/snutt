@@ -28,8 +28,7 @@ export interface NotificationDocument extends mongoose.Document{
   message : String,
   created_at : Date,
   type : Number,
-  detail : mongoose.Schema.Types.Mixed,
-  fcm_status : String
+  detail : mongoose.Schema.Types.Mixed
 }
 
 interface _NotificationModel extends mongoose.Model<NotificationDocument>{
@@ -37,7 +36,7 @@ interface _NotificationModel extends mongoose.Model<NotificationDocument>{
       cb?:(err, docs:mongoose.Types.DocumentArray<NotificationDocument>)=>void)
       :Promise<mongoose.Types.DocumentArray<NotificationDocument>>;
   countUnread(user:UserModel, cb?:(err, count:number)=>void):Promise<number>;
-  createNotification(user_id:string, message:string, type:Number, detail:any, fcm_status:string):Promise<NotificationDocument>;
+  createNotification(user_id:string, message:string, type:Number, detail:any):Promise<NotificationDocument>;
 }
 
 var NotificationSchema = new mongoose.Schema({
@@ -45,8 +44,7 @@ var NotificationSchema = new mongoose.Schema({
   message : { type : String, required : true },
   created_at : { type : Date, required : true},
   type : { type: Number, required : true, default : Type.NORMAL },
-  detail : { type: mongoose.Schema.Types.Mixed, default : null },
-  fcm_status : { type : String, default : null }
+  detail : { type: mongoose.Schema.Types.Mixed, default : null }
 });
 
 NotificationSchema.index({user_id: 1});
@@ -73,7 +71,7 @@ NotificationSchema.statics.countUnread = function (user, callback) {
 };
 
 // if user_id_array is null or not array, create it as global
-NotificationSchema.statics.createNotification = function (user_id, message, type, detail, fcm_status) {
+NotificationSchema.statics.createNotification = function (user_id, message, type, detail) {
   if (!type) type = 0;
   if (type == Type.LINK_ADDR && typeof(detail) != "string") return Promise.reject(errcode.INVALID_NOTIFICATION_DETAIL);
   var notification = new NotificationModel({
@@ -81,8 +79,7 @@ NotificationSchema.statics.createNotification = function (user_id, message, type
     message : message,
     created_at : Date.now(),
     type : Number(type),
-    detail : detail,
-    fcm_status : fcm_status
+    detail : detail
   });
 
   return notification.save();
