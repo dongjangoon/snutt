@@ -34,4 +34,4 @@ CourseBookSchema.statics.getRecent = function() {
   return query.exec();
 };
 
-export let CourseBookModel = <_CourseBookModel>mongoose.model<CourseBookDocument>('CourseBook', CourseBookSchema);
+export let CourseBookModel = <_CourseBookModel>mongoose.model<CourseBookDocument>('CourseBook', CourseBookSchema, 'coursebooks');

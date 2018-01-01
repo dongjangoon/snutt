@@ -31,7 +31,7 @@ TimetableSchema.pre('save', function(next) {
   next();
 });
 
-let mongooseModel = mongoose.model('Timetable', TimetableSchema);
+let mongooseModel = mongoose.model('Timetable', TimetableSchema, 'timetables');
 
 export class TimetableModel {
   _id: string;

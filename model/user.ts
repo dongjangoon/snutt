@@ -38,7 +38,7 @@ UserSchema.index({ credentialHash : 1 })            // 토큰 인증 시
 UserSchema.index({ "credential.localId": 1 })       // ID로 로그인 시
 UserSchema.index({ "credential.fbId": 1 })          // 페이스북으로 로그인 시
 
-let MongooseUserModel = mongoose.model('User', UserSchema);
+let MongooseUserModel = mongoose.model('User', UserSchema ,'users');
 
 export class UserModel {
   _id: string;
@@ -131,7 +131,7 @@ export class UserModel {
   }
 
   hasFb():boolean {
-    return this.credential.fbId !== null;
+    return !(this.credential.fbId === null || this.credential.fbId === undefined );
   }
 
   attachFb(fbName:string, fbId:string):Promise<void> {
@@ -141,6 +141,7 @@ export class UserModel {
     }
     this.credential.fbName = fbName;
     this.credential.fbId = fbId;
+    console.log(this.credential.fbId);
     return this.saveCredential();
   }
 
@@ -272,9 +273,13 @@ export class UserModel {
 
   updateLastLoginTimestamp(): void {
     let timestamp = Date.now();
+    // Mongoose를 사용하면 성능이 저하되므로, raw mongodb를 사용한다.
+    mongoose.connection.db.collection('users').updateOne({_id: this._id}, {$set: {lastLoginTimestamp: timestamp}})
+    .catch(function(err){
+      logger.error("UserModel.updateLastLoginTimestamp: Failed to update timestamp");
+      logger.error(err);
+    });
     this.lastLoginTimestamp = timestamp;
-    this.mongooseDocument["lastLoginTimestamp"] = timestamp;
-    this.mongooseDocument.save(); // 토큰 인증 시 매번 save하므로 기다리면 안됨
   }
 
   static async sendGlobalFcmMsg(title:string, body: string, author: string, cause: string) {
@@ -315,7 +320,7 @@ export class UserModel {
   }
 
   private static async create(): Promise<UserModel> {
-    let mongooseDocument = new MongooseUserModel({regDate: new Date});
+    let mongooseDocument = new MongooseUserModel({regDate: new Date, lastLoginTimestamp: Date.now()});
     let user = new UserModel(mongooseDocument);
     await user.createDefaultTimetable();
     return user;

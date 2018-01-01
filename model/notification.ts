@@ -85,4 +85,4 @@ NotificationSchema.statics.createNotification = function (user_id, message, type
   return notification.save();
 };
 
-export let NotificationModel = <_NotificationModel>mongoose.model<NotificationDocument>('Notification', NotificationSchema);
+export let NotificationModel = <_NotificationModel>mongoose.model<NotificationDocument>('Notification', NotificationSchema, 'notifications');

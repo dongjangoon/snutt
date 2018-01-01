@@ -20,7 +20,7 @@ var TagListSchema = new mongoose.Schema({
 
 TagListSchema.index({year: 1, semester: 1});
 
-let mongooseModel = mongoose.model('TagList', TagListSchema);
+let mongooseModel = mongoose.model('TagList', TagListSchema, 'taglists');
 
 export class TagList {
   year: number;

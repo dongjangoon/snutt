@@ -128,9 +128,9 @@ export let userLectureSchema = BaseSchema({
   colorIndex: { type: Number, required: true, default: 0 }
 });
 
-let LectureModel = mongoose.model('Lecture', refLectureSchema);
+let LectureModel = mongoose.model('Lecture', refLectureSchema, 'lectures');
 
-let UserLectureModel = mongoose.model('UserLecture', userLectureSchema);
+let UserLectureModel = mongoose.model('UserLecture', userLectureSchema, 'userlectures');
 
 export function newRefLecture(lecture) {
   return new LectureModel(lecture);
