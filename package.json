@@ -1,6 +1,6 @@
 {
   "name": "snutt",
-  "version": "1.0.0",
+  "version": "2.0.1",
   "private": true,
   "scripts": {
     "test": "tsc -p . && mocha --recursive --timeout 10000",
