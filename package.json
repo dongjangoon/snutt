@@ -3,9 +3,9 @@
   "version": "2.0.1",
   "private": true,
   "scripts": {
-    "test": "tsc -p . && mocha --recursive --timeout 10000",
-    "start": "node ./app.js",
-    "build": "tsc -p .",
+    "test": "tsc -p . && tspath -f --jsPath ./dist && mocha",
+    "start": "node ./api/app.js",
+    "build": "tsc -p . && tspath -f --jsPath ./dist",
     "apikey": "node config/apiKey list",
     "coursebook": "node batch/coursebook/main",
     "prune_log": "node batch/prune_log/main",
@@ -50,6 +50,7 @@
     "request-promise-native": "^1.0.3",
     "serve-favicon": "~2.3.0",
     "supertest": "~1.2.0",
+    "tspath": "^1.2.10",
     "typescript": "^2.4.2",
     "xlsx": "^0.11.2"
   }

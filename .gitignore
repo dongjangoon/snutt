@@ -1,6 +1,5 @@
 node_modules
 .DS_Store
-*.js
 .vscode/
 .idea
 *.log
@@ -10,4 +9,4 @@ data/data.zip
 *.db
 dashboard/src/samples/
 snutt.yml
-*.js.map
+dist/
