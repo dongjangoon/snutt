@@ -63,7 +63,7 @@ app.use(cookieParser());
 app.use('/asset', express.static('asset'));
 app.use('/', routes);
 app.engine('.html', require('ejs').renderFile);
-app.set('views', './views')
+app.set('views', './api/views')
 // catch 404 and forward to error handler
 /*
 app.use(function(req, res, next) {

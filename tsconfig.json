@@ -4,10 +4,10 @@
         "target": "es2016",
         "noImplicitAny": false,
         "sourceMap": true,
-        "baseUrl": "./",
         "outDir": "./dist",
+        "baseUrl": "./src",
         "paths": {
-            "core/*": ["src/core/*"]
+            "core/*": ["core/*"]
         }
     },
     "exclude": [
