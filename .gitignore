@@ -1,12 +1,17 @@
+# Node dependencies
 node_modules
 .DS_Store
+
+# IDE specifics
 .vscode/
 .idea
+
+# Log files
 *.log
-data/xls/*
-data/txt/*
-data/data.zip
-*.db
-dashboard/src/samples/
+
+# Application settings
 snutt.yml
+
+# Output files
 dist/
+
