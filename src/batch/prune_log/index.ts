@@ -5,6 +5,8 @@
  * @author Jang Ryeol, ryeolj5911@gmail.com
  */
 
+require('module-alias/register')
+
 import { MongoClient, Db as MongoDb, DeleteWriteOpResultObject } from 'mongodb';
 import config = require('core/config');
 import {getLogFilePath} from 'core/log';

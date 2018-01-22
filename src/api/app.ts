@@ -2,6 +2,7 @@
  * HTTP 서버를 실행하는
  * 메인 엔트리
  */
+require('module-alias/register')
 
 import express = require("express");
 import db = require('core/db');
@@ -47,8 +48,9 @@ if (app.get('env') !== 'mocha') {
 }
 
 // view engine setup
-//app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, 'views'));
 //app.set('view engine', 'jade');
+app.engine('.html', require('ejs').renderFile);
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
@@ -62,8 +64,6 @@ app.use(cookieParser());
 
 app.use('/asset', express.static('asset'));
 app.use('/', routes);
-app.engine('.html', require('ejs').renderFile);
-app.set('views', './api/views')
 // catch 404 and forward to error handler
 /*
 app.use(function(req, res, next) {

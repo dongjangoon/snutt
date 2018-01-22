@@ -5,7 +5,9 @@
  * @author Jang Ryeol, ryeolj5911@gmail.com
  */
 
-const db = require('../db');
+require('module-alias/register')
+
+import db = require('core/db');
 import config = require('core/config');
 import * as request from 'request-promise-native';
 import {FeedbackDocument, getFeedback, removeFeedback} from 'core/model/feedback';

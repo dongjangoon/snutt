@@ -5,8 +5,9 @@
  * @author Hyeungshik Jung, zxzl@github
  * @author Jang Ryeol, ryeolj5911@gmail.com
  */
+require('module-alias/register')
 
-const db = require('../../db');
+import db = require('core/db');
 import fs = require('fs');
 import {fetchSugangSnu} from './data/fetch';
 import {TagStruct, parseLines} from './data/parse';
