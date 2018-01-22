@@ -19,7 +19,7 @@ import config = require('core/config');
 import * as log4js from 'log4js';
 import {getLogFilePath} from 'core/log';
 var logger = log4js.getLogger();
-
+db.connect();
 var app = express();
 
 if (app.get('env') !== 'mocha') {

@@ -15,6 +15,7 @@ import {FeedbackDocument, getFeedback, removeFeedback} from 'core/model/feedback
 import {getLogFilePath} from 'core/log';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
+db.connect();
 
 let githubToken = config.feedback2github_token;
 let repoOwner = config.feedback2github_repo_owner;
