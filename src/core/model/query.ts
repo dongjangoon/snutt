@@ -23,7 +23,7 @@ function isHangulCode(c:number) {
 export function writeLog(obj:any) {
   let cloned = JSON.parse(JSON.stringify(obj));
   cloned.timestamp = Date.now();
-  mongoose.connection.db.collection("query_logs").insert(cloned);
+  mongoose.connection.collection("query_logs").insert(cloned);
 }
 
 /*
