@@ -62,7 +62,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use('/asset', express.static('asset'));
+app.use('/asset', express.static(__dirname + '/asset'));
 app.use('/', routes);
 // catch 404 and forward to error handler
 /*

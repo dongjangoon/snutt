@@ -10,7 +10,7 @@
  * @author Jang Ryeol, ryeolj5911@gmail.com
  */
 import jwt = require('jsonwebtoken');
-import config = require('core/config');
+import config = require('../config');
 
 /**
  * api key를 발급할 때 암호화에 사용되는 json입니다.

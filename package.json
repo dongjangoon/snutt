@@ -3,7 +3,7 @@
   "version": "2.0.2",
   "private": true,
   "scripts": {
-    "test": "tsc -p . && mocha -r module-alias/register",
+    "test": "tsc -p . && cp -R resources/* dist/ && mocha -r module-alias/register",
     "start": "node ./dist/api/app.js",
     "build": "tsc -p . && cp -R resources/* dist/",
     "apikey": "node ./dist/core/config/apiKey list",
