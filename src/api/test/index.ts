@@ -10,7 +10,7 @@ import mocha = require("mocha");
 import assert = require('assert');
 import supertest = require('supertest');
 import config = require('core/config');
-import db = require('core/db');
+import mongoose = require('mongoose');
 import app = require('../app');
 
 import { CourseBookModel } from 'core/model/courseBook';
@@ -26,13 +26,9 @@ describe('API Test', function() {
   });
 
   // Change connection into test DB in order not to corrupt production DB
-  before('close snutt db and open snutt_test', function(done) {
-    if (!db.connection.readyState)
-      return done(new Error("DB not connected"));
-    db.connection.close(function() {
-      db.connect('mongodb://localhost/snutt_test', function(err){
-        return done(err);
-      });
+  before('open snutt_test', function(done) {
+    mongoose.connect('mongodb://localhost/snutt_test', function(err){
+      return done(err);
     });
   });
 
@@ -40,7 +36,7 @@ describe('API Test', function() {
   // mongoose.connection.db.dropDatabase()
   // dose not actually drop the db, but actually clears it
   before('clear snutt_test db', function(done) {
-    db.connection.db.dropDatabase(function(err) {
+    mongoose.connection.db.dropDatabase(function(err) {
       done(err);
     });
   });
@@ -118,7 +114,7 @@ describe('API Test', function() {
   });
 
   it('MongoDB >= 2.4', function(done) {
-    var admin = db.connection.db.admin();
+    var admin = mongoose.connection.db.admin();
     admin.buildInfo(function (err, info) {
       if (err)
         return done(err);
@@ -138,18 +134,18 @@ describe('API Test', function() {
   });
 
   describe('etc', function () {
-    require('./etc')(app, db, request);
+    require('./etc')(app, mongoose, request);
   });
 
   describe('User', function () {
-    require('./user_test')(app, db, request);
+    require('./user_test')(app, mongoose, request);
   });
 
   describe('Timetable', function () {
-    require('./timetable_test')(app, db, request);
+    require('./timetable_test')(app, mongoose, request);
   });
 
   describe('TagList', function () {
-    require('./tag_list_test')(app, db, request);
+    require('./tag_list_test')(app, mongoose, request);
   });
 });

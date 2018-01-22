@@ -22,6 +22,7 @@ import {getLogFilePath} from 'core/log';
 import fcm = require('core/fcm');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
+db.connect();
 
 log4js.configure({
   appenders: { 
