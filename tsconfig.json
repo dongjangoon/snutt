@@ -3,6 +3,15 @@
         "module": "commonjs",
         "target": "es2016",
         "noImplicitAny": false,
-        "sourceMap": false
-    }
+        "sourceMap": true,
+        "outDir": "./dist",
+        "baseUrl": "./src",
+        "paths": {
+            "core/*": ["core/*"]
+        }
+    },
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
 }

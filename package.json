@@ -1,15 +1,15 @@
 {
   "name": "snutt",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "private": true,
   "scripts": {
-    "test": "tsc -p . && mocha --recursive --timeout 10000",
-    "start": "node ./app.js",
-    "build": "tsc -p .",
-    "apikey": "node config/apiKey list",
-    "coursebook": "node batch/coursebook/main",
-    "prune_log": "node batch/prune_log/main",
-    "feedback2github": "node batch/feedback2github"
+    "test": "tsc -p . && cp -R resources/* dist/ && mocha -r module-alias/register",
+    "start": "node ./dist/api/app.js",
+    "build": "tsc -p . && cp -R resources/* dist/",
+    "apikey": "node ./dist/core/config/apiKey list",
+    "coursebook": "node ./dist/batch/coursebook",
+    "prune_log": "node ./dist/batch/prune_log",
+    "feedback2github": "node ./dist/batch/feedback2github"
   },
   "dependencies": {
     "@types/assert": "0.0.31",
@@ -43,6 +43,7 @@
     "lodash": "^4.17.4",
     "log4js": "^2.3.3",
     "mocha": "~2.4.5",
+    "module-alias": "^2.0.3",
     "mongodb": "^3.0.1",
     "mongoose": "^5.0.0-rc0",
     "morgan": "^1.8.2",
@@ -52,5 +53,8 @@
     "supertest": "~1.2.0",
     "typescript": "^2.4.2",
     "xlsx": "^0.11.2"
+  },
+  "_moduleAliases": {
+    "core": "dist/core"
   }
 }
