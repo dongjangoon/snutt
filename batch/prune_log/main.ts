@@ -5,7 +5,7 @@
  * @author Jang Ryeol, ryeolj5911@gmail.com
  */
 
-import { MongoClient, Db as MongoDb, WriteOpResult } from 'mongodb';
+import { MongoClient, Db as MongoDb, DeleteWriteOpResultObject } from 'mongodb';
 import config = require('../../config/config');
 import {getLogFilePath} from '../../log/log';
 import * as log4js from 'log4js';
@@ -25,7 +25,7 @@ log4js.configure({
   }
 });
 
-function getMongoDB(): Promise<MongoDb> {
+function getMongoClient(): Promise<MongoClient> {
   return new Promise(function(resolve, reject) {
     MongoClient.connect(config.mongoUri, function(err, db) {
       if (err) return reject(err);
@@ -34,11 +34,11 @@ function getMongoDB(): Promise<MongoDb> {
   })
 }
 
-function remove(db: MongoDb, collectionName: string, query: any): Promise<WriteOpResult> {
+function remove(db: MongoDb, collectionName: string, query: any): Promise<DeleteWriteOpResultObject> {
   return new Promise(function(resolve, reject) {
-    db.collection(collectionName).remove(query, null, function(err, result) {
+    db.collection(collectionName).deleteMany(query, null, function(err, result) {
       if (err) return reject();
-      else resolve(result);
+      else return resolve(result);
     });
   });
 }
@@ -65,10 +65,11 @@ async function deleteFcmLog(db: MongoDb) {
 
 async function main() {
   try {
-    let db = await getMongoDB();
+    let client = await getMongoClient();
+    let db = client.db("snutt");
     await deleteFcmLog(db);
     await deleteQueryLog(db);
-    db.close();
+    client.close();
   } catch (err) {
     logger.error(err);
   }
