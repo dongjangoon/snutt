@@ -41,7 +41,7 @@ log4js.configure({
 /**
  * 현재 수강편람과 다음 수강편람
  */
-async function getUpdateCandidate():Promise<[[number, number]]> {
+async function getUpdateCandidate():Promise<Array<[number, number]>> {
   let recentCoursebook = await CourseBookModel.getRecent();
   if (!recentCoursebook) {
     let date = new Date();
@@ -143,7 +143,7 @@ export async function fetchAndInsert(year:number, semesterIndex:number, fcm_enab
 
 
 async function main() {
-  let cands: [[number, number]];
+  let cands: Array<[number, number]>;
   if (process.argv.length != 4) {
     cands = await getUpdateCandidate();
   } else {

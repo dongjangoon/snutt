@@ -57,14 +57,14 @@ export type LectureQuery = {
   year:number;
   semester:number;
   title:string;
-  classification:[string];
-  credit:[number];
-  course_number:[string];
-  academic_year:[string];
-  instructor:[string];
-  department:[string];
-  category:[string];
-  time_mask:[number];
+  classification:Array<string>;
+  credit:Array<number>;
+  course_number:Array<string>;
+  academic_year:Array<string>;
+  instructor:Array<string>;
+  department:Array<string>;
+  category:Array<string>;
+  time_mask:Array<number>;
   offset:number;
   limit:number;
 }
