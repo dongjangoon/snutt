@@ -6,8 +6,9 @@
  * @author Jang Ryeol, ryeolj5911@gmail.com
  */
 require('module-alias/register')
+require('@app/core/config/log');
+require('@app/core/config/mongo');
 
-import db = require('@app/core/db');
 import fs = require('fs');
 import {fetchSugangSnu} from './data/fetch';
 import {TagStruct, parseLines} from './data/parse';
@@ -18,25 +19,8 @@ import {LectureDocument, deleteAllSemester, insertManyRefLecture} from '@app/cor
 import {NotificationModel, Type as NotificationType} from '@app/core/model/notification';
 import {TagList} from '@app/core/model/tagList';
 import {UserModel} from '@app/core/model/user';
-import {getLogFilePath} from '@app/core/log';
-import fcm = require('@app/core/fcm');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
-db.connect();
-
-log4js.configure({
-  appenders: { 
-    'stdout': { type : 'stdout' },
-    'file' : { type : 'file',
-        filename: getLogFilePath('coursebook.log'),
-        layout: { type: "basic" },
-        maxLogSize: 20480,
-        backups: 10 }
-  },
-  categories: {
-    default: { appenders: [ 'stdout', 'file' ], level: 'info' }
-  }
-});
 
 /**
  * 현재 수강편람과 다음 수강편람

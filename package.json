@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "test": "tsc -p . && cp -R resources/* build/ && mocha -r module-alias/register --exit \"build/test/**/*.js\"",
-    "start": "node ./build/api/app.js",
+    "start": "node ./build/src/api/app.js",
     "build": "tsc -p . && cp -R resources/* build/",
-    "apikey": "node ./build/core/config/apiKey list",
-    "coursebook": "node ./build/batch/coursebook",
-    "prune_log": "node ./build/batch/prune_log",
-    "feedback2github": "node ./build/batch/feedback2github"
+    "apikey": "node ./build/src/core/config/apiKey list",
+    "coursebook": "node ./build/src/batch/coursebook",
+    "prune_log": "node ./build/src/batch/prune_log",
+    "feedback2github": "node ./build/src/batch/feedback2github"
   },
   "dependencies": {
     "@types/async": "~2.0.49",

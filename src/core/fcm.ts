@@ -7,19 +7,21 @@
 
 import {UserModel} from './model/user';
 import request = require('request-promise-native');
-import config = require('./config');
+import property = require('@app/core/config/property');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
+
+const device_api_header = {
+  "Content-Type":"application/json",
+  "Authorization":"key="+property.fcm_api_key,
+  "project_id":property.fcm_project_id
+};
 
 export function createNotiKey(key_name:string, registration_ids:[string]): Promise<string> {
   return request({
       method: 'POST',
       uri: 'https://android.googleapis.com/gcm/notification',
-      headers: {
-        "Content-Type":"application/json",
-        "Authorization":"key="+config.fcm_api_key,
-        "project_id":config.fcm_project_id
-      },
+      headers: device_api_header,
       body: {
             "operation": "create",
             "notification_key_name": key_name,
@@ -38,11 +40,7 @@ export function getNotiKey(key_name:string): Promise<string> {
   return request({
       method: 'GET',
       uri: 'https://android.googleapis.com/gcm/notification',
-      headers: {
-        "Content-Type":"application/json",
-        "Authorization":"key="+config.fcm_api_key,
-        "project_id":config.fcm_project_id
-      },
+      headers: device_api_header,
       qs: {
         "notification_key_name": key_name
       },
@@ -59,11 +57,7 @@ export function addDevice(key_name:string, key:string, registration_ids:[string]
   return request({
       method: 'POST',
       uri: 'https://android.googleapis.com/gcm/notification',
-      headers: {
-        "Content-Type":"application/json",
-        "Authorization":"key="+config.fcm_api_key,
-        "project_id":config.fcm_project_id
-      },
+      headers: device_api_header,
       body: {
             "operation": "add",
             "notification_key_name": key_name,
@@ -83,11 +77,7 @@ export function removeDevice(key_name:string, key:string, registration_ids:[stri
   return request({
       method: 'POST',
       uri: 'https://android.googleapis.com/gcm/notification',
-      headers: {
-        "Content-Type":"application/json",
-        "Authorization":"key="+config.fcm_api_key,
-        "project_id":config.fcm_project_id
-      },
+      headers: device_api_header,
       body: {
             "operation": "remove",
             "notification_key_name": key_name,
@@ -109,7 +99,7 @@ export function addTopic(registration_id:string): Promise<any> {
       uri: 'https://iid.googleapis.com/iid/v1/'+registration_id+'/rel/topics/global',
       headers: {
         "Content-Type":"application/json",
-        "Authorization":"key="+config.fcm_api_key
+        "Authorization":"key="+property.fcm_api_key
         // no need for project_id
       }
     }).catch(function(err){
@@ -124,7 +114,7 @@ export function removeTopicBatch(registration_tokens:[string]): Promise<any> {
       uri: 'https://iid.googleapis.com/iid/v1:batchRemove',
       headers: {
         "Content-Type":"application/json",
-        "Authorization":"key="+config.fcm_api_key
+        "Authorization":"key="+property.fcm_api_key
         // no need for project_id
       },
       body: {
@@ -144,7 +134,7 @@ export function sendMsg(to:string, title:string, body:string): Promise<string> {
       uri: 'https://fcm.googleapis.com/fcm/send',
       headers: {
         "Content-Type":"application/json",
-        "Authorization":"key="+config.fcm_api_key
+        "Authorization":"key="+property.fcm_api_key
       },
       body: {
             "to": to,

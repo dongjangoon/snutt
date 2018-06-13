@@ -9,7 +9,7 @@ import mocha = require("mocha");
  
 import assert = require('assert');
 import supertest = require('supertest');
-import config = require('@app/core/config');
+import property = require('@app/core/config/property');
 import mongoose = require('mongoose');
 import app = require('@app/api/app');
 
@@ -19,7 +19,7 @@ import {newRefLecture} from '@app/core/model/lecture';
 let request = supertest(app);
 describe('API Test', function() {
   before('valid snutt.yml', function(done) {
-    if (config.secretKey && config.host && config.port)
+    if (property.secretKey && property.host && property.port)
       return done();
     else
       return done(new Error("Invalid config. Please set conf.yml"));

@@ -8,7 +8,7 @@ import {UserModel} from '@app/core/model/user';
 import {CourseBookModel} from '@app/core/model/courseBook';
 import {getRecentFcmLog} from '@app/core/model/fcmLog';
 import {getFeedback} from '@app/core/model/feedback';
-import {getStatistics, getLogFileContent} from '@app/core/model/admin';
+import {getStatistics} from '@app/core/model/admin';
 import {NotificationModel, Type as NotificationType} from '@app/core/model/notification';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
@@ -50,16 +50,6 @@ router.post('/insert_noti', async function(req, res, next) {
     if (err == errcode.USER_NOT_FOUND) return res.status(404).send({errcode: err, message: "user not found"});
     if (err == errcode.USER_HAS_NO_FCM_KEY) return res.status(404).send({errcode: err, message: "user has no fcm key"});
     if (err == errcode.INVALID_NOTIFICATION_DETAIL) return res.status(404).send({errcode: err, message: "invalid notification detail"});
-    logger.error(err);
-    res.status(500).send({errcode: errcode.SERVER_FAULT, message:err});
-  }
-});
-
-router.get('/log_content/:fileName', async function(req, res, next) {
-  let fileName: string = req.params.fileName;
-  try {
-    res.send(await getLogFileContent(fileName));
-  } catch (err) {
     logger.error(err);
     res.status(500).send({errcode: errcode.SERVER_FAULT, message:err});
   }

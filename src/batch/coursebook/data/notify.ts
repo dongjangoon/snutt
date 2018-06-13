@@ -1,4 +1,4 @@
-import { LectureDiff } from './compare';
+import { LectureDiff } from '@app/batch/coursebook/data/compare';
 import errcode = require('@app/core/errcode');
 import { Type as NotificationType, NotificationModel } from '@app/core/model/notification';
 import { TimetableModel } from '@app/core/model/timetable';

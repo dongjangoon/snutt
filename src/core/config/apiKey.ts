@@ -10,7 +10,7 @@
  * @author Jang Ryeol, ryeolj5911@gmail.com
  */
 import jwt = require('jsonwebtoken');
-import config = require('../config');
+import property = require('@app/core/config/property');
 
 /**
  * api key를 발급할 때 암호화에 사용되는 json입니다.
@@ -59,7 +59,7 @@ export function getAppVersion(string:string) {
  * @param api_obj
  */
 function issueKey(api_obj) {
-  return jwt.sign(api_obj, config.secretKey);
+  return jwt.sign(api_obj, property.secretKey);
 };
 
 /**
@@ -75,7 +75,7 @@ export function validateKey(api_key:string):Promise<string> {
     });
   }
   return new Promise(function(resolve, reject){
-    jwt.verify(api_key, config.secretKey, function(err, decoded: any) {
+    jwt.verify(api_key, property.secretKey, function(err, decoded: any) {
       if (err) return reject("invalid api key");
       if (!decoded.string || !decoded.key_version) return reject("invalid api key");
       if (api_list[decoded.string] &&

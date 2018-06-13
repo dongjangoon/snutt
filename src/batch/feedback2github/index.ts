@@ -5,41 +5,25 @@
  * @author Jang Ryeol, ryeolj5911@gmail.com
  */
 
-require('module-alias/register')
+require('module-alias/register');
+require('@app/core/config/mongo');
+require('@app/batch/config/log');
 
-import db = require('@app/core/db');
-import config = require('@app/core/config');
+import property = require('@app/core/config/property');
 import * as request from 'request-promise-native';
 import {FeedbackDocument, getFeedback, removeFeedback} from '@app/core/model/feedback';
-
-import {getLogFilePath} from '@app/core/log';
 import * as log4js from 'log4js';
-var logger = log4js.getLogger();
-db.connect();
 
-let githubToken = config.feedback2github_token;
-let repoOwner = config.feedback2github_repo_owner;
-let repoName = config.feedback2github_repo_name;
+var logger = log4js.getLogger();
+let githubToken = property.feedback2github_token;
+let repoOwner = property.feedback2github_repo_owner;
+let repoName = property.feedback2github_repo_name;
 let apiIssuesUrl = "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/issues";
 let apiHeader = {
     Accept: "application/vnd.github.v3+json",
     Authorization: "token " + githubToken,
     "User-Agent": "bekker"
 };
-
-log4js.configure({
-  appenders: { 
-    'stdout': { type : 'stdout' },
-    'file' : { type : 'file',
-        filename: getLogFilePath('feedback2github.log'),
-        layout: { type: "basic" },
-        maxLogSize: 20480,
-        backups: 10 }
-  },
-  categories: {
-    default: { appenders: [ 'stdout', 'file' ], level: 'info' }
-  }
-});
 
 async function getUserName(): Promise<string> {
     return request({

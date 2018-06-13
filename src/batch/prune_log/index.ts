@@ -5,31 +5,17 @@
  * @author Jang Ryeol, ryeolj5911@gmail.com
  */
 
-require('module-alias/register')
+require('module-alias/register');
+require('@app/batch/config/log');
 
 import { MongoClient, Db as MongoDb, DeleteWriteOpResultObject } from 'mongodb';
-import config = require('@app/core/config');
-import {getLogFilePath} from '@app/core/log';
+import property = require('@app/core/config/property');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
-log4js.configure({
-  appenders: { 
-    'stdout': { type : 'stdout' },
-    'file' : { type : 'file',
-        filename: getLogFilePath('prune_log.log'),
-        layout: { type: "basic" },
-        maxLogSize: 20480,
-        backups: 10 }
-  },
-  categories: {
-    default: { appenders: [ 'stdout', 'file' ], level: 'info' }
-  }
-});
-
 function getMongoClient(): Promise<MongoClient> {
   return new Promise(function(resolve, reject) {
-    MongoClient.connect(config.mongoUri, function(err, db) {
+    MongoClient.connect(property.mongoUri, function(err, db) {
       if (err) return reject(err);
       return resolve(db);
     });

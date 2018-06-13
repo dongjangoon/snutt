@@ -5,7 +5,6 @@
 import mongoose = require('mongoose');
 import errcode = require('../errcode');
 import {UserModel} from './user';
-import fcm = require('../fcm');
 
 /**
  * Types

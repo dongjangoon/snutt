@@ -1,5 +1,5 @@
 import mongoose = require('mongoose');
-import config = require('../config');
+import config = require('@app/core/config/property');
 import bcrypt = require('bcrypt');
 import crypto = require('crypto');
 import errcode = require('../errcode');

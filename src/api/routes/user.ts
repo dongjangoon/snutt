@@ -3,11 +3,8 @@
  * API for User CRUD
  */
 import express = require('express');
-import request = require('request-promise-native');
 var router = express.Router();
-import config = require('@app/core/config');
 import facebook = require('@app/core/facebook');
-import fcm = require('@app/core/fcm');
 import {UserModel} from '@app/core/model/user';
 import errcode = require('@app/core/errcode');
 import * as log4js from 'log4js';
