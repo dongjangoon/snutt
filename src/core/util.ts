@@ -1,6 +1,5 @@
 import mongoose = require('mongoose');
 import assert = require('assert');
-import _ = require('lodash');
 import errcode = require('./errcode');
 import { List } from 'immutable';
 import * as log4js from 'log4js';
@@ -89,8 +88,9 @@ export function equalTimeJson(t1:Array<TimePlace>, t2:Array<TimePlace>) {
 export function timeJsonToMask(timeJson:Array<TimePlace>, duplicateCheck?:boolean): number[] {
   var i,j;
   var bitTable2D = [];
-  for (i = 0; i < 7; i++)
-    bitTable2D.push(_.fill(new Array(30), 0));
+  for (i = 0; i < 7; i++) {
+    bitTable2D.push(new Array().fill(0, 0, 30));
+  }
 
   timeJson.forEach(function(lecture, lectureIdx) {
     var dayIdx = Number(lecture.day);
