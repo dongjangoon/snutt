@@ -1,4 +1,0 @@
-dist/api/test
-dist/core/test
---recursive
---timeout 10000

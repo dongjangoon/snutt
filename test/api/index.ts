@@ -9,12 +9,12 @@ import mocha = require("mocha");
  
 import assert = require('assert');
 import supertest = require('supertest');
-import config = require('core/config');
+import config = require('@app/core/config');
 import mongoose = require('mongoose');
-import app = require('../app');
+import app = require('@app/api/app');
 
-import { CourseBookModel } from 'core/model/courseBook';
-import {newRefLecture} from 'core/model/lecture';
+import { CourseBookModel } from '@app/core/model/courseBook';
+import {newRefLecture} from '@app/core/model/lecture';
 
 let request = supertest(app);
 describe('API Test', function() {

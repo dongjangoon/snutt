@@ -8,8 +8,8 @@
 require('module-alias/register')
 
 import { MongoClient, Db as MongoDb, DeleteWriteOpResultObject } from 'mongodb';
-import config = require('core/config');
-import {getLogFilePath} from 'core/log';
+import config = require('@app/core/config');
+import {getLogFilePath} from '@app/core/log';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 

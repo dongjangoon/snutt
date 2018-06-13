@@ -1,12 +1,12 @@
 import express = require('express');
 var router = express.Router();
 
-import {UserModel} from 'core/model/user';
-import {CourseBookModel} from 'core/model/courseBook';
-import {TimetableModel} from 'core/model/timetable';
-import errcode = require('core/errcode');
+import {UserModel} from '@app/core/model/user';
+import {CourseBookModel} from '@app/core/model/courseBook';
+import {TimetableModel} from '@app/core/model/timetable';
+import errcode = require('@app/core/errcode');
 import * as log4js from 'log4js';
-import * as facebook from 'core/facebook';
+import * as facebook from '@app/core/facebook';
 var logger = log4js.getLogger();
 
 router.post('/request_temp', async function(req, res, next) {

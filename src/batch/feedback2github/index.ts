@@ -7,12 +7,12 @@
 
 require('module-alias/register')
 
-import db = require('core/db');
-import config = require('core/config');
+import db = require('@app/core/db');
+import config = require('@app/core/config');
 import * as request from 'request-promise-native';
-import {FeedbackDocument, getFeedback, removeFeedback} from 'core/model/feedback';
+import {FeedbackDocument, getFeedback, removeFeedback} from '@app/core/model/feedback';
 
-import {getLogFilePath} from 'core/log';
+import {getLogFilePath} from '@app/core/log';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 db.connect();

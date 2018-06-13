@@ -7,7 +7,7 @@
 "use strict";
 
 import assert = require('assert');
-import errcode = require('core/errcode');
+import errcode = require('@app/core/errcode');
 
 export = function(app, db, request) {
   var token;

@@ -1,6 +1,6 @@
 import {LectureLine} from './fetch';
-import {LectureDocument, newRefLecture} from 'core/model/lecture';
-import Util = require('core/util');
+import {LectureDocument, newRefLecture} from '@app/core/model/lecture';
+import Util = require('@app/core/util');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 

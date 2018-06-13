@@ -5,11 +5,11 @@
 import express = require('express');
 import request = require('request-promise-native');
 var router = express.Router();
-import config = require('core/config');
-import facebook = require('core/facebook');
-import fcm = require('core/fcm');
-import {UserModel} from 'core/model/user';
-import errcode = require('core/errcode');
+import config = require('@app/core/config');
+import facebook = require('@app/core/facebook');
+import fcm = require('@app/core/fcm');
+import {UserModel} from '@app/core/model/user';
+import errcode = require('@app/core/errcode');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 

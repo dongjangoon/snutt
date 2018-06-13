@@ -3,13 +3,13 @@
  * Admin 권한을 가진 user만이 사용 가능
  */
 import express = require('express');
-import errcode = require('core/errcode');
-import {UserModel} from 'core/model/user';
-import {CourseBookModel} from 'core/model/courseBook';
-import {getRecentFcmLog} from 'core/model/fcmLog';
-import {getFeedback} from 'core/model/feedback';
-import {getStatistics, getLogFileContent} from 'core/model/admin';
-import {NotificationModel, Type as NotificationType} from 'core/model/notification';
+import errcode = require('@app/core/errcode');
+import {UserModel} from '@app/core/model/user';
+import {CourseBookModel} from '@app/core/model/courseBook';
+import {getRecentFcmLog} from '@app/core/model/fcmLog';
+import {getFeedback} from '@app/core/model/feedback';
+import {getStatistics, getLogFileContent} from '@app/core/model/admin';
+import {NotificationModel, Type as NotificationType} from '@app/core/model/notification';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 

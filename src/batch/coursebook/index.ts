@@ -7,19 +7,19 @@
  */
 require('module-alias/register')
 
-import db = require('core/db');
+import db = require('@app/core/db');
 import fs = require('fs');
 import {fetchSugangSnu} from './data/fetch';
 import {TagStruct, parseLines} from './data/parse';
 import {LectureDiff, compareLectures} from './data/compare';
 import {notifyUpdated} from './data/notify';
-import {CourseBookModel} from 'core/model/courseBook';
-import {LectureDocument, deleteAllSemester, insertManyRefLecture} from 'core/model/lecture';
-import {NotificationModel, Type as NotificationType} from 'core/model/notification';
-import {TagList} from 'core/model/tagList';
-import {UserModel} from 'core/model/user';
-import {getLogFilePath} from 'core/log';
-import fcm = require('core/fcm');
+import {CourseBookModel} from '@app/core/model/courseBook';
+import {LectureDocument, deleteAllSemester, insertManyRefLecture} from '@app/core/model/lecture';
+import {NotificationModel, Type as NotificationType} from '@app/core/model/notification';
+import {TagList} from '@app/core/model/tagList';
+import {UserModel} from '@app/core/model/user';
+import {getLogFilePath} from '@app/core/log';
+import fcm = require('@app/core/fcm');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 db.connect();

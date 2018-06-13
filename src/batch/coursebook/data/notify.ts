@@ -1,9 +1,9 @@
 import { LectureDiff } from './compare';
-import errcode = require('core/errcode');
-import { Type as NotificationType, NotificationModel } from 'core/model/notification';
-import { TimetableModel } from 'core/model/timetable';
-import { UserModel } from 'core/model/user';
-import * as fcm from 'core/fcm';
+import errcode = require('@app/core/errcode');
+import { Type as NotificationType, NotificationModel } from '@app/core/model/notification';
+import { TimetableModel } from '@app/core/model/timetable';
+import { UserModel } from '@app/core/model/user';
+import * as fcm from '@app/core/fcm';
 import * as async from 'async';
 
 export async function notifyUpdated(year:number, semesterIndex:number, diff:LectureDiff,

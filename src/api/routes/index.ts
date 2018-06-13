@@ -8,7 +8,7 @@ import express = require('express');
 
 var router = express.Router();
 
-import {CourseBookModel} from 'core/model/courseBook';
+import {CourseBookModel} from '@app/core/model/courseBook';
 
 import authRouter = require('./auth');
 import timetableRouter = require('./timetable');
@@ -17,12 +17,12 @@ import tagsRouter = require('./tags');
 import notificationRouter = require('./notification');
 import userRouter = require('./user');
 import adminRouter = require('./admin');
-import apiKey = require('core/config/apiKey');
-import {UserModel} from 'core/model/user';
-import {insertFeedback} from 'core/model/feedback';
+import apiKey = require('@app/core/config/apiKey');
+import {UserModel} from '@app/core/model/user';
+import {insertFeedback} from '@app/core/model/feedback';
 
-import errcode = require('core/errcode');
-import libcolor = require('core/color');
+import errcode = require('@app/core/errcode');
+import libcolor = require('@app/core/color');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 

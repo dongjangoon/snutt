@@ -1,15 +1,15 @@
 {
   "name": "snutt",
-  "version": "2.0.4",
+  "version": "2.0.5-dev",
   "private": true,
   "scripts": {
-    "test": "tsc -p . && cp -R resources/* dist/ && mocha --exit -r module-alias/register",
-    "start": "node ./dist/api/app.js",
-    "build": "tsc -p . && cp -R resources/* dist/",
-    "apikey": "node ./dist/core/config/apiKey list",
-    "coursebook": "node ./dist/batch/coursebook",
-    "prune_log": "node ./dist/batch/prune_log",
-    "feedback2github": "node ./dist/batch/feedback2github"
+    "test": "tsc -p . && cp -R resources/* build/ && mocha -r module-alias/register --exit \"build/test/**/*.js\"",
+    "start": "node ./build/api/app.js",
+    "build": "tsc -p . && cp -R resources/* build/",
+    "apikey": "node ./build/core/config/apiKey list",
+    "coursebook": "node ./build/batch/coursebook",
+    "prune_log": "node ./build/batch/prune_log",
+    "feedback2github": "node ./build/batch/feedback2github"
   },
   "dependencies": {
     "@types/async": "~2.0.49",
@@ -35,7 +35,7 @@
     "jsonwebtoken": "~5.5.0",
     "log4js": "~2.8.0",
     "mocha": "~5.2.0",
-    "module-alias": "~2.0.6",
+    "module-alias": "^2.0.6",
     "mongodb": "~3.0.10",
     "mongoose": "~5.0.0",
     "morgan": "~1.9.0",
@@ -46,6 +46,6 @@
     "xlsx": "~0.13.0"
   },
   "_moduleAliases": {
-    "core": "dist/core"
+    "@app": "build/src"
   }
 }

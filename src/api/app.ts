@@ -5,7 +5,7 @@
 require('module-alias/register')
 
 import express = require("express");
-import db = require('core/db');
+import db = require('@app/core/db');
 import morgan = require("morgan");
 import cookieParser = require("cookie-parser");
 import bodyParser = require("body-parser");
@@ -15,9 +15,9 @@ import cors = require("cors");
 import routes = require('./routes');
 import http = require('http');
 import fs = require('fs');
-import config = require('core/config');
+import config = require('@app/core/config');
 import * as log4js from 'log4js';
-import {getLogFilePath} from 'core/log';
+import {getLogFilePath} from '@app/core/log';
 var logger = log4js.getLogger();
 db.connect();
 var app = express();

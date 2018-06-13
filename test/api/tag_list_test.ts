@@ -1,6 +1,6 @@
 import assert = require('assert');
-import errcode = require('core/errcode');
-import { TagList } from 'core/model/tagList';
+import errcode = require('@app/core/errcode');
+import { TagList } from '@app/core/model/tagList';
 
 export = function(app, db, request) {
   it ('Insert tag lists', async function() {

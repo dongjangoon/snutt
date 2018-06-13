@@ -1,9 +1,9 @@
 import express = require('express');
 var router = express.Router();
-import {NotificationModel} from 'core/model/notification';
-import {UserModel} from 'core/model/user';
+import {NotificationModel} from '@app/core/model/notification';
+import {UserModel} from '@app/core/model/user';
 
-import errcode = require('core/errcode');
+import errcode = require('@app/core/errcode');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
