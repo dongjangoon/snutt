@@ -4,7 +4,7 @@
  */
 import mongoose = require('mongoose');
 import errcode = require('../errcode');
-import {UserModel} from './user';
+import User from '@app/core/user/model/User';
 
 /**
  * Types
@@ -31,10 +31,10 @@ export interface NotificationDocument extends mongoose.Document{
 }
 
 interface _NotificationModel extends mongoose.Model<NotificationDocument>{
-  getNewest(user:UserModel, offset:number, limit:number,
+  getNewest(user:User, offset:number, limit:number,
       cb?:(err, docs:mongoose.Types.DocumentArray<NotificationDocument>)=>void)
       :Promise<mongoose.Types.DocumentArray<NotificationDocument>>;
-  countUnread(user:UserModel, cb?:(err, count:number)=>void):Promise<number>;
+  countUnread(user:User, cb?:(err, count:number)=>void):Promise<number>;
   createNotification(user_id:string, message:string, type:Number, detail:any):Promise<NotificationDocument>;
 }
 
@@ -49,11 +49,11 @@ var NotificationSchema = new mongoose.Schema({
 NotificationSchema.index({user_id: 1});
 NotificationSchema.index({created_at: -1});
 
-NotificationSchema.statics.getNewest = function (user: UserModel, offset, limit, callback) {
+NotificationSchema.statics.getNewest = function (user: User, offset, limit, callback) {
   let query = {
       user_id: { $in: [ null, user._id ] }
     };
-  let regDate = user.getRegDate();
+  let regDate = user.regDate;
   if (regDate) query["created_at"] = { $gt: regDate }
   return NotificationModel.find(query)
     .sort('-created_at')

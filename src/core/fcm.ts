@@ -5,7 +5,6 @@
  * @author ryeolj5911@gmail.com
  */
 
-import {UserModel} from './model/user';
 import request = require('request-promise-native');
 import property = require('@app/core/config/property');
 import * as log4js from 'log4js';

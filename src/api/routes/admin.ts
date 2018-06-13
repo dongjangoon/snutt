@@ -4,7 +4,7 @@
  */
 import express = require('express');
 import errcode = require('@app/core/errcode');
-import {UserModel} from '@app/core/model/user';
+import User = require('@app/core/user/model/User');
 import {CourseBookModel} from '@app/core/model/courseBook';
 import {getRecentFcmLog} from '@app/core/model/fcmLog';
 import {getFeedback} from '@app/core/model/feedback';
@@ -23,7 +23,7 @@ router.use(function(req, res, next) {
 });
 
 router.post('/insert_noti', async function(req, res, next) {
-  let sender: UserModel = req["user"];
+  let sender: User = req["user"];
 
   let userId: string     = req.body.user_id;
   let title: string      = req.body.title;

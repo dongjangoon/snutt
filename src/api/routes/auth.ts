@@ -1,7 +1,8 @@
 import express = require('express');
 var router = express.Router();
 
-import {UserModel} from '@app/core/model/user';
+import User from '@app/core/user/model/user';
+import UserService = require('@app/core/user/UserService');
 import {CourseBookModel} from '@app/core/model/courseBook';
 import {TimetableModel} from '@app/core/model/timetable';
 import errcode = require('@app/core/errcode');
@@ -11,7 +12,7 @@ var logger = log4js.getLogger();
 
 router.post('/request_temp', async function(req, res, next) {
   try {
-    let tempUser = await UserModel.createTemp();
+    let tempUser = await UserService.createTemp();
     let token = tempUser.getCredentialHash();
     res.json({message:"ok", token: token, user_id: tempUser._id});
   } catch (err) {
@@ -27,11 +28,11 @@ router.post('/request_temp', async function(req, res, next) {
  */
 router.post('/login_local', async function(req, res, next) {
   try {
-    let user = await UserModel.getByLocalId(req.body.id);
+    let user = await UserService.getByLocalId(req.body.id);
     if (!user) return res.status(403).json({errcode: errcode.WRONG_ID, message: "wrong id"});
-    let passwordMatch = await user.verifyPassword(req.body.password);
+    let passwordMatch = await UserService.verifyPassword(user, req.body.password);
     if (!passwordMatch) return res.status(403).json({errcode: errcode.WRONG_PASSWORD, message: "wrong password"});
-    res.json({token: user.getCredentialHash(), user_id: user._id});
+    res.json({token: user.credentialHash, user_id: user._id});
   } catch (err) {
     logger.error(err);
     return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
@@ -45,7 +46,7 @@ router.post('/login_local', async function(req, res, next) {
  */
 router.post('/register_local', async function (req, res, next) {
   try {
-    let user = await UserModel.createLocal(req.body.id, req.body.password);
+    let user = await UserService.createLocal(req.body.id, req.body.password);
     await user.setUserInfo(req.body.email);
     res.json({message: "ok", token: user.getCredentialHash(), user_id: user._id});
   } catch (err) {
@@ -66,7 +67,7 @@ router.post('/login_fb', async function(req, res, next) {
 
   try {
     let fbInfo = await facebook.getFbInfo(req.body.fb_id, req.body.fb_token);
-    let user = await UserModel.getFbOrCreate(fbInfo.fbName, fbInfo.fbId);
+    let user = await UserService.getFbOrCreate(fbInfo.fbName, fbInfo.fbId);
     res.json({token: user.getCredentialHash(), user_id: user._id});
   } catch (err) {
     if (err == errcode.WRONG_FB_TOKEN)
@@ -80,9 +81,9 @@ router.post('/logout', async function(req, res, next) {
   let userId = req.body.user_id;
   let registrationId = req.body.registration_id;
   try {
-    let user = await UserModel.getByMongooseId(userId);
+    let user = await UserService.getByMongooseId(userId);
     if (!user) return res.status(404).json({ errcode: errcode.USER_NOT_FOUND, message: 'user not found'});
-    await user.detachDevice(registrationId);
+    await UserService.detachDevice(user, registrationId);
     res.json({message: "ok"});
   } catch (err) {
     logger.error(err);

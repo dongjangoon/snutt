@@ -2,8 +2,9 @@ import { LectureDiff } from '@app/batch/coursebook/data/compare';
 import errcode = require('@app/core/errcode');
 import { Type as NotificationType, NotificationModel } from '@app/core/model/notification';
 import { TimetableModel } from '@app/core/model/timetable';
-import { UserModel } from '@app/core/model/user';
-import * as fcm from '@app/core/fcm';
+import UserService = require('@app/core/user/UserService');
+import NotificationService = require('@app/core/notification/NotificationService');
+
 import * as async from 'async';
 
 export async function notifyUpdated(year:number, semesterIndex:number, diff:LectureDiff,
@@ -112,8 +113,8 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
           else
             continue;
           /* It takes too long to await each requests */
-          promises.push(UserModel.getByMongooseId(users[i]).then(function (user) {
-            return user.sendFcmMsg("수강편람 업데이트", msg, "batch/coursebook", "lecture updated")
+          promises.push(UserService.getByMongooseId(users[i]).then(function (user) {
+            return NotificationService.sendFcmMsg(user, "수강편람 업데이트", msg, "batch/coursebook", "lecture updated")
                 .then(function(res){
                   return Promise.resolve();
                 }).catch(function(err) {

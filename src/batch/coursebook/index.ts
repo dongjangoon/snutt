@@ -9,7 +9,6 @@ require('module-alias/register')
 require('@app/core/config/log');
 require('@app/core/config/mongo');
 
-import fs = require('fs');
 import {fetchSugangSnu} from './data/fetch';
 import {TagStruct, parseLines} from './data/parse';
 import {LectureDiff, compareLectures} from './data/compare';
@@ -18,7 +17,7 @@ import {CourseBookModel} from '@app/core/model/courseBook';
 import {LectureDocument, deleteAllSemester, insertManyRefLecture} from '@app/core/model/lecture';
 import {NotificationModel, Type as NotificationType} from '@app/core/model/notification';
 import {TagList} from '@app/core/model/tagList';
-import {UserModel} from '@app/core/model/user';
+import User = require('@app/core/user/model/user');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -118,7 +117,7 @@ export async function fetchAndInsert(year:number, semesterIndex:number, fcm_enab
     .exec();
 
   if (!doc) {
-    if (fcm_enabled) await UserModel.sendGlobalFcmMsg("신규 수강편람", noti_msg, "batch/coursebook", "new coursebook");
+    if (fcm_enabled) await User.sendGlobalFcmMsg("신규 수강편람", noti_msg, "batch/coursebook", "new coursebook");
     await NotificationModel.createNotification(null, noti_msg, NotificationType.COURSEBOOK, null);
     logger.info("Notification inserted");
   }
