@@ -7,7 +7,6 @@
 "use strict";
 
 import assert = require('assert');
-import async = require('async');
 import errcode = require('core/errcode');
 
 export = function(app, db, request) {

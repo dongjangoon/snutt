@@ -1,5 +1,4 @@
 import assert = require('assert');
-import async = require('async');
 import errcode = require('core/errcode');
 import { TagList } from 'core/model/tagList';
 

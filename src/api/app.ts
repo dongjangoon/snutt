@@ -97,7 +97,6 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-var debug = require('debug')('snutt:server');
 
 /**
  * Get port from environment and store in Express.
@@ -184,7 +183,7 @@ function onListening() {
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+  logger.debug('Listening on ' + bind);
 }
 
 export = app;

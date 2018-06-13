@@ -27,7 +27,7 @@ describe('API Test', function() {
 
   // Change connection into test DB in order not to corrupt production DB
   before('open snutt_test', function(done) {
-    mongoose.connect('mongodb://localhost/snutt_test', {useMongoClient: true}, function(err){
+    mongoose.connect('mongodb://localhost/snutt_test', function(err){
       return done(err);
     });
   });
