@@ -9,4 +9,13 @@ if (process.env.NODE_ENV !== 'mocha') {
             default: { appenders: [ 'stdout' ], level: 'info' }
         }
     });
+} else {
+    log4js.configure({
+        appenders: { 
+            'stdout': { type : 'stdout' }
+        },
+        categories: {
+            default: { appenders: [ 'stdout' ], level: 'debug' }
+        }
+    });
 }

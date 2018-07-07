@@ -56,8 +56,8 @@ function fromMongoose(mongooseDocument: mongoose.MongooseDocument): User {
   }
 }
 
-export async function findActiveByFb(name:string, id:string) : Promise<User> {
-  let mongooseDocument = await MongooseUserModel.findOne({'credential.fbId' : id, 'active' : true }).exec();
+export async function findActiveByFb(fbId:string) : Promise<User> {
+  let mongooseDocument = await MongooseUserModel.findOne({'credential.fbId' : fbId, 'active' : true }).exec();
   return fromMongoose(mongooseDocument);
 }
 
@@ -99,8 +99,10 @@ export async function update(user: User): Promise<void> {
     })
 }
 
-export async function add(user: User): Promise<void> {
-  await new MongooseUserModel(user).save();
+export async function insert(user: User): Promise<User> {
+  let mongooseUserModel = new MongooseUserModel(user);
+  await mongooseUserModel.save();
+  return fromMongoose(mongooseUserModel);
 }
 
 export function updateLastLoginTimestamp(user: User): void {

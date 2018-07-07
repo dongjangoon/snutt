@@ -1,14 +1,15 @@
 import express = require('express');
 var router = express.Router();
 import {NotificationModel} from '@app/core/model/notification';
-import {UserModel} from '@app/core/model/user';
+import User from '@app/core/user/model/user';
+import UserService = require('@app/core/user/UserService');
 
 import errcode = require('@app/core/errcode');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
 router.get('/', async function(req, res, next){
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
   var offset, limit;
   if (!req.query.offset) offset = 0;
   else offset = Number(req.query.offset);
@@ -17,7 +18,7 @@ router.get('/', async function(req, res, next){
 
   try {
     let notification = await NotificationModel.getNewest(user, offset, limit);
-    if (req.query.explicit) await user.updateNotificationCheckDate();
+    if (req.query.explicit) await UserService.updateNotificationCheckDate(user);
     res.json(notification);
   } catch (err) {
     logger.error(err);
@@ -26,7 +27,7 @@ router.get('/', async function(req, res, next){
 });
 
 router.get('/count', function(req, res, next){
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
   NotificationModel.countUnread(user).then(function(value){
     res.json({count: value});
   }, function(err) {

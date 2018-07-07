@@ -23,7 +23,7 @@ export function getFbInfo(fbId, fbToken): Promise<{fbName:string, fbId:string}> 
       method: "GET",
       json: true,
       qs: {access_token: fbToken}
-    }, function (err, res, body){
+    }, function (err, res, body) {
       if (err || res.statusCode != 200 || !body || !body.id || fbId !== body.id) {
         return reject(errcode.WRONG_FB_TOKEN);
       } else {

@@ -17,7 +17,6 @@ export = function(app, db, request) {
       .send({id:"snutt", password:"abc1234"})
       .expect(200)
       .end(function(err, res){
-        if (err) console.log(res);
         token = res.body.token;
         done(err);
       });
@@ -28,7 +27,6 @@ export = function(app, db, request) {
       .set('x-access-token', token)
       .expect(200)
       .end(function(err, res){
-        if (err) console.log(res);
         done(err);
       });
   });
@@ -37,7 +35,6 @@ export = function(app, db, request) {
     request.get('/user/info')
       .expect(401)
       .end(function(err, res){
-        if (err) console.log(res);
         assert.equal(res.body.errcode, errcode.NO_USER_TOKEN);
         done(err);
       });
@@ -48,7 +45,6 @@ export = function(app, db, request) {
       .set('x-access-token', "abcd")
       .expect(403)
       .end(function(err, res){
-        if (err) console.log(res);
         assert.equal(res.body.errcode, errcode.WRONG_USER_TOKEN);
         done(err);
       });
@@ -90,7 +86,6 @@ export = function(app, db, request) {
       .send({id:"snutt2", password:"abc1234f"})
       .expect(200)
       .end(function(err, res){
-        if (err) console.log(res);
         token2 = res.body.token;
         done(err);
       });
@@ -130,7 +125,6 @@ export = function(app, db, request) {
         .send({new_password:"abc1234*", old_password:"abc1234f"})
         .expect(200)
         .end(function(err, res){
-          if (err) console.log(res);
           token2 = res.body.token;
           done(err);
         });
@@ -360,7 +354,6 @@ export = function(app, db, request) {
       .send({id:"snutt", password:"abc1234"})
       .expect(200)
       .end(function(err, res){
-        if (err) console.log(err);
         token = res.body.token;
         done(err);
       });
@@ -371,7 +364,6 @@ export = function(app, db, request) {
       .send({id:"snutt2", password:"abc1234*"})
       .expect(200)
       .end(function(err, res){
-        if (err) console.log(err);
         token2 = res.body.token;
         done(err);
       });
@@ -382,7 +374,6 @@ export = function(app, db, request) {
         .expect(400)
         .end(function(err, res){
           assert.equal(res.body.errcode, errcode.NO_FB_ID_OR_TOKEN);
-          if (err) console.log(err);
           done(err);
         });
     });
@@ -393,7 +384,6 @@ export = function(app, db, request) {
         .expect(400)
         .end(function(err, res){
           assert.equal(res.body.errcode, errcode.NO_FB_ID_OR_TOKEN);
-          if (err) console.log(err);
           done(err);
         });
     });
@@ -404,7 +394,6 @@ export = function(app, db, request) {
         .send({fb_id:"1234", fb_token: fb_token})
         .expect(200)
         .end(function(err, res){
-          if (err) console.log(res);
           token = res.body.token;
           done(err);
         });
@@ -416,7 +405,6 @@ export = function(app, db, request) {
         .send({fb_id:"1234", fb_token: fb_token})
         .expect(403)
         .end(function(err, res){
-          if (err) console.log(err);
           assert.equal(res.body.errcode, errcode.ALREADY_FB_ACCOUNT);
           done(err);
         });
@@ -428,7 +416,6 @@ export = function(app, db, request) {
         .send({fb_id:"1234", fb_token: fb_token})
         .expect(403)
         .end(function(err, res){
-          if (err) console.log(err);
           assert.equal(res.body.errcode, errcode.FB_ID_WITH_SOMEONE_ELSE);
           done(err);
         });
@@ -439,7 +426,6 @@ export = function(app, db, request) {
         .set('x-access-token', token)
         .expect(200)
         .end(function(err, res){
-          if (err) console.log(err);
           assert.equal(res.body.name, "John");
           assert.equal(res.body.attached, true);
           done(err);
@@ -451,7 +437,6 @@ export = function(app, db, request) {
         .send({fb_id:"1234", fb_token: fb_token})
         .expect(200)
         .end(function(err, res){
-          if (err) console.log(err);
           assert.equal(res.body.token, token);
           done(err);
         });
@@ -462,7 +447,6 @@ export = function(app, db, request) {
         .set('x-access-token', token)
         .expect(200)
         .end(function(err, res){
-          if (err) console.log(err);
           token = res.body.token;
           done(err);
         });
@@ -473,7 +457,6 @@ export = function(app, db, request) {
         .set('x-access-token', token)
         .expect(200)
         .end(function(err, res){
-          if (err) console.log(err);
           assert.equal(res.body.attached, false);
           done(err);
         });
@@ -484,7 +467,6 @@ export = function(app, db, request) {
         .set('x-access-token', token)
         .expect(403)
         .end(function(err, res){
-          if (err) console.log(err);
           assert.equal(res.body.errcode, errcode.NOT_FB_ACCOUNT);
           done(err);
         });
@@ -495,7 +477,6 @@ export = function(app, db, request) {
         .send({fb_id:"12345", fb_token: fb_token2})
         .expect(200)
         .end(function(err, res){
-          if (err) console.log(err);
           token = res.body.token;
           done(err);
         });
@@ -519,7 +500,6 @@ export = function(app, db, request) {
         .set('x-access-token', token)
         .expect(403)
         .end(function(err, res){
-          if (err) console.log(err);
           assert.equal(res.body.errcode, errcode.NOT_LOCAL_ACCOUNT);
           done(err);
         });
@@ -531,7 +511,6 @@ export = function(app, db, request) {
         .expect(403)
         .end(function(err, res){
           assert.equal(res.body.errcode, errcode.WRONG_FB_TOKEN);
-          if (err) console.log(res.body);
           done(err);
         });
     });
@@ -542,7 +521,6 @@ export = function(app, db, request) {
         .expect(403)
         .end(function(err, res){
           assert.equal(res.body.errcode, errcode.WRONG_FB_TOKEN);
-          if (err) console.log(res.body);
           done(err);
         });
     });
@@ -553,7 +531,6 @@ export = function(app, db, request) {
         .send({id: "snutt", password:"abc1234"})
         .expect(403)
         .end(function(err, res){
-          if (err) console.log(err);
           assert.equal(res.body.errcode, errcode.DUPLICATE_ID);
           done(err);
         });
@@ -565,7 +542,6 @@ export = function(app, db, request) {
         .send({password:"abc1234"})
         .expect(403)
         .end(function(err, res){
-          if (err) console.log(err);
           assert.equal(res.body.errcode, errcode.INVALID_ID);
           done(err);
         });
@@ -577,7 +553,6 @@ export = function(app, db, request) {
         .send({id:"snuttfb"})
         .expect(403)
         .end(function(err, res){
-          if (err) console.log(err);
           assert.equal(res.body.errcode, errcode.INVALID_PASSWORD);
           done(err);
         });
@@ -589,7 +564,6 @@ export = function(app, db, request) {
         .send({id:"snuttfb", password:"abc1234"})
         .expect(200)
         .end(function(err, res){
-          if (err) console.log(err);
           token = res.body.token;
           done(err);
         });
@@ -600,7 +574,6 @@ export = function(app, db, request) {
         .send({id:"snuttfb", password:"abc1234"})
         .expect(200)
         .end(function(err, res){
-          if (err) console.log(res.body);
           assert.equal(token, res.body.token);
           done(err);
         });
@@ -611,7 +584,6 @@ export = function(app, db, request) {
         .send({fb_id:"12345", fb_token: fb_token2})
         .expect(200)
         .end(function(err, res){
-          if (err) console.log(err);
           assert.equal(token, res.body.token);
           done(err);
         });
@@ -623,7 +595,6 @@ export = function(app, db, request) {
         .send({id:"snuttfb", password:"abc1234"})
         .expect(403)
         .end(function(err, res){
-          if (err) console.log(err);
           assert.equal(res.body.errcode, errcode.ALREADY_LOCAL_ACCOUNT);
           done(err);
         });
@@ -647,7 +618,6 @@ export = function(app, db, request) {
         .send({id:"snuttar", password:"abc1234*"})
         .expect(200)
         .end(function(err, res){
-          if (err) console.log(res);
           token = res.body.token;
           done(err);
         });
@@ -668,7 +638,6 @@ export = function(app, db, request) {
         .set('x-access-token', token)
         .expect(403)
         .end(function(err, res){
-          if (err) console.log(res);
           assert.equal(res.body.errcode, errcode.WRONG_USER_TOKEN);
           done(err);
         });
@@ -700,7 +669,6 @@ export = function(app, db, request) {
     request.post('/auth/request_temp')
       .expect(200)
       .end(function(err, res) {
-        if (err) console.log(res.body);
         token_temp = res.body.token;
         done(err);
       });
@@ -710,7 +678,6 @@ export = function(app, db, request) {
     request.post('/auth/request_temp')
       .expect(200)
       .end(function(err, res) {
-        if (err) console.log(res.body);
         assert.notEqual(res.body.token, token_temp);
         token_temp = res.body.token;
         done(err);
@@ -734,7 +701,6 @@ export = function(app, db, request) {
       .send({id:"snutttemp", password:"abc1234"})
       .expect(200)
       .end(function(err, res){
-        if (err) console.log(err);
         token_temp = res.body.token;
         done(err);
       });
@@ -745,7 +711,6 @@ export = function(app, db, request) {
       .send({id:"snutttemp", password:"abc1234"})
       .expect(200)
       .end(function(err, res){
-        if (err) console.log(res);
         assert.equal(res.body.token, token_temp);
         done(err);
       });

@@ -18,7 +18,7 @@ import notificationRouter = require('./notification');
 import userRouter = require('./user');
 import adminRouter = require('./admin');
 import apiKey = require('@app/core/config/apiKey');
-import {UserModel} from '@app/core/model/user';
+import UserService = require('@app/core/user/UserService');
 import {insertFeedback} from '@app/core/model/feedback';
 
 import errcode = require('@app/core/errcode');
@@ -154,11 +154,11 @@ router.use(function(req, res, next) {
       message: 'No token provided.'
     });
   }
-  UserModel.getUserFromCredentialHash(token).then(function(user){
+  UserService.getByCredentialHash(token).then(function(user){
     if (!user)
       return res.status(403).json({ errcode: errcode.WRONG_USER_TOKEN, message: 'Failed to authenticate token.' });
     res.setHeader('Cache-Control', 'private, max-age=0, must-revalidate');
-    user.updateLastLoginTimestamp();
+    UserService.updateLastLoginTimestamp(user);
     req["user"] = user;
     next();
   }, function (err) {

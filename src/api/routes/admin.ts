@@ -4,7 +4,9 @@
  */
 import express = require('express');
 import errcode = require('@app/core/errcode');
-import User = require('@app/core/user/model/User');
+import User from '@app/core/user/model/User';
+import UserService = require('@app/core/user/UserService');
+import NotificationService = require('@app/core/notification/NotificationService');
 import {CourseBookModel} from '@app/core/model/courseBook';
 import {getRecentFcmLog} from '@app/core/model/fcmLog';
 import {getFeedback} from '@app/core/model/feedback';
@@ -34,14 +36,14 @@ router.post('/insert_noti', async function(req, res, next) {
 
   try {
     if (userId && userId.length > 0) {
-      let receiver = await UserModel.getByLocalId(userId);
+      let receiver = await UserService.getByLocalId(userId);
       if (insertFcm) {
-        await receiver.sendFcmMsg(title, body, sender._id, "admin");
+        await NotificationService.sendFcmMsg(receiver, title, body, sender._id, "admin");
       }
       await NotificationModel.createNotification(receiver._id, body, type, detail);
     } else {
       if (insertFcm) {
-        await UserModel.sendGlobalFcmMsg(title, body, sender._id, "admin");
+        await NotificationService.sendGlobalFcmMsg(title, body, sender._id, "admin");
       }
       await NotificationModel.createNotification(null, body, type, detail);
     }
