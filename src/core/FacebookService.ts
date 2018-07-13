@@ -6,17 +6,11 @@
  */
 
 import request = require('request');
-import errcode = require('./errcode');
+import errcode = require('@app/core/errcode');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
 export function getFbInfo(fbId, fbToken): Promise<{fbName:string, fbId:string}> {
-  if (process.env.NODE_ENV == 'mocha') {
-    if (fbToken == 'correct' && fbId == "1234") return Promise.resolve({fbName: "John", fbId: "1234"});
-    if (fbToken == 'correct2' && fbId == "12345") return Promise.resolve({fbName: "Smith", fbId: "12345"});
-    return Promise.reject(errcode.WRONG_FB_TOKEN);
-  }
-
   return new Promise(function(resolve, reject) {
     request({
       url: "https://graph.facebook.com/me",

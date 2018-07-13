@@ -4,13 +4,22 @@
  * supertest: https://github.com/visionmedia/supertest
  * mocha: http://mochajs.org/#usage
  */
+import sinon = require('sinon');
 import assert = require('assert');
 import errcode = require('@app/core/errcode');
+
+import FacebookService = require('@app/core/FacebookService');
 
 export = function(app, db, request) {
   var token;
   var token2;
   var token_temp;
+
+  let sinonSandbox = sinon.createSandbox();
+
+  afterEach(function() {
+    sinonSandbox.restore();
+  });
 
   it('Log-in succeeds', function(done) {
     request.post('/auth/login_local')
@@ -389,9 +398,16 @@ export = function(app, db, request) {
     });
 
     it('Attach Facebook ID', function(done) {
+      let fbId = "1234";
+      let facebookGetFbInfoStub = sinonSandbox.stub(FacebookService, 'getFbInfo');
+      facebookGetFbInfoStub.withArgs(fbId, fb_token).resolves({
+        fbName: "John",
+        fbId: "1234"
+      });
+
       request.post('/user/facebook')
         .set('x-access-token', token)
-        .send({fb_id:"1234", fb_token: fb_token})
+        .send({fb_id: fbId, fb_token: fb_token})
         .expect(200)
         .end(function(err, res){
           token = res.body.token;
@@ -400,9 +416,16 @@ export = function(app, db, request) {
     });
 
     it('Attach fails when already attached', function(done) {
+      let fbId = "1234";
+      let facebookGetFbInfoStub = sinonSandbox.stub(FacebookService, 'getFbInfo');
+      facebookGetFbInfoStub.withArgs(fbId, fb_token).resolves({
+        fbName: "John",
+        fbId: "1234"
+      });
+
       request.post('/user/facebook')
         .set('x-access-token', token)
-        .send({fb_id:"1234", fb_token: fb_token})
+        .send({fb_id: fbId, fb_token: fb_token})
         .expect(403)
         .end(function(err, res){
           assert.equal(res.body.errcode, errcode.ALREADY_FB_ACCOUNT);
@@ -411,9 +434,16 @@ export = function(app, db, request) {
     });
 
     it('Attach fails when already attached fb_id', function(done) {
+      let fbId = "1234";
+      let facebookGetFbInfoStub = sinonSandbox.stub(FacebookService, 'getFbInfo');
+      facebookGetFbInfoStub.withArgs(fbId, fb_token).resolves({
+        fbName: "John",
+        fbId: "1234"
+      });
+
       request.post('/user/facebook')
         .set('x-access-token', token2)
-        .send({fb_id:"1234", fb_token: fb_token})
+        .send({fb_id: fbId, fb_token: fb_token})
         .expect(403)
         .end(function(err, res){
           assert.equal(res.body.errcode, errcode.FB_ID_WITH_SOMEONE_ELSE);
@@ -433,8 +463,15 @@ export = function(app, db, request) {
     });
 
     it('Log-in with facebook succeeds', function(done) {
+      let fbId = "1234";
+      let facebookGetFbInfoStub = sinonSandbox.stub(FacebookService, 'getFbInfo');
+      facebookGetFbInfoStub.withArgs(fbId, fb_token).resolves({
+        fbName: "John",
+        fbId: "1234"
+      });
+
       request.post('/auth/login_fb')
-        .send({fb_id:"1234", fb_token: fb_token})
+        .send({fb_id: fbId, fb_token: fb_token})
         .expect(200)
         .end(function(err, res){
           assert.equal(res.body.token, token);
@@ -473,8 +510,15 @@ export = function(app, db, request) {
     });
 
     it('Auto-register when log-in with not attached fb_id', function(done){
+      let fbId = "12345";
+      let facebookGetFbInfoStub = sinonSandbox.stub(FacebookService, 'getFbInfo');
+      facebookGetFbInfoStub.withArgs(fbId, fb_token2).resolves({
+        fbName: "Smith",
+        fbId: fbId
+      });
+
       request.post('/auth/login_fb')
-        .send({fb_id:"12345", fb_token: fb_token2})
+        .send({fb_id: fbId, fb_token: fb_token2})
         .expect(200)
         .end(function(err, res){
           token = res.body.token;
@@ -506,8 +550,15 @@ export = function(app, db, request) {
     });
 
     it('Log-in fails with incorrect access token', function(done){
+      let fbId = "12345";
+      let facebookGetFbInfoStub = sinonSandbox.stub(FacebookService, 'getFbInfo');
+      facebookGetFbInfoStub.withArgs(fbId, fb_token2).resolves({
+        fbName: "Smith",
+        fbId: fbId
+      });
+
       request.post('/auth/login_fb')
-        .send({fb_id:"12345", fb_token: "incorrect"})
+        .send({fb_id: fbId, fb_token: "incorrect"})
         .expect(403)
         .end(function(err, res){
           assert.equal(res.body.errcode, errcode.WRONG_FB_TOKEN);
@@ -516,8 +567,12 @@ export = function(app, db, request) {
     });
 
     it('Log-in fails with incorrect fb_id', function(done){
+      let fbId = "123456";
+      let facebookGetFbInfoStub = sinonSandbox.stub(FacebookService, 'getFbInfo');
+      facebookGetFbInfoStub.withArgs(fbId, fb_token2).rejects(errcode.WRONG_FB_TOKEN);
+
       request.post('/auth/login_fb')
-        .send({fb_id:"123456", fb_token: fb_token2})
+        .send({fb_id: fbId, fb_token: fb_token2})
         .expect(403)
         .end(function(err, res){
           assert.equal(res.body.errcode, errcode.WRONG_FB_TOKEN);
@@ -580,6 +635,13 @@ export = function(app, db, request) {
     });
 
     it('log-in with facebook still succeeds', function(done){
+      let fbId = "12345";
+      let facebookGetFbInfoStub = sinonSandbox.stub(FacebookService, 'getFbInfo');
+      facebookGetFbInfoStub.withArgs(fbId, fb_token2).resolves({
+        fbName: "Smith",
+        fbId: fbId
+      });
+
       request.post('/auth/login_fb')
         .send({fb_id:"12345", fb_token: fb_token2})
         .expect(200)

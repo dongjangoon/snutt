@@ -7,24 +7,20 @@ import User from '@app/core/user/model/User';
 import UserCredential from '@app/core/user/model/UserCredential';
 import UserService = require('@app/core/user/UserService');
 import errcode = require('@app/core/errcode');
-import facebook = require('@app/core/facebook');
+import FacebookService = require('@app/core/FacebookService');
 
 let logger = log4js.getLogger();
 
-export function isRightPassword(user: User, password: string): Promise<boolean> {
+export async function isRightPassword(user: User, password: string): Promise<boolean> {
     let originalHash = user.credential.localPw;
-    if (!password || !originalHash) return Promise.resolve(false);
-    return new Promise(function (resolve, reject) {
-        bcrypt.compare(password, originalHash, function (err, same) {
-            if (err) return reject(err);
-            resolve(same);
-        });
-    });
+    if (!password || !originalHash) return false;
+
+    return await bcrypt.compare(password, originalHash);
 }
 
 export async function isRightFbToken(user: User, fbToken: string): Promise<boolean> {
     try {
-        let fbInfo = await facebook.getFbInfo(user.credential.fbId, fbToken);
+        let fbInfo = await FacebookService.getFbInfo(user.credential.fbId, fbToken);
         return fbInfo.fbId === user.credential.fbId;
     } catch (err) {
         return false;
@@ -142,7 +138,7 @@ export async function makeFbCredential(fbId: string, fbToken: string): Promise<U
     }
 
     try {
-        let fbInfo = await facebook.getFbInfo(fbId, fbToken);
+        let fbInfo = await FacebookService.getFbInfo(fbId, fbToken);
 
         return {
             fbId: fbInfo.fbId,

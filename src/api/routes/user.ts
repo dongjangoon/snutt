@@ -3,7 +3,7 @@
  * API for User CRUD
  */
 import express = require('express');
-import facebook = require('@app/core/facebook');
+import facebook = require('@app/core/FacebookService');
 import User from '@app/core/user/model/User';
 import UserCredentialService = require('@app/core/user/UserCredentialService');
 import UserService = require('@app/core/user/UserService');
