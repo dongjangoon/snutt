@@ -2,8 +2,10 @@ import sinon = require('sinon');
 import assert = require('assert');
 import bcrypt = require('bcrypt');
 
-import User from '@app/core/user/model/user';
+import User from '@app/core/user/model/User';
 import UserCredentialService = require('@app/core/user/UserCredentialService');
+import FacebookService = require('@app/core/FacebookService');
+import UserCredential from 'core/user/model/UserCredential';
 
 describe("UserCredentialServiceUnitTest", function() {
   let sinonSandbox = sinon.createSandbox();
@@ -48,7 +50,7 @@ describe("UserCredentialServiceUnitTest", function() {
     let actual = await UserCredentialService.isRightPassword(user, password);
 
     assert.equal(actual, expected);
-  })
+  });
 
   it("isRightPassword__false__noPwHash", async function() {
     let password = 'pw';
@@ -67,33 +69,91 @@ describe("UserCredentialServiceUnitTest", function() {
     let actual = await UserCredentialService.isRightPassword(user, password);
 
     assert.equal(actual, expected);
-  })
+  });
+
+  it("isRightFbToken__true", async function() {
+    let fbId = '1234';
+    let fbToken = '12345';
+    let fbName = 'John';
+    let user: User = {
+      credential: {
+        fbId: fbId
+      },
+      credentialHash: null
+    }
+
+    let facebookGetFbInfoStub = sinonSandbox.stub(FacebookService, 'getFbInfo');
+    facebookGetFbInfoStub.withArgs(fbId, fbToken).resolves({fbName: fbName, fbId: fbId});
+
+    let expected = true;
+    let actual = await UserCredentialService.isRightFbToken(user, fbToken);
+    assert.equal(actual, expected);
+  });
+
+  it("isRightFbToken__false__notSameFbId", async function() {
+    let fbId = '1234';
+    let fbToken = '12345';
+    let fbName = 'John';
+    let user: User = {
+      credential: {
+        fbId: fbId
+      },
+      credentialHash: null
+    }
+
+    let facebookGetFbInfoStub = sinonSandbox.stub(FacebookService, 'getFbInfo');
+    facebookGetFbInfoStub.withArgs(fbId, fbToken).resolves({fbName: fbName, fbId: '4321'});
+
+    let expected = false;
+    let actual = await UserCredentialService.isRightFbToken(user, fbToken);
+    assert.equal(actual, expected);
+  });
+
+  it("isRightFbToken__false__facebookError", async function() {
+    let fbId = '1234';
+    let fbToken = '12345';
+    let fbName = 'John';
+    let user: User = {
+      credential: {
+        fbId: fbId
+      },
+      credentialHash: null
+    }
+
+    let facebookGetFbInfoStub = sinonSandbox.stub(FacebookService, 'getFbInfo');
+    facebookGetFbInfoStub.withArgs(fbId, fbToken).rejects("testError");
+
+    let expected = false;
+    let actual = await UserCredentialService.isRightFbToken(user, fbToken);
+    assert.equal(actual, expected);
+  });
+
+  it("compareCredentialHash__true", async function() {
+    let testCredentialHash = 'ch';
+    let user: User = {
+      credential: null,
+      credentialHash: testCredentialHash
+    };
+
+    let expected = true;
+    let actual = UserCredentialService.compareCredentialHash(user, testCredentialHash);
+    assert.equal(actual, expected);
+  });
+
+  it("compareCredentialHash__false", async function() {
+    let testCredentialHash = 'ch';
+    let user: User = {
+      credential: null,
+      credentialHash: testCredentialHash
+    };
+
+    let expected = false;
+    let actual = UserCredentialService.compareCredentialHash(user, 'ch2');
+    assert.equal(actual, expected);
+  });
 })
 
 /*
-export function isRightPassword(user: User, password: string): Promise<boolean> {
-  let originalHash = user.credential.localPw;
-  if (!password || !originalHash) return Promise.resolve(false);
-  return new Promise(function (resolve, reject) {
-      bcrypt.compare(password, originalHash, function (err, same) {
-          if (err) return reject(err);
-          resolve(same);
-      });
-  });
-}
-
-export async function isRightFbToken(user: User, fbToken: string): Promise<boolean> {
-  try {
-      let fbInfo = await facebook.getFbInfo(user.credential.fbId, fbToken);
-      return fbInfo.fbId === user.credential.fbId;
-  } catch (err) {
-      return false;
-  }
-}
-
-export function compareCredentialHash(user: User, hash: string): boolean {
-  return user.credentialHash === hash;
-}
 
 export function makeCredentialHmac(userCredential: UserCredential): string {
   var hmac = crypto.createHmac('sha256', property.secretKey);
