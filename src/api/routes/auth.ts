@@ -1,7 +1,7 @@
 import express = require('express');
 var router = express.Router();
 
-import User from '@app/core/user/model/user';
+import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');
 import UserCredentialService = require('@app/core/user/UserCredentialService');
 import UserDeviceService = require('@app/core/user/UserDeviceService');

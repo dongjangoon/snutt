@@ -17,7 +17,6 @@ import { CourseBookModel } from '@app/core/model/courseBook';
 import { LectureDocument, deleteAllSemester, insertManyRefLecture } from '@app/core/model/lecture';
 import { NotificationModel, Type as NotificationType } from '@app/core/model/notification';
 import { TagList } from '@app/core/model/tagList';
-import User = require('@app/core/user/model/user');
 import NotificationService = require('@app/core/notification/NotificationService');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();

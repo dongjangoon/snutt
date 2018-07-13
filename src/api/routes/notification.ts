@@ -1,7 +1,7 @@
 import express = require('express');
 var router = express.Router();
 import {NotificationModel} from '@app/core/model/notification';
-import User from '@app/core/user/model/user';
+import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');
 
 import errcode = require('@app/core/errcode');
