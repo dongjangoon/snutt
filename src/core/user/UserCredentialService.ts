@@ -43,7 +43,7 @@ export function makeCredentialHmac(userCredential: UserCredential): string {
 
 async function modifyCredential(user: User): Promise<void> {
     user.credentialHash = makeCredentialHmac(user.credential);
-    UserService.modify(user);
+    await UserService.modify(user);
 }
 
 
@@ -149,6 +149,7 @@ export async function makeFbCredential(fbId: string, fbToken: string): Promise<U
             fbName: fbInfo.fbName
         }
     } catch (err) {
+        logger.error(err);
         logger.error("makeFbCredential failed. fbId:", fbId, "fbToken:", fbToken);
         throw err;
     }
