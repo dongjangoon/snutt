@@ -1,5 +1,3 @@
-import mongoose = require('mongoose');
-import assert = require('assert');
 import errcode = require('./errcode');
 import { List } from 'immutable';
 import * as log4js from 'log4js';

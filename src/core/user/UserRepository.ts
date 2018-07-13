@@ -113,5 +113,5 @@ export function updateLastLoginTimestamp(user: User): void {
       logger.error("Failed to update timestamp");
       logger.error(err);
     });
-  this.lastLoginTimestamp = timestamp;
+  user.lastLoginTimestamp = timestamp;
 }
