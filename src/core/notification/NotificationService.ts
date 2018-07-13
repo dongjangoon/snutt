@@ -5,7 +5,7 @@ import { writeFcmLog } from '@app/core/model/fcmLog';
 import User from '@app/core/user/model/User';
 
 export async function sendFcmMsg(user: User, title: string, body: string, author: string, cause: string) {
-  if (!this.fcmKey) throw errcode.USER_HAS_NO_FCM_KEY;
+  if (!user.fcmKey) throw errcode.USER_HAS_NO_FCM_KEY;
   let destination = user.fcmKey;
   let response = await fcm.sendMsg(destination, title, body);
   await writeFcmLog(user._id, author, title + '\n' + body, cause, response);
