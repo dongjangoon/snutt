@@ -1,22 +1,8 @@
 import errcode = require('@app/api/errcode');
+import TimePlace from '@app/core/timetable/model/TimePlace';
 import { List } from 'immutable';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
-
-
-class TimePlace {
-  day: number;
-  start: number;
-  len: number;
-  place: string;
-
-  constructor(obj:Object) {
-    this.day = obj["day"];
-    this.start = obj["start"];
-    this.len = obj["len"];
-    this.place = obj["place"];
-  }
-}
 
 export function timeAndPlaceToJson(timesString: string, locationsString: string): Array<TimePlace> {
   if (timesString === '')
@@ -38,12 +24,12 @@ export function timeAndPlaceToJson(timesString: string, locationsString: string)
   }
 
   var classes = times.map(function(time, idx) { 
-    return new TimePlace({
+    return {
       day: ['월', '화', '수', '목', '금', '토', '일'].indexOf(time.charAt(0)),
       start: Number(time.split('-')[0].slice(2)),
       len: Number(time.split('-')[1].slice(0, -1)),
       place: (locationsString == '/' ? '' : locations[idx])
-    });
+    };
   });
 
   for (let i = 0; i< classes.length; i++) {
