@@ -55,32 +55,27 @@ function validatePassword(password: string): void {
 }
 
 function makePasswordHash(password: string): Promise<string> {
-    return new Promise(function (resolve, reject) {
-        bcrypt.hash(password, 4, function (err, encrypted) {
-            if (err) return reject(err);
-            resolve(encrypted);
-        });
-    });
+    return bcrypt.hash(password, 4);
 }
 
 export async function changeLocalPassword(user: User, password: string): Promise<void> {
     validatePassword(password);
     let passwordHash = await makePasswordHash(password);
     user.credential.localPw = passwordHash;
-    return modifyCredential(user);
+    await modifyCredential(user);
 }
 
 export function hasFb(user: User): boolean {
-    return !(user.credential.fbId === null || user.credential.fbId === undefined);
+    return user.credential.fbId !== null && user.credential.fbId !== undefined;
 }
 
 export function hasLocal(user: User): boolean {
-    return user.credential.localId !== null;
+    return user.credential.localId !== null && user.credential.localId !== undefined;
 }
 
 export async function attachFb(user: User, fbId: string, fbToken: string): Promise<void> {
     if (!fbId) {
-        return Promise.reject(new InvalidFbIdOrTokenError(fbId, fbToken));
+        throw new InvalidFbIdOrTokenError(fbId, fbToken);
     }
 
     let fbCredential = await makeFbCredential(fbId, fbToken);

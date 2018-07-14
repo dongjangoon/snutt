@@ -17,7 +17,7 @@ import { CourseBookModel } from '@app/core/model/courseBook';
 import {newRefLecture} from '@app/core/model/lecture';
 
 let request = supertest(app);
-describe('API Test', function() {
+describe('Integration Test', function() {
   before('valid snutt.yml', function(done) {
     if (property.secretKey && property.host && property.port)
       return done();
