@@ -5,6 +5,7 @@
  */
 import mongoose = require('mongoose');
 import errcode = require('@app/api/errcode');
+import TimePlaceUtil = require('@app/core/timetable/util/TimePlaceUtil');
 import Util = require('../util');
 import libcolor = require('../color');
 
@@ -96,9 +97,9 @@ export function validateLectureColor(lecture: UserLectureDocument): boolean {
 export function setLectureTimemask(lecture: BaseLectureDocument): void {
   if (lecture.class_time_json) {
     if (!lecture.class_time_mask) {
-      lecture.class_time_mask = Util.timeJsonToMask(lecture.class_time_json, true);
+      lecture.class_time_mask = TimePlaceUtil.timeJsonToMask(lecture.class_time_json, true);
     } else {
-      var timemask = Util.timeJsonToMask(lecture.class_time_json);
+      var timemask = TimePlaceUtil.timeJsonToMask(lecture.class_time_json);
       for (var i=0; i<timemask.length; i++) {
         if (timemask[i] != lecture.class_time_mask[i])
           throw errcode.INVALID_TIMEMASK;

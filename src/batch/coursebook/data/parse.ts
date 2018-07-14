@@ -1,6 +1,6 @@
 import {LectureLine} from './fetch';
 import {LectureDocument, newRefLecture} from '@app/core/model/lecture';
-import Util = require('@app/core/util');
+import TimePlaceUtil = require('@app/core/timetable/util/TimePlaceUtil');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -58,7 +58,7 @@ export function parseLines(year:number, semesterIndex:number, lines:LectureLine[
       }
     }
 
-    var timeJson = Util.timeAndPlaceToJson(line.class_time, line.location);
+    var timeJson = TimePlaceUtil.timeAndPlaceToJson(line.class_time, line.location);
     if (timeJson === null) logger.warn("timeJson not found from (" + line.class_time + ", " + line.location + ")");
     // TimeMask limit is 15*2
     for (let j=0; j<timeJson.length; j++) {
@@ -81,7 +81,7 @@ export function parseLines(year:number, semesterIndex:number, lines:LectureLine[
       credit: line.credit,
       class_time: line.class_time,
       class_time_json: timeJson,
-      class_time_mask: Util.timeJsonToMask(timeJson),
+      class_time_mask: TimePlaceUtil.timeJsonToMask(timeJson),
       instructor: line.instructor,
       quota: line.quota,
       remark: line.remark,
