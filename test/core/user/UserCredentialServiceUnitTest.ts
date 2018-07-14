@@ -1,11 +1,16 @@
 import sinon = require('sinon');
 import assert = require('assert');
 import bcrypt = require('bcrypt');
+import crypto = require('crypto');
+import rewire = require('rewire');
 
 import User from '@app/core/user/model/User';
 import UserCredentialService = require('@app/core/user/UserCredentialService');
 import FacebookService = require('@app/core/FacebookService');
+import UserService = require('@app/core/user/UserService');
 import UserCredential from 'core/user/model/UserCredential';
+
+let UserCredentialServiceRewire = rewire<typeof UserCredentialService>('@app/core/user/UserCredentialService');
 
 describe("UserCredentialServiceUnitTest", function() {
   let sinonSandbox = sinon.createSandbox();
@@ -151,15 +156,50 @@ describe("UserCredentialServiceUnitTest", function() {
     let actual = UserCredentialService.compareCredentialHash(user, 'ch2');
     assert.equal(actual, expected);
   });
+
+  it("makeCredentialHmac__success", async function() {
+    let testCredential: UserCredential = {}
+    let testCredentialJsonStr = JSON.stringify(testCredential);
+    let testHmacResult = 'result';
+    
+    let cryptoCreateHmacStub = sinonSandbox.stub(crypto, "createHmac");
+    let hmacUpdateStub = sinonSandbox.stub();
+    let hmacDigestStub = sinonSandbox.stub();
+
+    cryptoCreateHmacStub.withArgs('sha256', sinon.match.any).returns({
+      update: hmacUpdateStub,
+      digest: hmacDigestStub
+    });
+
+    hmacDigestStub.withArgs('hex').returns(testHmacResult);
+
+    let expected = testHmacResult;
+    let actual = UserCredentialService.makeCredentialHmac(testCredential);
+
+    assert(hmacUpdateStub.withArgs(testCredentialJsonStr).calledOnce);
+    assert.equal(actual, expected);
+  });
+
+  it("modifyCredential__success", async function() {
+    let testCredential: UserCredential = {};
+    let testCredentialHash = 'hash';
+    let testUser: User = {
+      credential: testCredential,
+      credentialHash: null
+    };
+
+    let makeCredentialHmacStub = sinonSandbox.stub();
+    makeCredentialHmacStub.withArgs(testCredential).returns(testCredentialHash);
+    UserCredentialServiceRewire.__set__('makeCredentialHmac', makeCredentialHmacStub);
+    let userServiceModifyStub = sinonSandbox.stub(UserService, 'modify');
+
+    UserCredentialServiceRewire.__get__('modifyCredential')(testUser);
+
+    assert.equal(userServiceModifyStub.getCall(0).args[0].credentialHash, testCredentialHash);
+  })
 })
 
 /*
-
-export function makeCredentialHmac(userCredential: UserCredential): string {
-  var hmac = crypto.createHmac('sha256', property.secretKey);
-  hmac.update(JSON.stringify(userCredential));
-  return hmac.digest('hex');
-}
 
 async function modifyCredential(user: User): Promise<void> {
   user.credentialHash = makeCredentialHmac(user.credential);
