@@ -1,3 +1,5 @@
+
+// TODO: 에러코드는 api에서만 사용해야만 하며, core와 batch에서는 가급적 Error을 사용할 것
 class ErrorCode {
   /* 500 - Server fault */
   static SERVER_FAULT = 0x0000;
