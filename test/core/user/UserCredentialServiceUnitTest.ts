@@ -195,16 +195,26 @@ describe("UserCredentialServiceUnitTest", function() {
 
     UserCredentialServiceRewire.__get__('modifyCredential')(testUser);
 
+    assert(userServiceModifyStub.calledOnce);
     assert.equal(userServiceModifyStub.getCall(0).args[0].credentialHash, testCredentialHash);
+  })
+
+  it("validatePassword__success", async function() {
+    let testPw = 'abcd12';
+    UserCredentialServiceRewire.__get__('validatePassword')(testPw);
+  })
+  
+  it ("validatePassword__fail__noAlphabet", async function() {
+    let testPw = '123456';
+    try {
+      UserCredentialServiceRewire.__get__('validatePassword')(testPw);
+    } catch (err) {
+      
+    }
   })
 })
 
 /*
-
-async function modifyCredential(user: User): Promise<void> {
-  user.credentialHash = makeCredentialHmac(user.credential);
-  await UserService.modify(user);
-}
 
 
 function validatePassword(password: string): void {

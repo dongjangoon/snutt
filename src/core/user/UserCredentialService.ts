@@ -6,8 +6,13 @@ import property = require('@app/core/config/property');
 import User from '@app/core/user/model/User';
 import UserCredential from '@app/core/user/model/UserCredential';
 import UserService = require('@app/core/user/UserService');
-import errcode = require('@app/core/errcode');
 import FacebookService = require('@app/core/FacebookService');
+import InvalidLocalPasswordError from '@app/core/user/error/InvalidLocalPasswordError';
+import InvalidLocalIdError from '@app/core/user/error/InvalidLocalIdError';
+import DuplicateLocalIdError from '@app/core/user/error/DuplicateLocalIdError';
+import AlreadyRegisteredFbIdError from '@app/core/user/error/AlreadyRegisteredFbIdError';
+import InvalidFbIdOrTokenError from '@app/core/error/InvalidFbIdOrTokenError';
+import NotLocalAccountError from './error/NotLocalAccountError';
 
 let logger = log4js.getLogger();
 
@@ -45,7 +50,7 @@ async function modifyCredential(user: User): Promise<void> {
 
 function validatePassword(password: string): void {
     if (!password || !password.match(/^(?=.*\d)(?=.*[a-z])\S{6,20}$/i)) {
-        throw errcode.INVALID_PASSWORD;
+        throw new InvalidLocalPasswordError(password);
     }
 }
 
@@ -75,8 +80,7 @@ export function hasLocal(user: User): boolean {
 
 export async function attachFb(user: User, fbId: string, fbToken: string): Promise<void> {
     if (!fbId) {
-        var err = errcode.NO_FB_ID_OR_TOKEN;
-        return Promise.reject(err);
+        return Promise.reject(new InvalidFbIdOrTokenError(fbId, fbToken));
     }
 
     let fbCredential = await makeFbCredential(fbId, fbToken);
@@ -87,8 +91,7 @@ export async function attachFb(user: User, fbId: string, fbToken: string): Promi
 
 export async function detachFb(user: User): Promise<void> {
     if (!hasLocal(user)) {
-        var err = errcode.NOT_LOCAL_ACCOUNT;
-        return Promise.reject(err);
+        return Promise.reject(new NotLocalAccountError(user._id));
     }
     user.credential.fbName = null;
     user.credential.fbId = null;
@@ -97,7 +100,7 @@ export async function detachFb(user: User): Promise<void> {
 
 function validateLocalId(id: string): void {
     if (!id || !id.match(/^[a-z0-9]{4,32}$/i)) {
-        throw errcode.INVALID_ID;
+        throw new InvalidLocalIdError(id);
     }
 }
 
@@ -121,7 +124,7 @@ export async function makeLocalCredential(id: string, password: string): Promise
     validatePassword(password);
 
     if (await UserService.getByLocalId(id)) {
-        throw errcode.DUPLICATE_ID;
+        throw new DuplicateLocalIdError(id);
     }
 
     let passwordHash = await makePasswordHash(password);
@@ -134,20 +137,14 @@ export async function makeLocalCredential(id: string, password: string): Promise
 
 export async function makeFbCredential(fbId: string, fbToken: string): Promise<UserCredential> {
     if (await UserService.getByFb(fbId)) {
-        throw errcode.FB_ID_WITH_SOMEONE_ELSE;
+        throw new AlreadyRegisteredFbIdError(fbId);
     }
 
-    try {
-        let fbInfo = await FacebookService.getFbInfo(fbId, fbToken);
+    let fbInfo = await FacebookService.getFbInfo(fbId, fbToken);
 
-        return {
-            fbId: fbInfo.fbId,
-            fbName: fbInfo.fbName
-        }
-    } catch (err) {
-        logger.error(err);
-        logger.error("makeFbCredential failed. fbId:", fbId, "fbToken:", fbToken);
-        throw err;
+    return {
+        fbId: fbInfo.fbId,
+        fbName: fbInfo.fbName
     }
 }
 

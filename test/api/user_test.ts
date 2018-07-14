@@ -9,6 +9,7 @@ import assert = require('assert');
 import errcode = require('@app/core/errcode');
 
 import FacebookService = require('@app/core/FacebookService');
+import InvalidFbIdOrTokenError from '@app/core/error/InvalidFbIdOrTokenError';
 
 export = function(app, db, request) {
   var token;
@@ -569,7 +570,7 @@ export = function(app, db, request) {
     it('Log-in fails with incorrect fb_id', function(done){
       let fbId = "123456";
       let facebookGetFbInfoStub = sinonSandbox.stub(FacebookService, 'getFbInfo');
-      facebookGetFbInfoStub.withArgs(fbId, fb_token2).rejects(errcode.WRONG_FB_TOKEN);
+      facebookGetFbInfoStub.withArgs(fbId, fb_token2).rejects(new InvalidFbIdOrTokenError(fbId, fb_token2));
 
       request.post('/auth/login_fb')
         .send({fb_id: fbId, fb_token: fb_token2})

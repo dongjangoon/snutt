@@ -5,8 +5,12 @@ import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');
 import UserCredentialService = require('@app/core/user/UserCredentialService');
 import UserDeviceService = require('@app/core/user/UserDeviceService');
+import InvalidLocalIdError from '@app/core/user/error/InvalidLocalIdError';
 import errcode = require('@app/core/errcode');
 import * as log4js from 'log4js';
+import InvalidLocalPasswordError from '@app/core/user/error/InvalidLocalPasswordError';
+import DuplicateLocalIdError from '@app/core/user/error/DuplicateLocalIdError';
+import InvalidFbIdOrTokenError from '@app/core/error/InvalidFbIdOrTokenError';
 var logger = log4js.getLogger();
 
 router.post('/request_temp', async function(req, res, next) {
@@ -60,12 +64,12 @@ router.post('/register_local', async function (req, res, next) {
     let inserted = await UserService.add(user);
     res.json({message: "ok", token: inserted.credentialHash, user_id: inserted._id});
   } catch (err) {
-    if (err == errcode.INVALID_ID)
-      return res.status(403).json({errcode:err, message:"invalid id"});
-    if (err == errcode.DUPLICATE_ID)
-      return res.status(403).json({errcode:err, message:"duplicate id"});
-    if (err == errcode.INVALID_PASSWORD)
-      return res.status(403).json({errcode:err, message:"invalid password"});
+    if (err instanceof InvalidLocalIdError)
+      return res.status(403).json({errcode: errcode.INVALID_ID, message:"invalid id"});
+    if (err instanceof DuplicateLocalIdError)
+      return res.status(403).json({errcode: errcode.DUPLICATE_ID, message:"duplicate id"});
+    if (err instanceof InvalidLocalPasswordError)
+      return res.status(403).json({errcode: errcode.INVALID_PASSWORD, message:"invalid password"});
     logger.error(err);
     return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"server fault"});
   }
@@ -79,9 +83,9 @@ router.post('/login_fb', async function(req, res, next) {
     let user = await UserService.getByFb(req.body.fb_id);
     if (user) {
       if (await UserCredentialService.isRightFbToken(user, req.body.fb_token)) {
-        res.json({token: user.credentialHash, user_id: user._id});
+        return res.json({token: user.credentialHash, user_id: user._id});
       } else {
-        throw errcode.WRONG_FB_TOKEN;
+        return res.status(403).json({ errcode:errcode.WRONG_FB_TOKEN, message: "wrong fb token"});
       }
     } else {
       let credential = await UserCredentialService.makeFbCredential(req.body.fb_id, req.body.fb_token);
@@ -95,7 +99,7 @@ router.post('/login_fb', async function(req, res, next) {
       res.json({token: inserted.credentialHash, user_id: inserted._id});
     }
   } catch (err) {
-    if (err == errcode.WRONG_FB_TOKEN) {
+    if (err instanceof InvalidFbIdOrTokenError) {
       return res.status(403).json({ errcode:errcode.WRONG_FB_TOKEN, message: "wrong fb token"});
     }
     logger.error(err);

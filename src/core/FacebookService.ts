@@ -8,6 +8,7 @@
 import request = require('request');
 import errcode = require('@app/core/errcode');
 import * as log4js from 'log4js';
+import InvalidFbIdOrTokenError from './error/InvalidFbIdOrTokenError';
 var logger = log4js.getLogger();
 
 export function getFbInfo(fbId, fbToken): Promise<{fbName:string, fbId:string}> {
@@ -19,7 +20,7 @@ export function getFbInfo(fbId, fbToken): Promise<{fbName:string, fbId:string}> 
       qs: {access_token: fbToken}
     }, function (err, res, body) {
       if (err || res.statusCode != 200 || !body || !body.id || fbId !== body.id) {
-        return reject(errcode.WRONG_FB_TOKEN);
+        return reject(new InvalidFbIdOrTokenError(fbId, fbToken));
       } else {
         return resolve({fbName: body.name, fbId: body.id});
       }

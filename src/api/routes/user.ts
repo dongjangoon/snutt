@@ -3,13 +3,17 @@
  * API for User CRUD
  */
 import express = require('express');
-import facebook = require('@app/core/FacebookService');
+import log4js = require('log4js');
+
 import User from '@app/core/user/model/User';
+import InvalidLocalPasswordError from '@app/core/user/error/InvalidLocalPasswordError';
+import InvalidLocalIdError from '@app/core/user/error/InvalidLocalIdError';
 import UserCredentialService = require('@app/core/user/UserCredentialService');
 import UserService = require('@app/core/user/UserService');
 import UserDeviceService = require('@app/core/user/UserDeviceService');
 import errcode = require('@app/core/errcode');
-import * as log4js from 'log4js';
+import AlreadyRegisteredFbIdError from '@app/core/user/error/AlreadyRegisteredFbIdError';
+import DuplicateLocalIdError from '@app/core/user/error/DuplicateLocalIdError';
 var logger = log4js.getLogger();
 var router = express.Router();
 
@@ -37,12 +41,12 @@ router.post('/password', async function (req, res, next) {
   try {
     await UserCredentialService.attachLocal(user, req.body.id, req.body.password);
   } catch (err) {
-    if (err == errcode.INVALID_PASSWORD)
-      return res.status(403).json({errcode: err, message:"invalid password"});
-    else if (err == errcode.INVALID_ID)
-      return res.status(403).json({errcode: err, message:"invalid id"});
-    else if (err == errcode.DUPLICATE_ID)
-      return res.status(403).json({errcode: err, message:"duplicate id"});
+    if (err instanceof InvalidLocalPasswordError)
+      return res.status(403).json({errcode: errcode.INVALID_PASSWORD, message:"invalid password"});
+    else if (err instanceof InvalidLocalIdError)
+      return res.status(403).json({errcode: errcode.INVALID_ID, message:"invalid id"});
+    else if (err instanceof DuplicateLocalIdError)
+      return res.status(403).json({errcode: errcode.DUPLICATE_ID, message:"duplicate id"});
     logger.error(err);
     return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
   }
@@ -57,10 +61,10 @@ router.put('/password', async function (req, res, next) {
     if (!result) return res.status(403).json({errcode: errcode.WRONG_PASSWORD, message:"wrong old password"});
     await UserCredentialService.changeLocalPassword(user, req.body.new_password);
   } catch (err) {
-    if (err == errcode.INVALID_PASSWORD)
-      return res.status(403).json({errcode: err, message:"invalid password"});
+    if (err instanceof InvalidLocalPasswordError)
+      return res.status(403).json({errcode: errcode.INVALID_PASSWORD, message:"invalid password"});
     logger.error(err);
-    return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"server fault"});
+    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
   }
   res.json({token: user.credentialHash});
 });
@@ -81,7 +85,7 @@ router.post('/facebook', async function (req, res, next) {
     await UserCredentialService.attachFb(user, fbId, fbToken);
     return res.json({token: user.credentialHash});
   } catch (err) {
-    if (err === errcode.FB_ID_WITH_SOMEONE_ELSE) {
+    if (err instanceof AlreadyRegisteredFbIdError) {
       return res.status(403).json({errcode: errcode.FB_ID_WITH_SOMEONE_ELSE, message: "already attached with this fb_id"});
     } else {
       logger.error(err);
