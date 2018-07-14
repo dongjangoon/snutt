@@ -3,7 +3,7 @@
  * Admin 권한을 가진 user만이 사용 가능
  */
 import express = require('express');
-import errcode = require('@app/core/errcode');
+import errcode = require('@app/api/errcode');
 import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');
 import NotificationService = require('@app/core/notification/NotificationService');

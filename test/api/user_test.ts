@@ -6,7 +6,7 @@
  */
 import sinon = require('sinon');
 import assert = require('assert');
-import errcode = require('@app/core/errcode');
+import errcode = require('@app/api/errcode');
 
 import FacebookService = require('@app/core/FacebookService');
 import InvalidFbIdOrTokenError from '@app/core/error/InvalidFbIdOrTokenError';

@@ -1,5 +1,4 @@
 import assert = require('assert');
-import errcode = require('@app/core/errcode');
 import { TagList } from '@app/core/model/tagList';
 
 export = function(app, db, request) {

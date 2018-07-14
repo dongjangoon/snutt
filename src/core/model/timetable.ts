@@ -10,7 +10,7 @@ import {UserLectureDocument,
   findRefLectureWithMongooseId,
   isEqualLecture} from './lecture';
 import Util = require('../util');
-import errcode = require('../errcode');
+import errcode = require('@app/api/errcode');
 import Color = require('../color');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();

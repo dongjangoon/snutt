@@ -2,7 +2,7 @@
  * Created by north on 16. 2. 24.
  */
 import mongoose = require('mongoose');
-import errcode = require('../errcode');
+import errcode = require('@app/api/errcode');
 
 var TagListSchema = new mongoose.Schema({
   year: {type: Number, required: true},

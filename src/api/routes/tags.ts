@@ -4,7 +4,7 @@
 import express = require('express');
 var router = express.Router();
 import {TagList} from '@app/core/model/tagList';
-import errcode = require('@app/core/errcode');
+import errcode = require('@app/api/errcode');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 

@@ -4,7 +4,7 @@ import {NotificationModel} from '@app/core/model/notification';
 import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');
 
-import errcode = require('@app/core/errcode');
+import errcode = require('@app/api/errcode');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 

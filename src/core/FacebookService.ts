@@ -6,7 +6,6 @@
  */
 
 import request = require('request');
-import errcode = require('@app/core/errcode');
 import * as log4js from 'log4js';
 import InvalidFbIdOrTokenError from './error/InvalidFbIdOrTokenError';
 var logger = log4js.getLogger();

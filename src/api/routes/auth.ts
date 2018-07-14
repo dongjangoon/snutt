@@ -6,7 +6,7 @@ import UserService = require('@app/core/user/UserService');
 import UserCredentialService = require('@app/core/user/UserCredentialService');
 import UserDeviceService = require('@app/core/user/UserDeviceService');
 import InvalidLocalIdError from '@app/core/user/error/InvalidLocalIdError';
-import errcode = require('@app/core/errcode');
+import errcode = require('@app/api/errcode');
 import * as log4js from 'log4js';
 import InvalidLocalPasswordError from '@app/core/user/error/InvalidLocalPasswordError';
 import DuplicateLocalIdError from '@app/core/user/error/DuplicateLocalIdError';

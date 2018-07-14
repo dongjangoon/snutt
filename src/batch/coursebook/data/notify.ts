@@ -1,5 +1,5 @@
 import { LectureDiff } from '@app/batch/coursebook/data/compare';
-import errcode = require('@app/core/errcode');
+import errcode = require('@app/api/errcode');
 import { Type as NotificationType, NotificationModel } from '@app/core/model/notification';
 import { TimetableModel } from '@app/core/model/timetable';
 import UserService = require('@app/core/user/UserService');

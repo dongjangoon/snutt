@@ -1,5 +1,5 @@
 import {LectureDocument, queryRefLecture} from './lecture';
-import errcode = require('../errcode');
+import errcode = require('@app/api/errcode');
 import * as mongoose from 'mongoose';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();

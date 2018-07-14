@@ -1,5 +1,4 @@
 import mongoose = require('mongoose');
-import * as fs from 'fs';
 
 export async function getStatistics() {
     let yesterdayTime = Date.now() - 24 * 3600000;

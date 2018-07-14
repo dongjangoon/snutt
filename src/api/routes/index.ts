@@ -21,7 +21,7 @@ import apiKey = require('@app/core/config/apiKey');
 import UserService = require('@app/core/user/UserService');
 import {insertFeedback} from '@app/core/model/feedback';
 
-import errcode = require('@app/core/errcode');
+import errcode = require('@app/api/errcode');
 import libcolor = require('@app/core/color');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();

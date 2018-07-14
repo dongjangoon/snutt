@@ -5,7 +5,7 @@ import {TimetableModel} from '@app/core/model/timetable';
 import {setLectureTimemask} from '@app/core/model/lecture';
 import User from '@app/core/user/model/User';
 import util = require('@app/core/util');
-import errcode = require('@app/core/errcode');
+import errcode = require('@app/api/errcode');
 import Color = require('@app/core/color');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();

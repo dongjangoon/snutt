@@ -2,7 +2,6 @@ import mongoose = require('mongoose');
 import log4js = require('log4js');
 
 import User from '@app/core/user/model/User';
-import errcode = require('@app/core/errcode');
 
 var logger = log4js.getLogger();
 
@@ -62,9 +61,6 @@ export async function findActiveByFb(fbId:string) : Promise<User> {
 }
 
 export async function findActiveByCredentialHash(hash: string): Promise<User> {
-  if (!hash) {
-    throw errcode.SERVER_FAULT;
-  }
   let mongooseDocument = await MongooseUserModel.findOne({'credentialHash' : hash, 'active' : true }).exec();
   return fromMongoose(mongooseDocument);
 }

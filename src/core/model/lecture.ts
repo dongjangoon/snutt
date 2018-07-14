@@ -4,7 +4,7 @@
  * UserLecture는 유저 시간표 상의 강의
  */
 import mongoose = require('mongoose');
-import errcode = require('../errcode');
+import errcode = require('@app/api/errcode');
 import Util = require('../util');
 import libcolor = require('../color');
 

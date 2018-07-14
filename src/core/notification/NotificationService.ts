@@ -1,4 +1,4 @@
-import errcode = require('@app/core/errcode');
+import errcode = require('@app/api/errcode');
 import fcm = require('@app/core/fcm');
 import { writeFcmLog } from '@app/core/model/fcmLog';
 

@@ -1,4 +1,4 @@
-import errcode = require('./errcode');
+import errcode = require('@app/api/errcode');
 import { List } from 'immutable';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();

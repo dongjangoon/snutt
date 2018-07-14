@@ -3,7 +3,7 @@
  * Jang Ryeol, ryeolj5911@gmail.com
  */
 import mongoose = require('mongoose');
-import errcode = require('../errcode');
+import errcode = require('@app/api/errcode');
 import User from '@app/core/user/model/User';
 
 /**
