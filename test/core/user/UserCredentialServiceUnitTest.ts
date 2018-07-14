@@ -565,14 +565,9 @@ describe("UserCredentialServiceUnitTest", function() {
 
     assertRejects(UserCredentialService.makeFbCredential(fbId, fbToken), AlreadyRegisteredFbIdError);
   })
+
+  it("makeTempCredential__success", async function() {
+    let result = await UserCredentialService.makeTempCredential();
+    assert(result != null);
+  })
 })
-
-/*
-
-export async function makeTempCredential(): Promise<UserCredential> {
-  return {
-      tempDate: new Date(),
-      tempSeed: Math.floor(Math.random() * 1000)
-  }
-}
-*/
