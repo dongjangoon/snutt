@@ -8,7 +8,7 @@ import express = require('express');
 
 var router = express.Router();
 
-import {CourseBookModel} from '@app/core/model/courseBook';
+import CourseBookService = require('@app/core/coursebook/CourseBookService');
 
 import authRouter = require('./auth');
 import timetableRouter = require('./timetable');
@@ -61,7 +61,7 @@ router.use(function(req, res, next) {
 
 router.get('/course_books', async function(req, res, next) {
   try {
-    res.json(await CourseBookModel.getAll());
+    res.json(await CourseBookService.getAll());
   } catch (err) {
     logger.error(err);
     return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server fault"});
@@ -70,7 +70,7 @@ router.get('/course_books', async function(req, res, next) {
 
 router.get('/course_books/recent', async function(req, res, next) {
   try {
-    res.json(await CourseBookModel.getRecent());
+    res.json(await CourseBookService.getRecent());
   } catch (err) {
     logger.error(err);
     return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server fault"});

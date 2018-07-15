@@ -1,6 +1,5 @@
 import bcrypt = require('bcrypt');
 import crypto = require('crypto');
-import log4js = require('log4js');
 
 import property = require('@app/core/config/property');
 import User from '@app/core/user/model/User';
@@ -13,8 +12,6 @@ import DuplicateLocalIdError from '@app/core/user/error/DuplicateLocalIdError';
 import AlreadyRegisteredFbIdError from '@app/core/user/error/AlreadyRegisteredFbIdError';
 import InvalidFbIdOrTokenError from '@app/core/error/InvalidFbIdOrTokenError';
 import NotLocalAccountError from './error/NotLocalAccountError';
-
-let logger = log4js.getLogger();
 
 export async function isRightPassword(user: User, password: string): Promise<boolean> {
     let originalHash = user.credential.localPw;

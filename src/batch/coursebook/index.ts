@@ -13,7 +13,7 @@ import { fetchSugangSnu } from './data/fetch';
 import { TagStruct, parseLines } from './data/parse';
 import { LectureDiff, compareLectures } from './data/compare';
 import { notifyUpdated } from './data/notify';
-import { CourseBookModel } from '@app/core/model/courseBook';
+import CourseBookService = require('@app/core/coursebook/CourseBookService');
 import { LectureDocument, deleteAllSemester, insertManyRefLecture } from '@app/core/model/lecture';
 import NotificationService = require('@app/core/notification/NotificationService');
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
@@ -25,7 +25,7 @@ var logger = log4js.getLogger();
  * 현재 수강편람과 다음 수강편람
  */
 async function getUpdateCandidate(): Promise<Array<[number, number]>> {
-  let recentCoursebook = await CourseBookModel.getRecent();
+  let recentCoursebook = await CourseBookService.getRecent();
   if (!recentCoursebook) {
     let date = new Date();
     let year = date.getFullYear();
@@ -107,15 +107,13 @@ export async function fetchAndInsert(year: number, semesterIndex: number, fcm_en
 
   logger.info("saving coursebooks...");
   /* Send notification only when coursebook is new */
-  var doc = await CourseBookModel.findOneAndUpdate({ year: Number(year), semester: semesterIndex },
-    { updated_at: Date.now() },
-    {
-      new: false,   // return new doc
-      upsert: true // insert the document if it does not exist
-    })
-    .exec();
-
-  if (!doc) {
+  var existingDoc = await CourseBookService.get(Number(year), semesterIndex);
+  if (!existingDoc) {
+    await CourseBookService.add({
+      year: Number(year),
+      semester: semesterIndex,
+      updated_at: new Date()
+    });
     if (fcm_enabled) await NotificationService.sendGlobalFcmMsg("신규 수강편람", noti_msg, "batch/coursebook", "new coursebook");
     await NotificationService.add({
       user_id: null,
@@ -125,6 +123,8 @@ export async function fetchAndInsert(year: number, semesterIndex: number, fcm_en
       created_at: new Date()
     });
     logger.info("Notification inserted");
+  } else {
+    await CourseBookService.modifyUpdatedAt(existingDoc, new Date());
   }
   return;
 }

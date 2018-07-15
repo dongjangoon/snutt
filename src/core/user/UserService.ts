@@ -1,7 +1,6 @@
 import { TimetableModel } from '@app/core/model/timetable';
-import { CourseBookModel } from '@app/core/model/courseBook';
-import * as log4js from 'log4js';
 import UserRepository = require('@app/core/user/UserRepository');
+import CourseBookService = require('@app/core/coursebook/CourseBookService');
 
 import User from '@app/core/user/model/User';
 import UserInfo from '@app/core/user/model/UserInfo';
@@ -58,7 +57,7 @@ export function updateLastLoginTimestamp(user: User): void {
 
 async function createDefaultTimetable(user: User): Promise<TimetableModel> {
   let userId = user._id;
-  let coursebook = await CourseBookModel.getRecent();
+  let coursebook = await CourseBookService.getRecent();
   return await TimetableModel.createFromParam({
     user_id: userId,
     year: coursebook.year,
