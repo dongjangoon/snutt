@@ -8,7 +8,7 @@ import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');
 import NotificationService = require('@app/core/notification/NotificationService');
 import {CourseBookModel} from '@app/core/model/courseBook';
-import {getRecentFcmLog} from '@app/core/model/fcmLog';
+import FcmLogService = require('@app/core/fcm/FcmLogService');
 import {getFeedback} from '@app/core/model/feedback';
 import {getStatistics} from '@app/core/model/admin';
 import {NotificationModel, Type as NotificationType} from '@app/core/model/notification';
@@ -58,7 +58,7 @@ router.post('/insert_noti', async function(req, res, next) {
 });
 
 router.get('/recent_fcm_log', async function(req, res, next) {
-  let logs = await getRecentFcmLog();
+  let logs = await FcmLogService.getRecentFcmLog();
   return res.json(logs);
 });
 

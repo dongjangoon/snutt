@@ -1,5 +1,5 @@
 
-import * as fcm from '@app/core/fcm';
+import FcmService = require('@app/core/fcm/FcmService');
 import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');
 
@@ -13,13 +13,13 @@ export async function attachDevice(user: User, registrationId: string): Promise<
 
   let keyName = "user-" + user._id;
   try {
-    await fcm.addDevice(keyName, user.fcmKey, [registrationId]);
+    await FcmService.addDevice(keyName, user.fcmKey, [registrationId]);
   } catch (err) {
     await refreshFcmKey(user, registrationId);
-    await fcm.addDevice(keyName, user.fcmKey, [registrationId]);
+    await FcmService.addDevice(keyName, user.fcmKey, [registrationId]);
   }
 
-  await fcm.addTopic(registrationId);
+  await FcmService.addTopic(registrationId);
 }
 
 export async function detachDevice(user: User, registrationId: string): Promise<void> {
@@ -27,13 +27,13 @@ export async function detachDevice(user: User, registrationId: string): Promise<
 
   let keyName = "user-" + user._id;
   try {
-    await fcm.removeDevice(keyName, user.fcmKey, [registrationId]);
+    await FcmService.removeDevice(keyName, user.fcmKey, [registrationId]);
   } catch (err) {
     await refreshFcmKey(user, registrationId);
-    await fcm.removeDevice(keyName, user.fcmKey, [registrationId]);
+    await FcmService.removeDevice(keyName, user.fcmKey, [registrationId]);
   }
 
-  await fcm.removeTopicBatch([registrationId]);
+  await FcmService.removeTopicBatch([registrationId]);
 }
 
 async function refreshFcmKey(user: User, registrationId: string): Promise<void> {
@@ -41,9 +41,9 @@ async function refreshFcmKey(user: User, registrationId: string): Promise<void> 
   var keyValue: string;
 
   try {
-    keyValue = await fcm.getNotiKey(keyName);
+    keyValue = await FcmService.getNotiKey(keyName);
   } catch (err) {
-    keyValue = await fcm.createNotiKey(keyName, [registrationId]);
+    keyValue = await FcmService.createNotiKey(keyName, [registrationId]);
   }
 
   if (!keyValue) throw "refreshFcmKey failed";
