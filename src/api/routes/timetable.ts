@@ -1,17 +1,17 @@
 import express = require('express');
 var router = express.Router();
 
-import {TimetableModel} from 'core/model/timetable';
-import {setLectureTimemask} from 'core/model/lecture';
-import {UserModel} from 'core/model/user';
-import util = require('core/util');
-import errcode = require('core/errcode');
-import Color = require('core/color');
+import {TimetableModel} from '@app/core/model/timetable';
+import {setLectureTimemask} from '@app/core/model/lecture';
+import User from '@app/core/user/model/User';
+import util = require('@app/core/util');
+import errcode = require('@app/api/errcode');
+import Color = require('@app/core/color');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
 router.get('/', async function(req, res, next) { //timetable list
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
   try {
     let result = await TimetableModel.getAbstractList(user._id);
     res.json(result);
@@ -22,7 +22,7 @@ router.get('/', async function(req, res, next) { //timetable list
 });
 
 router.get('/recent', async function(req, res, next) {
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
   try {
     let result = await TimetableModel.getRecentRaw(user._id);
     if (!result) res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:'no timetable'});
@@ -34,7 +34,7 @@ router.get('/recent', async function(req, res, next) {
 });
 
 router.get('/:id', async function(req, res, next) { //get
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
   try {
     let result = await TimetableModel.getByTableIdRaw(user._id, req.params.id);
     if (!result) res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:'timetable not found'});
@@ -46,7 +46,7 @@ router.get('/:id', async function(req, res, next) { //get
 });
 
 router.get('/:year/:semester', async function(req, res, next) {
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
   try {
     let result = await TimetableModel.getBySemesterRaw(user._id, req.params.year, req.params.semester);
     if (!result) res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"No timetable for given semester"});
@@ -58,7 +58,7 @@ router.get('/:year/:semester', async function(req, res, next) {
 });
 
 router.post('/', async function(req, res, next) { //create
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
   if (!req.body.year || !req.body.semester || !req.body.title)
     return res.status(400).json({errcode: errcode.NOT_ENOUGH_TO_CREATE_TIMETABLE, message:'not enough parameters'});
 
@@ -88,7 +88,7 @@ router.post('/', async function(req, res, next) { //create
  * Lecture id from search query
  */
 router.post('/:timetable_id/lecture/:lecture_id', async function(req, res, next) {
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
   try {
     let table = await TimetableModel.getByTableId(user._id, req.params.timetable_id);
     if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
@@ -116,7 +116,7 @@ router.post('/:timetable_id/lecture/:lecture_id', async function(req, res, next)
  * json object of lecture to add
  */
 router.post('/:id/lecture', async function(req, res, next) {
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
   try {
     let table = await TimetableModel.getByTableId(user._id, req.params.id);
     if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
@@ -152,7 +152,7 @@ router.post('/:id/lecture', async function(req, res, next) {
  */
 
 router.put('/:table_id/lecture/:lecture_id', async function(req, res, next) {
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
   var rawLecture = req.body;
   if(!rawLecture) return res.status(400).json({errcode: errcode.NO_LECTURE_INPUT, message:"empty body"});
 
@@ -183,7 +183,7 @@ router.put('/:table_id/lecture/:lecture_id', async function(req, res, next) {
 });
 
 router.put('/:table_id/lecture/:lecture_id/reset', async function(req, res, next) {
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
 
   if (!req.params.lecture_id)
     return res.status(400).json({errcode: errcode.NO_LECTURE_ID, message:"need lecture_id"});
@@ -214,7 +214,7 @@ router.put('/:table_id/lecture/:lecture_id/reset', async function(req, res, next
  * delete a lecture from a timetable
  */
 router.delete('/:table_id/lecture/:lecture_id', async function(req, res, next) {
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
   try {
     let table = await TimetableModel.deleteLectureWithUser(user._id, req.params.table_id, req.params.lecture_id);
     res.json(table.mongooseDocument);
@@ -231,7 +231,7 @@ router.delete('/:table_id/lecture/:lecture_id', async function(req, res, next) {
  * delete a timetable
  */
 router.delete('/:id', async function(req, res, next) { // delete
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
   try {
     await TimetableModel.remove(user._id, req.params.id);
     let tableList = await TimetableModel.getAbstractList(user._id);
@@ -249,7 +249,7 @@ router.delete('/:id', async function(req, res, next) { // delete
  * copy a timetable
  */
 router.post('/:id/copy', async function(req, res, next) {
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
   try {
     let table = await TimetableModel.getByTableId(user._id, req.params.id);
     if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
@@ -263,7 +263,7 @@ router.post('/:id/copy', async function(req, res, next) {
 });
 
 router.put('/:id', async function(req, res, next) {
-  var user:UserModel = <UserModel>req["user"];
+  var user:User = <User>req["user"];
   if (!req.body.title) return res.status(400).json({errcode: errcode.NO_TIMETABLE_TITLE, message:"should provide title"});
   
   try {

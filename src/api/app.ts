@@ -2,50 +2,24 @@
  * HTTP 서버를 실행하는
  * 메인 엔트리
  */
-require('module-alias/register')
+require('module-alias/register');
+require('@app/core/config/mongo');
+require('@app/api/config/log');
 
 import express = require("express");
-import db = require('core/db');
 import morgan = require("morgan");
 import cookieParser = require("cookie-parser");
 import bodyParser = require("body-parser");
 import path = require("path");
 import cors = require("cors");
-
-import routes = require('./routes');
 import http = require('http');
-import fs = require('fs');
-import config = require('core/config');
-import * as log4js from 'log4js';
-import {getLogFilePath} from 'core/log';
-var logger = log4js.getLogger();
-db.connect();
-var app = express();
+import log4js = require('log4js');
 
-if (app.get('env') !== 'mocha') {
-  log4js.configure({
-    appenders: { 
-      'stderr': { type : 'stderr' },
-      'file' : { type : 'file',
-          filename: getLogFilePath('api.log'),
-          layout: { type: "basic" },
-          maxLogSize: 20480,
-          backups: 10 }
-    },
-    categories: {
-      default: { appenders: [ 'stderr', 'file' ], level: 'info' }
-    }
-  });
-} else {
-  log4js.configure({
-    appenders: { 
-      'stderr': { type : 'stderr' }
-    },
-    categories: {
-      default: { appenders: [ 'stderr' ], level: 'info' }
-    }
-  });
-}
+import routes = require('@app/api/routes');
+import property = require('@app/core/config/property');
+
+var logger = log4js.getLogger();
+var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -97,14 +71,13 @@ app.use(function(err, req, res, next) {
     error: {}
   });
 });
-var debug = require('debug')('snutt:server');
 
 /**
  * Get port from environment and store in Express.
  */
 
-var port = normalizePort(config.port || '3000');
-var host = config.host || 'localhost';
+var port = property.port || '3000';
+var host = property.host || 'localhost';
 app.set('port', port);
 app.set('host', host);
 
@@ -125,26 +98,6 @@ function createServer(): http.Server {
   server.on('error', onError);
   server.on('listening', onListening);
   return server;
-}
-
-/**
- * Normalize a port into a number, string, or false.
- */
-
-function normalizePort(val) {
-  var port = parseInt(val, 10);
-
-  if (isNaN(port)) {
-    // named pipe
-    return val;
-  }
-
-  if (port >= 0) {
-    // port number
-    return port;
-  }
-
-  return false;
 }
 
 /**
@@ -184,7 +137,7 @@ function onListening() {
   var bind = typeof addr === 'string'
     ? 'pipe ' + addr
     : 'port ' + addr.port;
-  debug('Listening on ' + bind);
+  logger.debug('Listening on ' + bind);
 }
 
 export = app;

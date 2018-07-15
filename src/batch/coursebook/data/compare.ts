@@ -1,5 +1,5 @@
-import {findRefLectureWithSemester, LectureDocument} from 'core/model/lecture';
-import Util = require('core/util');
+import {findRefLectureWithSemester, LectureDocument} from '@app/core/model/lecture';
+import Util = require('@app/core/util');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 

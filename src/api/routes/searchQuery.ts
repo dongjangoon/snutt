@@ -1,8 +1,8 @@
 import express = require('express');
 var router = express.Router();
-import Util = require('core/util');
-import errcode = require('core/errcode');
-import {LectureQuery, extendedSearch, writeLog} from 'core/model/query';
+import Util = require('@app/core/util');
+import errcode = require('@app/api/errcode');
+import {LectureQuery, extendedSearch, writeLog} from '@app/core/model/query';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 

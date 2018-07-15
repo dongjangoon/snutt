@@ -1,9 +1,10 @@
-import { LectureDiff } from './compare';
-import errcode = require('core/errcode');
-import { Type as NotificationType, NotificationModel } from 'core/model/notification';
-import { TimetableModel } from 'core/model/timetable';
-import { UserModel } from 'core/model/user';
-import * as fcm from 'core/fcm';
+import { LectureDiff } from '@app/batch/coursebook/data/compare';
+import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
+import { TimetableModel } from '@app/core/model/timetable';
+import errcode = require('@app/api/errcode');
+import UserService = require('@app/core/user/UserService');
+import NotificationService = require('@app/core/notification/NotificationService');
+
 import * as async from 'async';
 
 export async function notifyUpdated(year:number, semesterIndex:number, diff:LectureDiff,
@@ -29,22 +30,26 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
               await timetable.updateLecture(lectureId, updated_lecture.after);
               if (num_updated_per_user[timetable.userId]) num_updated_per_user[timetable.userId]++;
               else num_updated_per_user[timetable.userId] = 1;
-              await NotificationModel.createNotification(
-                timetable.userId,
-                "'"+timetable.title+"' 시간표의 '"+updated_lecture.course_title+"' 강의가 업데이트 되었습니다.",
-                NotificationType.LECTURE_UPDATE,
-                noti_detail);
+              await NotificationService.add({
+                user_id: timetable.userId,
+                message: "'"+timetable.title+"' 시간표의 '"+updated_lecture.course_title+"' 강의가 업데이트 되었습니다.",
+                type: NotificationTypeEnum.LECTURE_UPDATE,
+                detail: noti_detail,
+                created_at: new Date()
+              });
             } catch (err) {
               if (err == errcode.LECTURE_TIME_OVERLAP) {
                 await timetable.deleteLecture(lectureId);
                 if (num_removed_per_user[timetable.userId]) num_removed_per_user[timetable.userId]++;
                 else num_removed_per_user[timetable.userId] = 1; 
-                await NotificationModel.createNotification(
-                  timetable.userId,
-                  "'"+timetable.title+"' 시간표의 '"+updated_lecture.course_title+
+                await NotificationService.add({
+                  user_id: timetable.userId,
+                  message: "'"+timetable.title+"' 시간표의 '"+updated_lecture.course_title+
                     "' 강의가 업데이트되었으나, 시간표가 겹쳐 삭제되었습니다.",
-                  NotificationType.LECTURE_REMOVE,
-                  noti_detail);
+                  type: NotificationTypeEnum.LECTURE_REMOVE,
+                  detail: noti_detail,
+                  created_at: new Date()
+                });
               } else throw err;
             }
             callback();
@@ -72,11 +77,13 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
             await timetable.deleteLecture(lectureId);
             if (num_removed_per_user[timetable.userId]) num_removed_per_user[timetable.userId]++;
             else num_removed_per_user[timetable.userId] = 1; 
-            await NotificationModel.createNotification(
-              timetable.userId,
-              "'"+timetable.title+"' 시간표의 '"+removed_lecture.course_title+"' 강의가 폐강되어 삭제되었습니다.",
-              NotificationType.LECTURE_REMOVE,
-              noti_detail);
+            await NotificationService.add({
+              user_id: timetable.userId,
+              message: "'"+timetable.title+"' 시간표의 '"+removed_lecture.course_title+"' 강의가 폐강되어 삭제되었습니다.",
+              type: NotificationTypeEnum.LECTURE_REMOVE,
+              detail: noti_detail,
+              created_at: new Date()
+            });
             callback();
           }, function(err) {
             callback(err);
@@ -112,14 +119,12 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
           else
             continue;
           /* It takes too long to await each requests */
-          promises.push(UserModel.getByMongooseId(users[i]).then(function (user) {
-            return user.sendFcmMsg("수강편람 업데이트", msg, "batch/coursebook", "lecture updated")
-                .then(function(res){
-                  return Promise.resolve();
-                }).catch(function(err) {
-                  if (err != errcode.USER_HAS_NO_FCM_KEY) return Promise.reject(err);
-                  else return Promise.resolve();
-                });
+          promises.push(UserService.getByMongooseId(users[i]).then(function (user) {
+            if (user.fcmKey) {
+              return NotificationService.sendFcmMsg(user, "수강편람 업데이트", msg, "batch/coursebook", "lecture updated");
+            } else {
+              return Promise.resolve("No fcm key");
+            }
           }));
         }
         await Promise.all(promises);

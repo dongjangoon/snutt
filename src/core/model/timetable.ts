@@ -10,8 +10,9 @@ import {UserLectureDocument,
   findRefLectureWithMongooseId,
   isEqualLecture} from './lecture';
 import Util = require('../util');
-import errcode = require('../errcode');
+import errcode = require('@app/api/errcode');
 import Color = require('../color');
+import TimePlaceUtil = require('@app/core/timetable/util/TimePlaceUtil');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -156,7 +157,7 @@ export class TimetableModel {
     }
   
     if (rawLecture['class_time_json']) {
-      rawLecture['class_time_mask'] = Util.timeJsonToMask(rawLecture['class_time_json'], true);
+      rawLecture['class_time_mask'] = TimePlaceUtil.timeJsonToMask(rawLecture['class_time_json'], true);
     }
   
     if (rawLecture['class_time_mask'] && !this.validateLectureTime(lectureId, rawLecture)) {
