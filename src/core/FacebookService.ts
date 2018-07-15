@@ -6,9 +6,7 @@
  */
 
 import request = require('request');
-import * as log4js from 'log4js';
 import InvalidFbIdOrTokenError from './error/InvalidFbIdOrTokenError';
-var logger = log4js.getLogger();
 
 export function getFbInfo(fbId, fbToken): Promise<{fbName:string, fbId:string}> {
   return new Promise(function(resolve, reject) {

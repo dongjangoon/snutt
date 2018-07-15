@@ -15,9 +15,9 @@ import { LectureDiff, compareLectures } from './data/compare';
 import { notifyUpdated } from './data/notify';
 import { CourseBookModel } from '@app/core/model/courseBook';
 import { LectureDocument, deleteAllSemester, insertManyRefLecture } from '@app/core/model/lecture';
-import { NotificationModel, Type as NotificationType } from '@app/core/model/notification';
-import { TagList } from '@app/core/model/tagList';
 import NotificationService = require('@app/core/notification/NotificationService');
+import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
+import { TagList } from '@app/core/model/tagList';
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -117,7 +117,13 @@ export async function fetchAndInsert(year: number, semesterIndex: number, fcm_en
 
   if (!doc) {
     if (fcm_enabled) await NotificationService.sendGlobalFcmMsg("신규 수강편람", noti_msg, "batch/coursebook", "new coursebook");
-    await NotificationModel.createNotification(null, noti_msg, NotificationType.COURSEBOOK, null);
+    await NotificationService.add({
+      user_id: null,
+      message: noti_msg,
+      type: NotificationTypeEnum.COURSEBOOK,
+      detail: null,
+      created_at: new Date()
+    });
     logger.info("Notification inserted");
   }
   return;

@@ -6,8 +6,6 @@ import UserRepository = require('@app/core/user/UserRepository');
 import User from '@app/core/user/model/User';
 import UserInfo from '@app/core/user/model/UserInfo';
 
-var logger = log4js.getLogger();
-
 export function getByMongooseId(mongooseId: string): Promise<User> {
   return UserRepository.findActiveByMongooseId(mongooseId);
 }
@@ -71,9 +69,9 @@ async function createDefaultTimetable(user: User): Promise<TimetableModel> {
 
 export async function add(user: User): Promise<User> {
   if (user.isAdmin === undefined) user.isAdmin = false;
-  if (user.regDate === undefined) user.regDate = new Date();
-  if (user.lastLoginTimestamp === undefined) user.lastLoginTimestamp = Date.now();
-  if (user.notificationCheckedAt === undefined) user.notificationCheckedAt = new Date();
+  if (!user.regDate) user.regDate = new Date();
+  if (!user.lastLoginTimestamp) user.lastLoginTimestamp = Date.now();
+  if (!user.notificationCheckedAt) user.notificationCheckedAt = new Date();
   let inserted = await UserRepository.insert(user);
   await createDefaultTimetable(inserted);
   return inserted;

@@ -11,7 +11,7 @@ import {CourseBookModel} from '@app/core/model/courseBook';
 import FcmLogService = require('@app/core/fcm/FcmLogService');
 import {getFeedback} from '@app/core/model/feedback';
 import {getStatistics} from '@app/core/model/admin';
-import {NotificationModel, Type as NotificationType} from '@app/core/model/notification';
+import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
 import * as log4js from 'log4js';
 import NoFcmKeyError from '@app/core/notification/error/NoFcmKeyError';
 var logger = log4js.getLogger();
@@ -32,7 +32,7 @@ router.post('/insert_noti', async function(req, res, next) {
   let title: string      = req.body.title;
   let body: string       = req.body.body;
   let insertFcm: boolean = req.body.insert_fcm ? true            : false;
-  let type               = req.body.type       ? req.body.type   : NotificationType.NORMAL;
+  let type               = req.body.type       ? Number(req.body.type)   : NotificationTypeEnum.NORMAL;
   let detail             = req.body.detail     ? req.body.detail : null;
 
   try {
@@ -41,12 +41,24 @@ router.post('/insert_noti', async function(req, res, next) {
       if (insertFcm) {
         await NotificationService.sendFcmMsg(receiver, title, body, sender._id, "admin");
       }
-      await NotificationModel.createNotification(receiver._id, body, type, detail);
+      await NotificationService.add({
+        user_id: receiver._id,
+        message: body,
+        type: type,
+        detail: detail,
+        created_at: new Date()
+      });
     } else {
       if (insertFcm) {
         await NotificationService.sendGlobalFcmMsg(title, body, sender._id, "admin");
       }
-      await NotificationModel.createNotification(null, body, type, detail);
+      await NotificationService.add({
+        user_id: null,
+        message: body,
+        type: type,
+        detail: detail,
+        created_at: new Date()
+      });
     }
     res.send({message: "ok"});
   } catch (err) {
