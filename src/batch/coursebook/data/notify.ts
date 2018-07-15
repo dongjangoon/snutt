@@ -1,7 +1,7 @@
 import { LectureDiff } from '@app/batch/coursebook/data/compare';
-import errcode = require('@app/api/errcode');
 import { Type as NotificationType, NotificationModel } from '@app/core/model/notification';
 import { TimetableModel } from '@app/core/model/timetable';
+import errcode = require('@app/api/errcode');
 import UserService = require('@app/core/user/UserService');
 import NotificationService = require('@app/core/notification/NotificationService');
 
@@ -114,13 +114,11 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
             continue;
           /* It takes too long to await each requests */
           promises.push(UserService.getByMongooseId(users[i]).then(function (user) {
-            return NotificationService.sendFcmMsg(user, "수강편람 업데이트", msg, "batch/coursebook", "lecture updated")
-                .then(function(res){
-                  return Promise.resolve();
-                }).catch(function(err) {
-                  if (err != errcode.USER_HAS_NO_FCM_KEY) return Promise.reject(err);
-                  else return Promise.resolve();
-                });
+            if (user.fcmKey) {
+              return NotificationService.sendFcmMsg(user, "수강편람 업데이트", msg, "batch/coursebook", "lecture updated");
+            } else {
+              return Promise.resolve("No fcm key");
+            }
           }));
         }
         await Promise.all(promises);

@@ -7,8 +7,8 @@
 
 import request = require('request-promise-native');
 import property = require('@app/core/config/property');
-import * as log4js from 'log4js';
-var logger = log4js.getLogger();
+
+import FcmError from './error/FcmError';
 
 const device_api_header = {
   "Content-Type":"application/json",
@@ -30,8 +30,7 @@ export function createNotiKey(key_name:string, registration_ids:[string]): Promi
     }).then(function(body){
       return Promise.resolve(body.notification_key);
     }).catch(function(err){
-      logger.error("fcm_create_noti_key: " + err.response.statusMessage);
-      return Promise.reject(err.response.statusMessage);
+      return Promise.reject(new FcmError(err.response.statusMessage));
     });
 }
 
@@ -47,8 +46,7 @@ export function getNotiKey(key_name:string): Promise<string> {
     }).then(function (body) {
       return Promise.resolve(body.notification_key);
     }).catch(function (err) {
-      logger.error("fcm_get_noti_key: " + err.response.statusMessage);
-      return Promise.reject(err.response.statusMessage);
+      return Promise.reject(new FcmError(err.response.statusMessage));
     });
 }
 
@@ -67,8 +65,7 @@ export function addDevice(key_name:string, key:string, registration_ids:[string]
     }).then(function(body){
       return Promise.resolve(body.notification_key);
     }).catch(function(err){
-      logger.error("fcm_add_device: " + err.response.statusMessage);
-      return Promise.reject(err.response.statusMessage);
+      return Promise.reject(new FcmError(err.response.statusMessage));
     });
 }
 
@@ -87,8 +84,7 @@ export function removeDevice(key_name:string, key:string, registration_ids:[stri
     }).then(function(body){
       return Promise.resolve(body.notification_key);
     }).catch(function(err){
-      logger.error("fcm_remove_device: " + err.response.statusMessage);
-      return Promise.reject(err.response.statusMessage);
+      return Promise.reject(new FcmError(err.response.statusMessage));
     });
 }
 
@@ -102,8 +98,7 @@ export function addTopic(registration_id:string): Promise<any> {
         // no need for project_id
       }
     }).catch(function(err){
-      logger.error("fcm_add_topic: " + err.response.statusMessage);
-      return Promise.reject(err.response.statusMessage);
+      return Promise.reject(new FcmError(err.response.statusMessage));
     });
 }
 
@@ -122,8 +117,7 @@ export function removeTopicBatch(registration_tokens:[string]): Promise<any> {
       },
       json: true
     }).catch(function(err){
-      logger.error("fcm_remove_topic_batch: " + err.response.statusMessage);
-      return Promise.reject(err.response.statusMessage);
+      return Promise.reject(new FcmError(err.response.statusMessage));
     });
 }
 
@@ -147,7 +141,10 @@ export function sendMsg(to:string, title:string, body:string): Promise<string> {
       },
       json:true,
     }).catch(function(err){
-      logger.error("fcm_send_msg: " + err.response.statusMessage);
-      return Promise.reject(err.response.statusMessage);
+      return Promise.reject(new FcmError(err.response.statusMessage));
     });
+}
+
+export function sendGlobalMsg(title: string, body:string): Promise<string> {
+  return sendMsg("/topics/global", title, body);
 }

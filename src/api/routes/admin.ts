@@ -13,6 +13,7 @@ import {getFeedback} from '@app/core/model/feedback';
 import {getStatistics} from '@app/core/model/admin';
 import {NotificationModel, Type as NotificationType} from '@app/core/model/notification';
 import * as log4js from 'log4js';
+import NoFcmKeyError from '@app/core/notification/error/NoFcmKeyError';
 var logger = log4js.getLogger();
 
 var router = express.Router();
@@ -50,7 +51,7 @@ router.post('/insert_noti', async function(req, res, next) {
     res.send({message: "ok"});
   } catch (err) {
     if (err == errcode.USER_NOT_FOUND) return res.status(404).send({errcode: err, message: "user not found"});
-    if (err == errcode.USER_HAS_NO_FCM_KEY) return res.status(404).send({errcode: err, message: "user has no fcm key"});
+    if (err instanceof NoFcmKeyError) return res.status(404).send({errcode: errcode.USER_HAS_NO_FCM_KEY, message: "user has no fcm key"});
     if (err == errcode.INVALID_NOTIFICATION_DETAIL) return res.status(404).send({errcode: err, message: "invalid notification detail"});
     logger.error(err);
     res.status(500).send({errcode: errcode.SERVER_FAULT, message:err});
