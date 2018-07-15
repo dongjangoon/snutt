@@ -3,7 +3,7 @@ import log4js = require('log4js');
 if (process.env.NODE_ENV !== 'mocha') {
     log4js.configure({
         appenders: { 
-            'stderr': { type : 'stderr' }
+            'stderr': { type : 'stderr', layout: { type: "basic" } }
         },
         categories: {
             default: { appenders: [ 'stderr' ], level: 'error' }
