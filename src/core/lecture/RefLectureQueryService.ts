@@ -1,7 +1,9 @@
-import {LectureDocument, queryRefLecture} from './lecture';
 import errcode = require('@app/api/errcode');
 import * as mongoose from 'mongoose';
 import * as log4js from 'log4js';
+
+import RefLectureService = require('./RefLectureService');
+import RefLecture from './model/RefLecture';
 var logger = log4js.getLogger();
 
 //something similar to LIKE query in SQL
@@ -120,7 +122,7 @@ async function toMongoQuery(lquery:LectureQuery): Promise<Object> {
  * Course title을 분석하지 않고
  * 따로 입력받은 필터로만 검색
  */
-export async function explicitSearch(lquery: LectureQuery): Promise<LectureDocument[]> {
+export async function explicitSearch(lquery: LectureQuery): Promise<RefLecture[]> {
   var mquery = await toMongoQuery(lquery);
     
   var offset, limit;
@@ -129,7 +131,7 @@ export async function explicitSearch(lquery: LectureQuery): Promise<LectureDocum
   if (!lquery.limit) limit = 20;
   else limit = lquery.limit;
 
-  return queryRefLecture(mquery, limit, offset).catch(function(err){
+  return RefLectureService.query(mquery, limit, offset).catch(function(err){
       logger.error(err);
       return Promise.reject(errcode.SERVER_FAULT);
     });
@@ -139,7 +141,7 @@ export async function explicitSearch(lquery: LectureQuery): Promise<LectureDocum
  * Course title을 분석하여
  * 전공, 학과, 학년 등의 정보를 따로 뽑아냄.
  */
-export async function extendedSearch(lquery: LectureQuery): Promise<LectureDocument[]> {
+export async function extendedSearch(lquery: LectureQuery): Promise<RefLecture[]> {
   var mquery = await toMongoQuery(lquery);
   var title = lquery.title;
   if (!title) return explicitSearch(lquery);
@@ -215,7 +217,7 @@ export async function extendedSearch(lquery: LectureQuery): Promise<LectureDocum
   if (!lquery.limit) limit = 20;
   else limit = lquery.limit;
 
-  return queryRefLecture(mquery, limit, offset).catch(function(err){
+  return RefLectureService.query(mquery, limit, offset).catch(function(err){
       logger.error(err);
       return Promise.reject(errcode.SERVER_FAULT);
     });

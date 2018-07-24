@@ -1,4 +1,4 @@
-import mongoose = require('mongoose');
+import UserLecture from '@app/core/lecture/model/UserLecture';
 
 export default interface Timetable {
     _id: string;
@@ -6,7 +6,7 @@ export default interface Timetable {
     year: number;
     semester: number;
     title: string;
-    lectureList: mongoose.Types.DocumentArray<any>;
+    lectureList: UserLecture[];
     updatedAt: number;
 };
   

@@ -7,18 +7,14 @@ import Util = require('../util');
 import errcode = require('@app/api/errcode');
 import Color = require('../color');
 import TimePlaceUtil = require('@app/core/timetable/util/TimePlaceUtil');
-
-
-import {UserLectureDocument,
-    userLectureSchema,
-    LectureDocument,
-    setLectureTimemask,
-    newUserLecture,
-    validateLectureColor,
-    isCustomLecture,
-    findRefLectureWithCourseNumber,
-    findRefLectureWithMongooseId,
-    isEqualLecture} from '@app/core/model/lecture';
+import LectureService = require('@app/core/lecture/LectureService');
+import RefLectureService = require('@app/core/lecture/RefLectureService');
+import UserLectureService = require('@app/core/lecture/UserLectureService');
+import UserLecture from '@app/core/lecture/model/UserLecture';
+import RefLecture from '@app/core/lecture/model/RefLecture';
+import RefLectrureNotFoundError from "../lecture/error/RefLectureNotFoundError";
+import WrongRefLectureSemesterError from "./error/WrongRefLectureSemesterError";
+import DuplicateLectureError from "./error/DuplicateLectureError";
 
 export async function copy(timetable: Timetable): Promise<void> {
     for (let trial = 1; true; trial++) {
@@ -48,69 +44,57 @@ export async function copyWithTitle(src: Timetable, newTitle: string): Promise<v
     await TimetableRepository.add(copied);
 }
 
+export async function addRefLecture(timetable: Timetable, lectureId: string): Promise<void> {
+  let lecture = await RefLectureService.getByMongooseId(lectureId);
+  if (!lecture) throw new RefLectrureNotFoundError(lectureId);
+  if (lecture.year != timetable.year || lecture.semester != timetable.semester) {
+    throw new WrongRefLectureSemesterError(lecture.year, lecture.semester);
+  }
+  let userLecture = UserLectureService.fromRefLecture(lecture, getAnyAvailableColor(timetable));
+  await addLecture(timetable, userLecture);
+}
 
-  
-async addRefLecture(timetable: Timetable, lectureId: string): Promise<void> {
-    let refLecture:any = await findRefLectureWithMongooseId(lectureId);
-    if (!refLecture) throw errcode.REF_LECTURE_NOT_FOUND;
-    if (refLecture["year"] != this.year || refLecture["semester"] != this.semester) {
-      throw errcode.WRONG_SEMESTER;
+export async function addLecture(timetable: Timetable, lecture: UserLecture): Promise<void> {
+  ObjectUtil.deleteObjectId(lecture);
+
+  if (lecture.credit && (typeof lecture.credit === 'string' || <any>lecture.credit instanceof String)) {
+    lecture.credit = Number(lecture.credit);
+  }
+
+  for (var i = 0; i< timetable.lectureList.length; i++){
+    if (UserLectureService.isIdenticalCourseLecture(lecture, timetable.lectureList[i])) {
+      throw new DuplicateLectureError();
     }
+  }
 
-    refLecture.colorIndex = this.getAnyAvailableColor();
-    await this.addLecture(refLecture);
+  validateLectureTime(timetable, lecture);
+
+  UserLectureService.validateLectureColor(lecture)
+
+  let creationDate = new Date();
+  lecture.created_at = creationDate;
+  lecture.updated_at = creationDate;
+  timetable.lectureList.push(lecture); // shallow copy of this.mongooseDocuemnt.lecture_list
+  await timetable.save();
+}
+
+
+export async function addCustomLecture(timetable: Timetable, lecture: UserLecture): Promise<void> {
+  /* If no time json is found, mask is invalid */
+  LectureService.setTimemask(lecture);
+  if (!lecture.course_title) throw errcode.NO_LECTURE_TITLE;
+  
+  if (!UserLectureService.isCustomLecture(lecture)) throw errcode.NOT_CUSTOM_LECTURE;
+
+  if (!lecture.color && !lecture.colorIndex) lecture.colorIndex = getAnyAvailableColor(timetable);
+
+  await addLecture(timetable, lecture);
 }
 
 export class TimetableModel {
   
-    async addCustomLecture(rawLecture: any): Promise<void> {
-      /* If no time json is found, mask is invalid */
-      setLectureTimemask(rawLecture);
-      if (!rawLecture.course_title) throw errcode.NO_LECTURE_TITLE;
-      
-      if (rawLecture.course_number || rawLecture.lecture_number) throw errcode.NOT_CUSTOM_LECTURE;
   
-      if (rawLecture["year"] && rawLecture["semester"] && (rawLecture["year"] != this.year || rawLecture["semester"] != this.semester))
-        throw errcode.WRONG_SEMESTER;
-  
-      if (!rawLecture.color && !rawLecture.colorIndex) rawLecture.colorIndex = this.getAnyAvailableColor();
-  
-      await this.addLecture(rawLecture);
-    }
-  
-    private async addLecture(rawLecture: any): Promise<void> {
-      /*
-       * Sanitize json using object_del_id.
-       * If you don't do it,
-       * the existing lecture gets overwritten
-       * which is potential security breach.
-       */
-      Util.deleteObjectId(rawLecture);
-  
-      if (rawLecture.credit && (typeof rawLecture.credit === 'string' || rawLecture.credit instanceof String)) {
-        rawLecture.credit = Number(rawLecture.credit);
-      }
-  
-      let lecture = <any>newUserLecture(rawLecture);
-  
-      for (var i = 0; i<this.lectureList.length; i++){
-        if (isEqualLecture(lecture, this.lectureList[i])) {
-          throw errcode.DUPLICATE_LECTURE;
-        }
-      }
-      if (!this.validateLectureTime(lecture._id, lecture)) {
-        throw errcode.LECTURE_TIME_OVERLAP;
-      }
     
-      if (!validateLectureColor(lecture)) {
-        throw errcode.INVALID_COLOR;
-      }
-    
-      lecture.created_at = new Date();
-      lecture.updated_at = new Date();
-      this.lectureList.push(lecture); // shallow copy of this.mongooseDocuemnt.lecture_list
-      await this.mongooseDocument.save();
-    }
   
     getLecture(lectureId): UserLectureDocument {
       return this.lectureList.id(lectureId);

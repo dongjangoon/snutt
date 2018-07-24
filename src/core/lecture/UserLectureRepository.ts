@@ -30,3 +30,7 @@ let userLectureSchema = new mongoose.Schema({
 });
 
 let mongooseModel = mongoose.model('UserLecture', userLectureSchema, 'userlectures');
+
+export function getSchema() {
+  return userLectureSchema;
+}
