@@ -1,3 +1,5 @@
+import TimePlace from '@app/core/timetable/model/TimePlace';
+
 export default interface Lecture {
     classification: string,                           // 교과 구분
     department: string,                               // 학부
@@ -5,9 +7,7 @@ export default interface Lecture {
     course_title: string,   // 과목명
     credit: number,                                   // 학점
     class_time: string,
-    class_time_json: [
-      { day : number, start: number, len: number, place : string }
-    ],
+    class_time_json: TimePlace[],
     class_time_mask: number[],
     instructor: string,                               // 강사
     quota: number,                                    // 정원

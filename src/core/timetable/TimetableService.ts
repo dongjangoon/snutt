@@ -92,14 +92,6 @@ export async function addCustomLecture(timetable: Timetable, lecture: UserLectur
 }
 
 export class TimetableModel {
-  
-  
-    
-  
-    getLecture(lectureId): UserLectureDocument {
-      return this.lectureList.id(lectureId);
-    }
-  
     private rawLectureToUpdateSet(lectureId, rawLecture): any {
       if (rawLecture.course_number || rawLecture.lecture_number) {
         throw errcode.ATTEMPT_TO_MODIFY_IDENTITY;
@@ -263,30 +255,6 @@ export class TimetableModel {
       return new TimetableModel(mongooseDocument);
     };
   
-    static getAbstractList(userId: string): Promise<
-        [{year: number,
-          semester: number,
-          title: string,
-          _id: string,
-          updated_at: Date }]> {
-      let query:any = mongooseModel.where('user_id', userId).select('year semester title _id updated_at').lean();
-      return query.exec();
-    }
-  
-    static getBySemesterRaw(user_id, year, semester): Promise<[any]> {
-      var query:any = mongooseModel.find({'user_id': user_id, 'year': year, 'semester': semester});
-      return query.exec();
-    };
-    
-    static getByTitleRaw(userId: string, year: number, semester: number, title: string): Promise<mongoose.Document> {
-      return mongooseModel.findOne({
-        user_id : userId,
-        year : year,
-        semester: semester,
-        title: title
-      }).exec();
-    }
-  
     static async getByTitle(userId: string, year: number, semester: number, title: string): Promise<TimetableModel> {
       let result = await TimetableModel.getByTitleRaw(userId, year, semester, title);
   
@@ -294,29 +262,10 @@ export class TimetableModel {
       return new TimetableModel(result);
     }
   
-    static getByTableIdRaw(userId: string, tableId: string): Promise<mongoose.Document> {
-      var query:any = mongooseModel.findOne({'user_id': userId, '_id' : tableId});
-      return query.exec();
-    }
-  
     static async getByTableId(userId: string, tableId: string): Promise<TimetableModel> {
       let mongooseDocument = await TimetableModel.getByTableIdRaw(userId, tableId);
       if (mongooseDocument === null) return null;
       return new TimetableModel(mongooseDocument);
-    }
-  
-    static getWithLectureRaw(year: number, semester: number, courseNumber: string, lectureNumber: string): Promise<mongoose.Document[]> {
-      return mongooseModel.find(
-          {
-            year: year,
-            semester: semester,
-            lecture_list: {
-              $elemMatch : {
-                course_number: courseNumber,
-                lecture_number: lectureNumber
-              }
-            }
-          }).exec();
     }
   
     static async getWithLecture(year: number, semester: number, courseNumber: string, lectureNumber: string): Promise<TimetableModel[]> {
@@ -329,10 +278,5 @@ export class TimetableModel {
       }
       return ret;
     }
-  
-    static getRecentRaw(user_id): Promise<any> {
-      var query:any = mongooseModel.findOne({'user_id': user_id}).sort({updated_at : -1});
-      return query.exec();
-    };
   }
   
