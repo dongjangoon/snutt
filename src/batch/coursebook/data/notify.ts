@@ -98,11 +98,10 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
       }
 
       for (var user_id in Object.keys(num_removed_per_user)) {
-        if (user_id in num_updated_per_user) continue;
+        if (user_id in Object.keys(num_updated_per_user)) continue;
         users.push(user_id);
       }
 
-      let promises = [];
       for (var i=0; i<users.length; i++) {
         logger.info(i + "th user fcm");
         var updated_num = num_updated_per_user[user_id];
@@ -116,16 +115,13 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
           msg = "수강편람이 업데이트되어 "+removed_num+"개 강의가 삭제되었습니다.";
         else
           continue;
-        /* It takes too long to await each requests */
-        promises.push(UserService.getByMongooseId(users[i]).then(function (user) {
-          if (user.fcmKey) {
-            return NotificationService.sendFcmMsg(user, "수강편람 업데이트", msg, "batch/coursebook", "lecture updated");
-          } else {
-            return Promise.resolve("No fcm key");
-          }
-        }));
+
+        let user = await UserService.getByMongooseId(users[i]);
+
+        if (user && user.fcmKey) {
+          await NotificationService.sendFcmMsg(user, "수강편람 업데이트", msg, "batch/coursebook", "lecture updated");
+        }
       }
-      await Promise.all(promises);
   }
 
   if (fcm_enabled) {
