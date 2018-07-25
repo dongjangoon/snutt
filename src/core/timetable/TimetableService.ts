@@ -15,6 +15,8 @@ import RefLecture from '@app/core/lecture/model/RefLecture';
 import RefLectrureNotFoundError from "../lecture/error/RefLectureNotFoundError";
 import WrongRefLectureSemesterError from "./error/WrongRefLectureSemesterError";
 import DuplicateLectureError from "./error/DuplicateLectureError";
+import TimetableNotFoundError from "./error/TimetableNotFoundError";
+import UserLectureNotFoundError from "./error/UserLectureNotFoundError";
 
 export async function copy(timetable: Timetable): Promise<void> {
     for (let trial = 1; true; trial++) {
@@ -91,6 +93,77 @@ export async function addCustomLecture(timetable: Timetable, lecture: UserLectur
   await addLecture(timetable, lecture);
 }
 
+export function remove(userId, tableId): Promise<void> {
+  return TimetableRepository.deleteByUserIdAndMongooseId(userId, tableId);
+}
+
+export async function getByTitle(userId: string, year: number, semester: number, title: string): Promise<Timetable> {
+  return TimetableRepository.findByUserIdAndSemesterAndTitle(userId, year, semester, title);
+}
+
+export async function getByMongooseId(userId, tableId: string): Promise<Timetable> {
+  return TimetableRepository.findByUserIdAndMongooseId(userId, tableId);
+}
+
+export async function getHavingLecture(year: number, semester: number, courseNumber: string, lectureNumber: string): Promise<Timetable[]> {
+  return TimetableRepository.findHavingLecture(year, semester, courseNumber, lectureNumber);
+}
+
+export async function modifyTitle(tableId, userId, newTitle): Promise<void> {
+  let target = await TimetableRepository.findByUserIdAndMongooseId(userId, tableId);
+  if (target.title === newTitle) {
+    return;
+  }
+
+  let duplicate = await TimetableRepository.findByUserIdAndSemesterAndTitle(userId, target.year, target.semester, newTitle);
+  if (duplicate !== null) {
+    throw new DuplicateTimetableTitleError(userId, target.year, target.semester, newTitle);
+  }
+
+  await TimetableRepository.updateTitleByUserId(tableId, userId, newTitle);
+}
+
+
+export async function addFromParam(params): Promise<Timetable> {
+  if (!params || !params.user_id || !params.year || !params.semester || !params.title) {
+    throw errcode.NOT_ENOUGH_TO_CREATE_TIMETABLE;
+  }
+
+  let duplicate = await TimetableRepository.findByUserIdAndSemesterAndTitle(params.user_id, params.year, params.semester, params.title);
+  if (duplicate !== null) {
+    throw new DuplicateTimetableTitleError(params.user_id, params.year, params.semester, params.title);
+  }
+
+  let newTimetable: Timetable = {
+    userId : params.user_id,
+    year : params.year,
+    semester : params.semester,
+    title : params.title,
+    lectureList : [],
+    updatedAt: Date.now()
+  };
+
+  return await TimetableRepository.insert(newTimetable);
+};
+
+export async function resetLecture(userId:string, tableId: string, lectureId: string): Promise<void> {
+  let table: Timetable = await getByMongooseId(userId, tableId);
+  let lecture: UserLecture = getUserLecture(table, lectureId);
+  if (UserLectureService.isCustomLecture(lecture)) {
+    throw new CustomLectureError(lecture);
+  }
+
+  let refLecture = await RefLectureService.getByCourseNumber(table.year, table.semester, lecture.course_number, lecture.lecture_number);
+  if (refLecture === null) {
+    throw new RefLectrureNotFoundError();
+  }
+
+  let newLecture = UserLectureService.fromRefLecture(refLecture, getAnyAvailableColor());
+  newLecture._id = lectureId;
+
+  await TimetableRepository.updateUserLecture(tableId, newLecture);
+}
+
 export class TimetableModel {
     private rawLectureToUpdateSet(lectureId, rawLecture): any {
       if (rawLecture.course_number || rawLecture.lecture_number) {
@@ -112,7 +185,7 @@ export class TimetableModel {
       rawLecture.updated_at = Date.now();
     
       var update_set = {};
-      Util.deleteObjectId(rawLecture);
+      ObjectUtil.deleteObjectId(rawLecture);
       for (var field in rawLecture) {
         update_set['lecture_list.$.' + field] = rawLecture[field];
       }
@@ -127,54 +200,13 @@ export class TimetableModel {
       let newMongooseDocument: any = await mongooseModel.findOneAndUpdate({ "_id" : this._id, "lecture_list._id" : lectureId},
         {$set : updateSet}, {new: true}).exec();
       
-      if (newMongooseDocument === null) throw errcode.TIMETABLE_NOT_FOUND;
-      if (!newMongooseDocument.lecture_list.id(lectureId)) throw errcode.LECTURE_NOT_FOUND;
-      this.mongooseDocument = newMongooseDocument;
-      this.lectureList = this.mongooseDocument['lecture_list'];
-    };
-  
-  
-    async resetLecture(lectureId: string): Promise<void> {
-      var lecture:UserLectureDocument = this.getLecture(lectureId);
-      if (isCustomLecture(lecture)) {
-        throw errcode.IS_CUSTOM_LECTURE;
+      if (newMongooseDocument === null) {
+        throw new TimetableNotFoundError();
       }
-  
-      let refLecture: any = await findRefLectureWithCourseNumber
-          (this.year, this.semester, lecture.course_number, lecture.lecture_number);
-  
-      if (refLecture === null) throw errcode.REF_LECTURE_NOT_FOUND;
-  
-      delete refLecture.lecture_number;
-      delete refLecture.course_number;
-      await this.updateLecture(lectureId, refLecture);
-    }
-  
-    static async deleteLectureWithUser(userId: string, tableId: string, lectureId: string): Promise<TimetableModel> {
-      let document = await mongooseModel.findOneAndUpdate(
-        {'_id' : tableId, 'user_id' : userId},
-        { $pull: {lecture_list : {_id: lectureId} } }, {new: true})
-        .exec();
-      if (!document) throw errcode.TIMETABLE_NOT_FOUND;
-      return new TimetableModel(document);
-    }
-  
-    static async deleteLecture(tableId: string, lectureId: string): Promise<TimetableModel> {
-      let document = await mongooseModel.findOneAndUpdate(
-        {'_id' : tableId},
-        { $pull: {lecture_list : {_id: lectureId} } }, {new: true})
-        .exec();
-      if (!document) throw errcode.TIMETABLE_NOT_FOUND;
-      return new TimetableModel(document);
-    }
-  
-    async deleteLecture(lectureId): Promise<void> {
-      let newMongooseDocument = await mongooseModel.findOneAndUpdate(
-        {'_id' : this._id},
-        { $pull: {lecture_list : {_id: lectureId} } }, {new: true})
-        .exec();
-      this.mongooseDocument = newMongooseDocument;
-      this.lectureList = this.mongooseDocument['lecture_list'];
+
+      if (!newMongooseDocument.lecture_list.id(lectureId)) {
+        throw new UserLectureNotFoundError();
+      }
     };
   
   
@@ -216,67 +248,6 @@ export class TimetableModel {
             this.lectureList[i]['lecture_number'] == lectureNumber) return this.lectureList[i]['_id'];
       }
       throw errcode.LECTURE_NOT_FOUND;
-    }
-  
-    static async remove(userId, tableId): Promise<void> {
-      let document = await mongooseModel.findOneAndRemove({'user_id': userId, '_id' : tableId}).lean().exec();
-      if (!document) throw errcode.TIMETABLE_NOT_FOUND;
-    }
-  
-    static async changeTitle(userId, tableId, newTitle): Promise<void> {
-      let document = await mongooseModel.findOne({'user_id': userId, '_id' : tableId}).exec();
-      if (!document) throw errcode.TIMETABLE_NOT_FOUND;
-      if (document['title'] == newTitle) return;
-  
-      let duplicate = await TimetableModel.getByTitleRaw(userId, document['year'], document['semester'], newTitle);
-      if (duplicate !== null) throw errcode.DUPLICATE_TIMETABLE_TITLE;
-      
-      document['title'] = newTitle;
-      await document.save();
-    }
-  
-    static async createFromParam(params): Promise<TimetableModel> {
-      if (!params || !params.user_id || !params.year || !params.semester || !params.title) {
-        throw errcode.NOT_ENOUGH_TO_CREATE_TIMETABLE;
-      }
-  
-      let duplicatePromise = TimetableModel.getByTitleRaw(params.user_id, params.year, params.semester, params.title);
-  
-      let mongooseDocument = new mongooseModel({
-        user_id : params.user_id,
-        year : params.year,
-        semester : params.semester,
-        title : params.title,
-        lecture_list : []
-      });
-  
-      if (await duplicatePromise !== null) throw errcode.DUPLICATE_TIMETABLE_TITLE;
-      await mongooseDocument.save();
-      return new TimetableModel(mongooseDocument);
-    };
-  
-    static async getByTitle(userId: string, year: number, semester: number, title: string): Promise<TimetableModel> {
-      let result = await TimetableModel.getByTitleRaw(userId, year, semester, title);
-  
-      if (result === null) return null;
-      return new TimetableModel(result);
-    }
-  
-    static async getByTableId(userId: string, tableId: string): Promise<TimetableModel> {
-      let mongooseDocument = await TimetableModel.getByTableIdRaw(userId, tableId);
-      if (mongooseDocument === null) return null;
-      return new TimetableModel(mongooseDocument);
-    }
-  
-    static async getWithLecture(year: number, semester: number, courseNumber: string, lectureNumber: string): Promise<TimetableModel[]> {
-      let mongooseDocuments = await TimetableModel.getWithLectureRaw(year, semester, courseNumber, lectureNumber);
-      if (mongooseDocuments === null) return null;
-      if (mongooseDocuments.length == 0) return [];
-      let ret: TimetableModel[] = [];
-      for (let i=0; i<mongooseDocuments.length; i++) {
-        ret.push(new TimetableModel(mongooseDocuments[i]));
-      }
-      return ret;
     }
   }
   

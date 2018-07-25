@@ -1,9 +1,7 @@
-import errcode = require('@app/api/errcode');
 import RefLecture from './model/RefLecture';
 import UserLecture from './model/UserLecture';
 import Util = require('../util');
 import libcolor = require('../color');
-import ObjectUtil = require('@app/core/common/util/ObjectUtil');
 import InvalidLectureColorIndexError from './error/InvalidLectureColorIndexError';
 import InvalidLectureColorError from './error/InvalidLectureColorError';
 

@@ -69,6 +69,7 @@ export async function insertMany(lectures: RefLecture[]): Promise<void> {
 }
 
 function fromMongoose(mongooseDoc): RefLecture {
+  if (mongooseDoc === null) return null;
   return {
     classification: mongooseDoc.classification,                           // 교과 구분
     department: mongooseDoc.department,                               // 학부

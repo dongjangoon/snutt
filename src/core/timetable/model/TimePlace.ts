@@ -4,4 +4,3 @@ export default interface TimePlace {
     len: number;
     place: string;
 };
-  

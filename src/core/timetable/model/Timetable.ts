@@ -1,7 +1,7 @@
 import UserLecture from '@app/core/lecture/model/UserLecture';
 
 export default interface Timetable {
-    _id: string;
+    _id?: string;
     userId: string;
     year: number;
     semester: number;

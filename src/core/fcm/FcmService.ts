@@ -9,6 +9,7 @@ import request = require('request-promise-native');
 import property = require('@app/core/config/property');
 
 import FcmError from './error/FcmError';
+import FcmLogServie = require('@app/core/fcm/FcmLogService');
 
 const device_api_header = {
   "Content-Type":"application/json",
@@ -121,30 +122,34 @@ export function removeTopicBatch(registration_tokens:[string]): Promise<any> {
     });
 }
 
-export function sendMsg(to:string, title:string, body:string): Promise<string> {
-  return request({
-      method: 'POST',
-      uri: 'https://fcm.googleapis.com/fcm/send',
-      headers: {
-        "Content-Type":"application/json",
-        "Authorization":"key="+property.fcm_api_key
-      },
-      body: {
-            "to": to,
-            "notification" : {
-              "body" : body,
-              "title" : title,
-              "sound": "default"
-            },
-            "priority" : "high",
-            "content_available" : true
-      },
-      json:true,
-    }).catch(function(err){
-      return Promise.reject(new FcmError(err.response.statusMessage));
-    });
+export async function sendMsg(to:string, title:string, body:string, author: string, cause: string): Promise<string> {
+  let promise = request({
+    method: 'POST',
+    uri: 'https://fcm.googleapis.com/fcm/send',
+    headers: {
+      "Content-Type":"application/json",
+      "Authorization":"key="+property.fcm_api_key
+    },
+    body: {
+          "to": to,
+          "notification" : {
+            "body" : body,
+            "title" : title,
+            "sound": "default"
+          },
+          "priority" : "high",
+          "content_available" : true
+    },
+    json:true,
+  }).catch(function(err){
+    return Promise.reject(new FcmError(err.response.statusMessage));
+  });
+  
+  let response = await promise;
+  await FcmLogServie.addFcmLog(to, author, title + '\n' + body, cause, response);
+  return response;
 }
 
-export function sendGlobalMsg(title: string, body:string): Promise<string> {
-  return sendMsg("/topics/global", title, body);
+export function sendGlobalMsg(title: string, body:string, author: string, cause: string): Promise<string> {
+  return sendMsg("/topics/global", title, body, author, cause);
 }
