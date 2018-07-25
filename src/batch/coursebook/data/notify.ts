@@ -133,5 +133,5 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
       return resolve();
     });
   });
-  return promise;
+  await promise;
 }
