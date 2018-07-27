@@ -26,6 +26,10 @@ export async function findByPaging(limit: number, offset: number): Promise<Feedb
   return docs.map(fromMongoose);
 }
 
+export function deleteOne(id: string) {
+  return FeedbackModel.remove({_id: id}).exec();
+}
+
 export function deleteAllByMongoIds(ids: any[]): Promise<void> {
   return FeedbackModel.remove({_id: { $in: ids }}).exec();
 }

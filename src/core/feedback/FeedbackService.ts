@@ -14,6 +14,10 @@ export function get(offset: number, limit: number): Promise<Feedback[]> {
   return FeedbackRepository.findByPaging(offset, limit);
 }
 
+export function remove(id: string): Promise<void> {
+  return FeedbackRepository.deleteOne(id);
+}
+
 export function removeAll(ids: string[]): Promise<void> {
   return FeedbackRepository.deleteAllByMongoIds(ids);
 }

@@ -9,6 +9,8 @@ require('module-alias/register');
 require('@app/core/config/mongo');
 require('@app/batch/config/log');
 
+import LambdaJobBuilder from '@app/batch/common/LambdaJobBuilder';
+
 import FeedbackService = require('@app/core/feedback/FeedbackService');
 import Feedback from '@app/core/feedback/model/Feedback';
 import * as log4js from 'log4js';
@@ -21,7 +23,23 @@ let repoName = property.feedback2github_repo_name;
 
 var logger = log4js.getLogger();
 
-function feedbackToIssue(feedback: Feedback): Issue {
+interface StepItem {
+    issue: Issue,
+    feedbackId: string
+}
+
+async function reader(): Promise<Feedback[]> {
+    let userName = await GithubService.getUserName();
+    logger.info("Logged-in as " + userName);
+    logger.info("Dumping feedbacks into " + repoOwner + "/" + repoName);
+
+    let feedbacks = await FeedbackService.get(100, 0);
+
+    logger.info("Fetched " + feedbacks.length + " documents");
+    return feedbacks;
+}
+
+async function processor(feedback: Feedback): Promise<StepItem> {
     let title;
     if (!feedback.message) {
         logger.warn("No message field in feedback document");
@@ -48,41 +66,33 @@ function feedbackToIssue(feedback: Feedback): Issue {
         labels = [feedback.platform];
     }
 
-    return {
+    let issue: Issue = {
         title: title,
         body: body,
         labels: labels
     }
+
+    return {
+        issue: issue,
+        feedbackId: feedback._id
+    }
 }
 
-async function dumpFeedback(feedback: Feedback): Promise<void> {
-    let issue = feedbackToIssue(feedback);
-    await GithubService.addIssue(repoOwner, repoName, issue);
+async function writer(item: StepItem): Promise<void> {
+    await GithubService.addIssue(repoOwner, repoName, item.issue);
+    await FeedbackService.remove(item.feedbackId);
 }
 
 async function main() {
     try {
-        let userName = await GithubService.getUserName();
-        logger.info("Logged-in as " + userName);
-        logger.info("Dumping feedbacks into " + repoOwner + "/" + repoName);
-
-        let feedbacks = await FeedbackService.get(100, 0);
-        let feedbackIds = [];
-
-        logger.info("Fetched " + feedbacks.length + " documents");
-
-        for (let i=0; i<feedbacks.length; i++) {
-            feedbackIds.push(feedbacks[i]._id);
-            await dumpFeedback(feedbacks[i]);
-        }
+        let job = LambdaJobBuilder.reader(reader)
+                .processor(processor)
+                .writer(writer);
+        await job.run();
         logger.info("Successfully inserted");
-
-        await FeedbackService.removeAll(feedbackIds);
-        logger.info("Removed from mongodb");
     } catch (err) {
         logger.error(err);
     }
-
     // Wait for log4js to flush its logs
     setTimeout(function() {
         process.exit(0);
