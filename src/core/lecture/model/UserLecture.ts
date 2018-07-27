@@ -2,7 +2,6 @@ import Lecture from "./Lecture";
 import LectureColor from './LectureColor';
 
 export default interface UserLecture extends Lecture {
-    _id?: string,
     created_at: Date,
     updated_at: Date,
     color?: LectureColor,

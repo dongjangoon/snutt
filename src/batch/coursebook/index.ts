@@ -14,7 +14,7 @@ import { TagStruct, parseLines } from './data/parse';
 import { LectureDiff, compareLectures } from './data/compare';
 import { notifyUpdated } from './data/notify';
 import CourseBookService = require('@app/core/coursebook/CourseBookService');
-import { LectureDocument, deleteAllSemester, insertManyRefLecture } from '@app/core/model/lecture';
+import RefLectureService = require('@app/core/lecture/RefLectureService');
 import NotificationService = require('@app/core/notification/NotificationService');
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
 import { TagList } from '@app/core/model/tagList';
@@ -89,12 +89,12 @@ export async function fetchAndInsert(year: number, semesterIndex: number, fcm_en
   logger.info("Sending notifications...");
   await notifyUpdated(year, semesterIndex, compared, fcm_enabled);
 
-  await deleteAllSemester(year, semesterIndex);
+  await RefLectureService.removeBySemester(year, semesterIndex);
   logger.info("Removed existing lecture for this semester");
 
   logger.info("Inserting new lectures...");
-  var docs = await insertManyRefLecture(parsed.new_lectures);
-  logger.info("Insert complete with " + docs.length + " success and " + (parsed.new_lectures.length - docs.length) + " errors");
+  var inserted = await RefLectureService.addAll(parsed.new_lectures);
+  logger.info("Insert complete with " + inserted + " success and " + (parsed.new_lectures.length - inserted) + " errors");
 
   logger.info("Inserting tags from new lectures...");
   for (var key in parsed.tags) {

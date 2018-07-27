@@ -1,8 +1,7 @@
 import express = require('express');
 var router = express.Router();
-import Util = require('@app/core/util');
 import errcode = require('@app/api/errcode');
-import {LectureQuery, extendedSearch, writeLog} from '@app/core/model/query';
+import RefLectureQueryService = require('@app/core/lecture/RefLectureQueryService');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -20,10 +19,10 @@ router.post('/', async function(req, res, next) {
     return res.status(400).json({errcode:errcode.NO_YEAR_OR_SEMESTER, message: 'no year and semester'});
   }
 
-  var query:LectureQuery = req.body;
+  var query: any = req.body;
   try {
-    writeLog(query);
-    var lectures = await extendedSearch(query);
+    RefLectureQueryService.writeLog(query);
+    var lectures = await RefLectureQueryService.extendedSearch(query);
     return res.json(lectures);
   } catch (err) {
     switch(err) {

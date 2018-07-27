@@ -55,22 +55,24 @@ export async function findByMongooseId(id: any): Promise<RefLecture> {
   return fromMongoose(doc);
 }
 
-export async function findAllBySemester(year: number, semester: number): Promise<RefLecture[]> {
+export async function findBySemester(year: number, semester: number): Promise<RefLecture[]> {
   let docs = await mongooseModel.find({year : year, semester : semester}).exec();
   return docs.map(fromMongoose);
 }
 
-export async function deleteAllBySemester(year: number, semester: number): Promise<void> {
+export async function deleteBySemester(year: number, semester: number): Promise<void> {
   await mongooseModel.remove({ year: year, semester: semester}).exec();
 }
 
-export async function insertMany(lectures: RefLecture[]): Promise<void> {
-  await mongooseModel.insertMany(lectures);
+export async function insertAll(lectures: RefLecture[]): Promise<number> {
+  let docs = await mongooseModel.insertMany(lectures);
+  return docs.length;
 }
 
 function fromMongoose(mongooseDoc): RefLecture {
   if (mongooseDoc === null) return null;
   return {
+    _id: mongooseDoc._id,
     classification: mongooseDoc.classification,                           // 교과 구분
     department: mongooseDoc.department,                               // 학부
     academic_year: mongooseDoc.academic_year,                            // 학년

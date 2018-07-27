@@ -1,6 +1,7 @@
 import TimePlace from '@app/core/timetable/model/TimePlace';
 
 export default interface Lecture {
+    _id?: string,
     classification: string,                           // 교과 구분
     department: string,                               // 학부
     academic_year: string,                            // 학년

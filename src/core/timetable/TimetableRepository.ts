@@ -5,7 +5,9 @@ import AbstractTimetable from './model/AbstractTimetable';
 import InvalidLectureUpdateRequestError from './error/InvalidLectureUpdateRequestError';
 import TimetableNotFoundError from './error/TimetableNotFoundError';
 import UserLectureNotFoundError from './error/UserLectureNotFoundError';
-import DuplicateTimetableTitleError from './error/DuplicateTimetableTitleError';
+import ObjectUtil = require('@app/core/common/util/ObjectUtil');
+import log4js = require('log4js');
+let logger = log4js.getLogger();
 
 let userLectureSchema = new mongoose.Schema({
   classification: String,                           // 교과 구분
@@ -60,7 +62,7 @@ export async function findByUserIdAndSemesterAndTitle(userId: string, year: numb
 }
 
 export async function findByUserIdAndMongooseId(userId: string, mongooseId: string): Promise<Timetable> {
-  var doc = mongooseModel.findOne({'user_id': userId, '_id' : mongooseId}).exec();
+  var doc = await mongooseModel.findOne({'user_id': userId, '_id' : mongooseId}).exec();
   return fromMongoose(doc);
 }
 
@@ -69,7 +71,7 @@ export async function findBySemester(userId: string, year: number, semester: num
   return docs.map(fromMongoose);
 }
 
-export async function findAbstractListByUserId(userId: string): Promise<AbstractTimetable[]> {
+export function findAbstractListByUserId(userId: string): Promise<AbstractTimetable[]> {
   let query:any = mongooseModel.where('user_id', userId).select('year semester title _id updated_at').lean();
   return query.exec();
 }
@@ -95,24 +97,34 @@ export async function findRecentByUserId(userId: string): Promise<Timetable> {
   return fromMongoose(doc);
 }
 
-export async function updateUserLecture(tableId: string, lecture: UserLecture) {
+function makeUserLecturePartialUpdateQuery(lecture: any) {
+  var updateMap = {};
+  let lectureCopy = ObjectUtil.deepCopy(lecture);
+  ObjectUtil.deleteObjectId(lectureCopy);
+  for (var field in lectureCopy) {
+    updateMap['lecture_list.$.' + field] = lectureCopy[field];
+  }
+  return{
+    $set: updateMap
+  };
+}
+
+export async function partialUpdateUserLecture(tableId: string, lecture: any): Promise<void> {
   if (!lecture || !lecture._id) {
     throw new InvalidLectureUpdateRequestError(lecture);
   }
-  let updateSet = this.rawLectureToUpdateSet(lectureId, rawLecture);
-  let newMongooseDocument: any = await mongooseModel.findOneAndUpdate({ "_id" : tableId, "lecture_list._id" : lecture._id},
-    {$set : updateSet}, {new: true}).exec();
-  
-  if (newMongooseDocument === null) {
-    throw new TimetableNotFoundError();
-  }
+  let updateQuery = makeUserLecturePartialUpdateQuery(lecture);
+  let newMongooseDocument: any = await mongooseModel.findOneAndUpdate(
+    { "_id" : tableId, "lecture_list._id" : lecture._id},
+    updateQuery,
+    {new: true}).exec();
 
   if (!newMongooseDocument.lecture_list.id(lecture._id)) {
     throw new UserLectureNotFoundError();
   }
 }
 
-export async function deleteLectureWithUserId(tableId: string, userId: string, lectureId: string): Promise<void> {
+export async function deleteLectureWithUserId(userId: string, tableId: string, lectureId: string): Promise<void> {
   let document = await mongooseModel.findOneAndUpdate(
     {'_id' : tableId, 'user_id' : userId},
     { $pull: {lecture_list : {_id: lectureId} } }, {new: true})
@@ -128,7 +140,7 @@ export async function deleteLecture(tableId: string, lectureId: string): Promise
   if (!document) throw new TimetableNotFoundError();
 }
 
-export async function deleteByUserIdAndMongooseId(userId, tableId): Promise<void> {
+export async function deleteByUserIdAndMongooseId(userId: string, tableId: string): Promise<void> {
   let document = await mongooseModel.findOneAndRemove({'user_id': userId, '_id' : tableId}).lean().exec();
   if (!document) throw new TimetableNotFoundError();
 }
@@ -143,33 +155,51 @@ export async function updateTitleByUserId(tableId: string, userId: string, title
 
 export async function insert(table: Timetable): Promise<Timetable> {
   let doc = new mongooseModel({
-    user_id: table.userId,
+    user_id: table.user_id,
     year: table.year,
     semester: table.semester,
     title: table.title,
-    lecture_list: table.lectureList,
-    updated_at: table.updatedAt
+    lecture_list: table.lecture_list,
+    updated_at: table.updated_at
   });
   await doc.save();
   return fromMongoose(doc);
 }
 
-function fromMongoose(mongooseDoc): Timetable {
-  if (mongooseDoc === null) return null;
+export async function insertUserLecture(tableId: string, lecture: UserLecture): Promise<void> {
+  ObjectUtil.deleteObjectId(lecture);
+  let document = await mongooseModel.findOne({'_id' : tableId}).exec();
+  document['lecture_list'].push(lecture);
+  await document.save();
+}
 
-  let lectureList = []
-  for (let i=0; i<mongooseDoc.lecture_list.length; i++) {
-    lectureList.push(lectureFromMongoose(mongooseDoc.lecture_list[i]));
+export async function updateUpdatedAt(tableId: string, updatedAt: number): Promise<void> {
+  let document = await mongooseModel.findOneAndUpdate(
+    {'_id' : tableId},
+    { $set: {updated_at: updatedAt} }, {new: true})
+    .exec();
+  if (!document) throw new TimetableNotFoundError();
+}
+
+function fromMongoose(mongooseDoc): Timetable {
+  if (!mongooseDoc) return null;
+
+  let lecture_list = undefined;
+  if (mongooseDoc.lecture_list) {
+    lecture_list = [];
+    for (let i=0; i<mongooseDoc.lecture_list.length; i++) {
+      lecture_list.push(lectureFromMongoose(mongooseDoc.lecture_list[i]));
+    }
   }
 
   return {
     _id: mongooseDoc._id,
-    userId: mongooseDoc.user_id,
+    user_id: mongooseDoc.user_id,
     year: mongooseDoc.year,
     semester: mongooseDoc.semester,
     title: mongooseDoc.title,
-    lectureList: lectureList,
-    updatedAt: mongooseDoc.updated_at
+    lecture_list: lecture_list,
+    updated_at: mongooseDoc.updated_at
   }
 }
 

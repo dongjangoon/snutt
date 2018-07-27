@@ -8,19 +8,6 @@ import InvalidLectureColorError from './error/InvalidLectureColorError';
 export function isCustomLecture(lecture: UserLecture): boolean {
     return !lecture.course_number && !lecture.lecture_number;
 }
-/*
-export function isEqual(l1: RefLecture, l2: RefLecture): boolean {
-    if (isCustomLecture(l1)) return false;
-    var ret = true;
-    if (l1.year && l2.year)
-      ret = ret && (l1.year == l2.year);
-    if (l1.semester && l2.semester)
-      ret = ret && (l1.semester  == l2.semester);
-    return (ret &&
-    l1.course_number == l2.course_number &&
-    l1.lecture_number == l2.lecture_number);
-}
-*/
   
 export function validateLectureColor(lecture: UserLecture): void {
     if (lecture.colorIndex > libcolor.numColor) throw new InvalidLectureColorIndexError(lecture.colorIndex);
@@ -31,7 +18,8 @@ export function validateLectureColor(lecture: UserLecture): void {
 }
 
 export function isIdenticalCourseLecture(l1: UserLecture, l2: UserLecture): boolean {
-  return (l1.course_number === l2.course_number && l1.lecture_number === l2.lecture_number);
+    if (isCustomLecture(l1) || isCustomLecture(l2)) return false;
+    return (l1.course_number === l2.course_number && l1.lecture_number === l2.lecture_number);
 }
 
 export function fromRefLecture(refLecture: RefLecture, colorIndex: number): UserLecture {

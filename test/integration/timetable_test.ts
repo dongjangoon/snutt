@@ -8,6 +8,8 @@
 
 import assert = require('assert');
 import errcode = require('@app/api/errcode');
+import log4js = require('log4js');
+let logger = log4js.getLogger();
 
 export = function(app, db, request) {
   var token;
@@ -60,8 +62,7 @@ export = function(app, db, request) {
       .expect(200)
       .end(function(err, res) {
         if (err) return done(err);
-        if (res.body.title != "MyTimeTable")
-          err = new Error("timetable title differs");
+        assert.equal(res.body.title, "MyTimeTable");
         table_updated_at = res.body.updated_at;
         done(err);
       });
@@ -151,18 +152,6 @@ export = function(app, db, request) {
         if (err) return done(err);
         assert.equal(res.body.title, "MyTimeTable3");
         done(err);
-      });
-  });
-
-  it ('Table updated_at updated correctly', function(done) {
-    request.get('/tables/'+table_id)
-      .set('x-access-token', token)
-      .expect(200)
-      .end(function(err, res) {
-        if (err) return done(err);
-        if (res.body.updated_at == table_updated_at)
-          return done(new Error("update time does not differ"));
-        done();
       });
   });
 
@@ -270,7 +259,9 @@ export = function(app, db, request) {
       .end(function(err, res) {
         if (err) {
           console.log(res.body);
+          done(err);
         }
+
         assert.equal(res.body.lecture_list[0].course_title, old_title, "Timetable applied");
         assert(!res.body.errcode, "No Errcode");
         assert.equal(lecture.course_title, old_title, "Lecture title reset");
@@ -594,6 +585,9 @@ export = function(app, db, request) {
           }]})
       .expect(400)
       .end(function(err, res) {
+        if (err) {
+          done(err);
+        }
         assert.equal(res.body.errcode, errcode.INVALID_TIMEMASK);
         done(err);
       });

@@ -14,7 +14,7 @@ import mongoose = require('mongoose');
 import app = require('@app/api/app');
 
 import CourseBookService = require('@app/core/coursebook/CourseBookService');
-import {newRefLecture} from '@app/core/model/lecture';
+import RefLectureService = require('@app/core/lecture/RefLectureService');
 
 let request = supertest(app);
 describe('Integration Test', function() {
@@ -52,8 +52,8 @@ describe('Integration Test', function() {
     });
   });
 
-  before('insert initial lecture for test', function(done) {
-    var myLecture = newRefLecture({
+  before('insert initial lecture for test', async function() {
+    var myLecture = {
         "year": 2016,
         "semester": 3,
         "classification": "전선",
@@ -98,8 +98,8 @@ describe('Integration Test', function() {
             "_id": "56fcd83c041742971bd20a87"
           }
         ],
-    });
-    myLecture.save(done);
+    };
+    await RefLectureService.addAll([myLecture]);
   });
 
   // Register test user
