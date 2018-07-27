@@ -233,6 +233,7 @@ function getOverlappingLectureIds(table: Timetable, lecture: UserLecture): strin
     for (var j=0; j<tableLecture.class_time_mask.length; j++) {
       if ((tableLecture.class_time_mask[j] & lecture.class_time_mask[j]) != 0) {
         lectureIds.push(tableLecture._id); 
+        break;
       }
     }
   }
