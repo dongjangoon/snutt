@@ -1,6 +1,6 @@
 import mongoose = require('mongoose');
 
-export async function getStatistics() {
+export async function findStatistics() {
     let yesterdayTime = Date.now() - 24 * 3600000;
     let userCountPromise = mongoose.connection.db.collection('users').count({});
     let tempUserCountPromise = mongoose.connection.db.collection('users')

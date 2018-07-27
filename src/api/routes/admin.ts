@@ -10,7 +10,7 @@ import NotificationService = require('@app/core/notification/NotificationService
 import CourseBookService = require('@app/core/coursebook/CourseBookService');
 import FcmLogService = require('@app/core/fcm/FcmLogService');
 import {getFeedback} from '@app/core/model/feedback';
-import {getStatistics} from '@app/core/model/admin';
+import AdminService = require('@app/core/admin/AdminService');
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
 import * as log4js from 'log4js';
 import NoFcmKeyError from '@app/core/notification/error/NoFcmKeyError';
@@ -90,7 +90,7 @@ router.get('/feedbacks', async function(req, res, next) {
 });
 
 router.get('/statistics', async function(req, res, next) {
-  let statistics = await getStatistics();
+  let statistics = await AdminService.getStatistics();
   return res.json(statistics);
 });
 

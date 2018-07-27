@@ -17,7 +17,7 @@ import CourseBookService = require('@app/core/coursebook/CourseBookService');
 import RefLectureService = require('@app/core/lecture/RefLectureService');
 import NotificationService = require('@app/core/notification/NotificationService');
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
-import { TagList } from '@app/core/model/tagList';
+import TagListService = require('@app/core/taglist/TagListService');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -102,7 +102,7 @@ export async function fetchAndInsert(year: number, semesterIndex: number, fcm_en
       parsed.tags[key].sort();
     }
   }
-  await TagList.createOrUpdateTags(Number(year), semesterIndex, parsed.tags);
+  await TagListService.merge({year: Number(year), semester: semesterIndex, tags: parsed.tags});
   logger.info("Inserted tags");
 
   logger.info("saving coursebooks...");
