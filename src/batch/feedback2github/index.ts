@@ -9,75 +9,64 @@ require('module-alias/register');
 require('@app/core/config/mongo');
 require('@app/batch/config/log');
 
-import property = require('@app/core/config/property');
-import * as request from 'request-promise-native';
-import {FeedbackDocument, getFeedback, removeFeedback} from '@app/core/model/feedback';
+import FeedbackService = require('@app/core/feedback/FeedbackService');
+import Feedback from '@app/core/feedback/model/Feedback';
 import * as log4js from 'log4js';
+import Issue from './model/Issue';
+import property = require('@app/core/config/property');
+import GithubService = require('./GithubService');
 
-var logger = log4js.getLogger();
-let githubToken = property.feedback2github_token;
 let repoOwner = property.feedback2github_repo_owner;
 let repoName = property.feedback2github_repo_name;
-let apiIssuesUrl = "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/issues";
-let apiHeader = {
-    Accept: "application/vnd.github.v3+json",
-    Authorization: "token " + githubToken,
-    "User-Agent": "bekker"
-};
 
-async function getUserName(): Promise<string> {
-    return request({
-        method: 'GET',
-        uri: "https://api.github.com/user",
-        headers: apiHeader,
-        json: true
-    }).then(function(result) {
-        return Promise.resolve(result.login);
-    });
+var logger = log4js.getLogger();
+
+function feedbackToIssue(feedback: Feedback): Issue {
+    let title;
+    if (!feedback.message) {
+        logger.warn("No message field in feedback document");
+        title = "(Empty Message)";
+    } else {
+        title = feedback.message;
+    }
+
+    let body = "Issue created automatically by feedback2github\n";
+    if (feedback.timestamp) {
+        body += "Timestamp: " + new Date(feedback.timestamp).toISOString() + " (UTC)\n";
+    }
+    if (feedback.email) {
+        body += "Email: " + feedback.email + "\n";
+    }
+    if (feedback.platform) {
+        body += "Platform: " + feedback.platform + "\n";
+    }
+    body += "\n";
+    body += feedback.message;
+
+    let labels;
+    if (feedback.platform) {
+        labels = [feedback.platform];
+    }
+
+    return {
+        title: title,
+        body: body,
+        labels: labels
+    }
 }
 
-async function dumpFeedback(feedbackObj: FeedbackDocument): Promise<void> {
-    let issue: any = {}
-    if (!feedbackObj.message) {
-        logger.warn("No message field in feedback document");
-        issue.title = "(Empty Message)";
-    } else {
-        issue.title = feedbackObj.message;
-    }
-
-    issue.body = "Issue created automatically by feedback2github\n";
-    if (feedbackObj.timestamp) {
-        issue.body += "Timestamp: " + new Date(feedbackObj.timestamp).toISOString() + " (UTC)\n";
-    }
-    if (feedbackObj.email) {
-        issue.body += "Email: " + feedbackObj.email + "\n";
-    }
-    if (feedbackObj.platform) {
-        issue.body += "Platform: " + feedbackObj.platform + "\n";
-    }
-    issue.body += "\n";
-    issue.body += feedbackObj.message;
-
-    if (feedbackObj.platform) {
-        issue.labels = [feedbackObj.platform];
-    }
-
-    return request({
-        method: 'POST',
-        uri: apiIssuesUrl,
-        headers: apiHeader,
-        body: issue,
-        json: true
-    });
+async function dumpFeedback(feedback: Feedback): Promise<void> {
+    let issue = feedbackToIssue(feedback);
+    await GithubService.addIssue(repoOwner, repoName, issue);
 }
 
 async function main() {
     try {
-        let userName = await getUserName();
+        let userName = await GithubService.getUserName();
         logger.info("Logged-in as " + userName);
         logger.info("Dumping feedbacks into " + repoOwner + "/" + repoName);
 
-        let feedbacks = await getFeedback(100, 0);
+        let feedbacks = await FeedbackService.get(100, 0);
         let feedbackIds = [];
 
         logger.info("Fetched " + feedbacks.length + " documents");
@@ -88,7 +77,7 @@ async function main() {
         }
         logger.info("Successfully inserted");
 
-        await removeFeedback(feedbackIds);
+        await FeedbackService.removeAll(feedbackIds);
         logger.info("Removed from mongodb");
     } catch (err) {
         logger.error(err);

@@ -9,7 +9,7 @@ import UserService = require('@app/core/user/UserService');
 import NotificationService = require('@app/core/notification/NotificationService');
 import CourseBookService = require('@app/core/coursebook/CourseBookService');
 import FcmLogService = require('@app/core/fcm/FcmLogService');
-import {getFeedback} from '@app/core/model/feedback';
+import FeedbackService = require('@app/core/feedback/FeedbackService');
 import AdminService = require('@app/core/admin/AdminService');
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
 import * as log4js from 'log4js';
@@ -85,7 +85,7 @@ router.get('/feedbacks', async function(req, res, next) {
   let offset = 0;
   if (req.body.limit) limit = req.body.limit;
   if (req.body.offset) offset = req.body.offset;
-  let feedbacks = await getFeedback(limit, offset);
+  let feedbacks = await FeedbackService.get(limit, offset);
   return res.json(feedbacks);
 });
 

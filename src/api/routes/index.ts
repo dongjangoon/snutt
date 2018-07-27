@@ -19,7 +19,7 @@ import userRouter = require('./user');
 import adminRouter = require('./admin');
 import apiKey = require('@app/core/config/apiKey');
 import UserService = require('@app/core/user/UserService');
-import {insertFeedback} from '@app/core/model/feedback';
+import FeedbackService = require('@app/core/feedback/FeedbackService');
 
 import errcode = require('@app/api/errcode');
 import libcolor = require('@app/core/color');
@@ -129,7 +129,7 @@ router.get('/app_version', function(req, res, next) {
 
 router.post('/feedback', async function(req, res, next) {
   try {
-    await insertFeedback(req.body.email, req.body.message, req["api_platform"]);
+    await FeedbackService.add(req.body.email, req.body.message, req["api_platform"]);
     res.json({message:"ok"});
   } catch (err) {
     logger.error(err);
