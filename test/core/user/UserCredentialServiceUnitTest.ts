@@ -7,11 +7,11 @@ import rewire = require('rewire');
 
 import User from '@app/core/user/model/User';
 import UserCredentialService = require('@app/core/user/UserCredentialService');
-import FacebookService = require('@app/core/FacebookService');
+import FacebookService = require('@app/core/facebook/FacebookService');
 import UserService = require('@app/core/user/UserService');
 import UserCredential from '@app/core/user/model/UserCredential';
 import InvalidLocalPasswordError from '@app/core/user/error/InvalidLocalPasswordError';
-import InvalidFbIdOrTokenError from '@app/core/error/InvalidFbIdOrTokenError';
+import InvalidFbIdOrTokenError from '@app/core/facebook/error/InvalidFbIdOrTokenError';
 import NotLocalAccountError from '@app/core/user/error/NotLocalAccountError';
 import InvalidLocalIdError from '@app/core/user/error/InvalidLocalIdError';
 import DuplicateLocalIdError from '@app/core/user/error/DuplicateLocalIdError';

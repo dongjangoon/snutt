@@ -5,7 +5,7 @@ import DuplicateTimetableTitleError from "./error/DuplicateTimetableTitleError";
 import ObjectUtil = require('@app/core/common/util/ObjectUtil');
 import TimetableRepository = require('./TimetableRepository');
 
-import Color = require('../color');
+import LectureColorService = require('@app/core/lecture/LectureColorService');
 import TimePlaceUtil = require('@app/core/timetable/util/TimePlaceUtil');
 import LectureService = require('@app/core/lecture/LectureService');
 import RefLectureService = require('@app/core/lecture/RefLectureService');
@@ -80,7 +80,7 @@ export async function addLecture(timetable: Timetable, lecture: UserLecture): Pr
 
   validateLectureTime(timetable, lecture);
 
-  UserLectureService.validateLectureColor(lecture)
+  LectureColorService.validateLectureColor(lecture)
 
   let creationDate = new Date();
   lecture.created_at = creationDate;
@@ -200,7 +200,7 @@ export async function partialModifyUserLecture(userId: string, tableId: string, 
   }
 
   if (lecture['color']) {
-    UserLectureService.validateLectureColor(lecture);
+    LectureColorService.validateLectureColor(lecture);
   }
 
   lecture.updated_at = Date.now();
@@ -249,7 +249,7 @@ function getAvailableColorIndices(table: Timetable): number[] {
 
   var ret:number[] = [];
   // colorIndex = 0 is custom color!
-  for (var i=1; i<Color.numColor; i++) {
+  for (var i=1; i<LectureColorService.MAX_NUM_COLOR; i++) {
     if (!checked[i]) ret.push(i);
   }
   return ret;
@@ -257,7 +257,7 @@ function getAvailableColorIndices(table: Timetable): number[] {
 
 function getAvailableColorIndex(table: Timetable): number {
   let availableIndices = getAvailableColorIndices(table);
-  if (availableIndices.length == 0) return Math.floor(Math.random() * Color.numColor) + 1;
+  if (availableIndices.length == 0) return Math.floor(Math.random() * LectureColorService.MAX_NUM_COLOR) + 1;
   else return availableIndices[Math.floor(Math.random() * availableIndices.length)]
 }
 

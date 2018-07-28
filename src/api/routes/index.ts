@@ -20,9 +20,9 @@ import adminRouter = require('./admin');
 import apiKey = require('@app/core/config/apiKey');
 import UserService = require('@app/core/user/UserService');
 import FeedbackService = require('@app/core/feedback/FeedbackService');
+import LectureColorService = require('@app/core/lecture/LectureColorService');
 
 import errcode = require('@app/api/errcode');
-import libcolor = require('@app/core/color');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -112,11 +112,11 @@ router.use('/search_query', searchQueryRouter);
 router.use('/tags', tagsRouter);
 
 router.get('/colors', function(req, res, next) {
-  res.json({message: "ok", colors: libcolor.getLegacyColors(), names: libcolor.getLegacyNames()});
+  res.json({message: "ok", colors: LectureColorService.getLegacyColors(), names: LectureColorService.getLegacyNames()});
 });
 
 router.get('/colors/:colorName', function(req, res, next) {
-  let colorWithName = libcolor.getColorList(req.params.colorName);
+  let colorWithName = LectureColorService.getColorList(req.params.colorName);
   if (colorWithName) res.json({message: "ok", colors: colorWithName.colors, names: colorWithName.names});
   else res.status(404).json({errcode:errcode.COLORLIST_NOT_FOUND, message: "color list not found"});
 });

@@ -10,7 +10,7 @@ import errcode = require('@app/api/errcode');
 import * as log4js from 'log4js';
 import InvalidLocalPasswordError from '@app/core/user/error/InvalidLocalPasswordError';
 import DuplicateLocalIdError from '@app/core/user/error/DuplicateLocalIdError';
-import InvalidFbIdOrTokenError from '@app/core/error/InvalidFbIdOrTokenError';
+import InvalidFbIdOrTokenError from '@app/core/facebook/error/InvalidFbIdOrTokenError';
 var logger = log4js.getLogger();
 
 router.post('/request_temp', async function(req, res, next) {

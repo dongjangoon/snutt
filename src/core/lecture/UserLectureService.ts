@@ -1,20 +1,8 @@
 import RefLecture from './model/RefLecture';
 import UserLecture from './model/UserLecture';
-import Util = require('../util');
-import libcolor = require('../color');
-import InvalidLectureColorIndexError from './error/InvalidLectureColorIndexError';
-import InvalidLectureColorError from './error/InvalidLectureColorError';
 
 export function isCustomLecture(lecture: UserLecture): boolean {
     return !lecture.course_number && !lecture.lecture_number;
-}
-  
-export function validateLectureColor(lecture: UserLecture): void {
-    if (lecture.colorIndex > libcolor.numColor) throw new InvalidLectureColorIndexError(lecture.colorIndex);
-    if (lecture.color) {
-        if (lecture.color.fg && !Util.isColor(lecture.color.fg)) throw new InvalidLectureColorError(lecture.color);
-        if (lecture.color.bg && !Util.isColor(lecture.color.bg)) throw new InvalidLectureColorError(lecture.color);
-    }
 }
 
 export function isIdenticalCourseLecture(l1: UserLecture, l2: UserLecture): boolean {
