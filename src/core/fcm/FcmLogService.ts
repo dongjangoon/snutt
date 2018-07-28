@@ -16,3 +16,7 @@ export function addFcmLog(to: string, author: string, message: string, cause: st
 export function getRecentFcmLog(): Promise<FcmLog[]>{
   return FcmLogRepository.findRecentFcmLog();
 }
+
+export function removeBeforeTimestamp(timestamp: number): Promise<void> {
+    return FcmLogRepository.deleteBeforeDate(new Date(timestamp));
+}

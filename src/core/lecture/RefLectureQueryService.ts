@@ -1,8 +1,8 @@
 import errcode = require('@app/api/errcode');
-import * as mongoose from 'mongoose';
 import * as log4js from 'log4js';
 
 import RefLectureService = require('./RefLectureService');
+import RefLectureQueryLogRepository = require('./RefLectureQueryLogRepository');
 import RefLecture from './model/RefLecture';
 var logger = log4js.getLogger();
 
@@ -22,17 +22,15 @@ function isHangulCode(c:number) {
   return false;
 }
 
-export function writeLog(obj:any) {
-  let cloned = JSON.parse(JSON.stringify(obj));
-  cloned.timestamp = Date.now();
-  mongoose.connection.collection("query_logs").insert(cloned);
+export function addQueryLogAsync(query) {
+  RefLectureQueryLogRepository.insert(query).catch(function(err) {
+    logger.error("addQueryLogAsync failed : " + err);
+  })
 }
 
-/*
-function isNumberCode(c:number) {
-  return 0x0030<=c && c<=0x0039;
+export function removeQueryLogBeforeTimestamp(timestamp: number): Promise<void> {
+  return RefLectureQueryLogRepository.deleteBeforeTimestamp(timestamp);
 }
-*/
 
 function isHangulInString(str:string) {
   for (let i=0; i<str.length; i++) {

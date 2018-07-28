@@ -21,7 +21,7 @@ router.post('/', async function(req, res, next) {
 
   var query: any = req.body;
   try {
-    RefLectureQueryService.writeLog(query);
+    RefLectureQueryService.addQueryLogAsync(query);
     var lectures = await RefLectureQueryService.extendedSearch(query);
     return res.json(lectures);
   } catch (err) {

@@ -6,61 +6,26 @@
  */
 
 require('module-alias/register');
+require('@app/core/config/mongo');
 require('@app/batch/config/log');
 
-import { MongoClient, Db as MongoDb, DeleteWriteOpResultObject } from 'mongodb';
-import property = require('@app/core/config/property');
+import FcmLogService = require('@app/core/fcm/FcmLogService');
+import RefLectureQueryService = require('@app/core/lecture/RefLectureQueryService');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
-function getMongoClient(): Promise<MongoClient> {
-  return new Promise(function(resolve, reject) {
-    MongoClient.connect(property.mongoUri, function(err, db) {
-      if (err) return reject(err);
-      return resolve(db);
-    });
-  })
-}
-
-function remove(db: MongoDb, collectionName: string, query: any): Promise<DeleteWriteOpResultObject> {
-  return new Promise(function(resolve, reject) {
-    db.collection(collectionName).deleteMany(query, null, function(err, result) {
-      if (err) return reject();
-      else return resolve(result);
-    });
-  });
-}
-
-async function deleteQueryLog(db: MongoDb) {
-  let currentTimestamp = Date.now();
-  let thresholdTimestamp = currentTimestamp - 1000 * 3600 * 24 * 180; // 180 days
-  let query = { timestamp: { $lt: thresholdTimestamp }};
-  logger.info("db.query_logs.remove(" + JSON.stringify(query) + ")");
-  let result = await remove(db, 'query_logs', query);
-  logger.info(String(result));
-}
-
-async function deleteFcmLog(db: MongoDb) {
-  let currentDate = new Date();
-  let currentTimestamp = Date.now();
-  let thresholdTimestamp = currentTimestamp - 1000 * 3600 * 24 * 180; // 180 days
-  let thresholdDate = new Date(thresholdTimestamp);
-  let query = { date: { $lt: thresholdDate }};
-  logger.info("db.fcmlogs.remove(" + JSON.stringify(query) + ")");
-  let result = await remove(db, 'fcmlogs', query);
-  logger.info(String(result));
-}
-
 async function main() {
   try {
-    let client = await getMongoClient();
-    let db = client.db("snutt");
-    await deleteFcmLog(db);
-    await deleteQueryLog(db);
-    client.close();
+    let currentTimestamp = Date.now();
+    let thresholdTimestamp = currentTimestamp - 1000 * 3600 * 24 * 180; // 180 days
+    await FcmLogService.removeBeforeTimestamp(thresholdTimestamp);
+    await RefLectureQueryService.removeQueryLogBeforeTimestamp(thresholdTimestamp);
   } catch (err) {
     logger.error(err);
   }
+  
+  // Wait for log4js to flush its logs
+  log4js.shutdown(function() { process.exit(0); });
 }
 
 if (!module.parent) {

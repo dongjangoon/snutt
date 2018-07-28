@@ -25,6 +25,10 @@ export async function findRecentFcmLog(): Promise<FcmLog[]>{
     return mongoDocs.map(fromMongooseModel);
 }
 
+export function deleteBeforeDate(date: Date): Promise<void> {
+    return mongooseModel.deleteMany({ date: { $lt: date }}).exec();
+}
+
 function fromMongooseModel(mongooseDoc: any): FcmLog {
     let fcmLog: FcmLog = {
         date: mongooseDoc.date,

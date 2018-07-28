@@ -94,9 +94,7 @@ async function main() {
         logger.error(err);
     }
     // Wait for log4js to flush its logs
-    setTimeout(function() {
-        process.exit(0);
-    }, 100);
+    log4js.shutdown(function() { process.exit(0); });
   }
   
 if (!module.parent) {
