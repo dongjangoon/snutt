@@ -14,6 +14,7 @@ import AdminService = require('@app/core/admin/AdminService');
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
 import * as log4js from 'log4js';
 import NoFcmKeyError from '@app/core/notification/error/NoFcmKeyError';
+import InvalidNotificationDetailError from '@app/core/notification/error/InvalidNotificationDetailError';
 var logger = log4js.getLogger();
 
 var router = express.Router();
@@ -38,6 +39,9 @@ router.post('/insert_noti', async function(req, res, next) {
   try {
     if (userId && userId.length > 0) {
       let receiver = await UserService.getByLocalId(userId);
+      if (!receiver) {
+        return res.status(404).send({errcode: errcode.USER_NOT_FOUND, message: "user not found"});
+      }
       if (insertFcm) {
         await NotificationService.sendFcmMsg(receiver, title, body, sender._id, "admin");
       }
@@ -62,9 +66,10 @@ router.post('/insert_noti', async function(req, res, next) {
     }
     res.send({message: "ok"});
   } catch (err) {
-    if (err == errcode.USER_NOT_FOUND) return res.status(404).send({errcode: err, message: "user not found"});
-    if (err instanceof NoFcmKeyError) return res.status(404).send({errcode: errcode.USER_HAS_NO_FCM_KEY, message: "user has no fcm key"});
-    if (err == errcode.INVALID_NOTIFICATION_DETAIL) return res.status(404).send({errcode: err, message: "invalid notification detail"});
+    if (err instanceof NoFcmKeyError)
+      return res.status(404).send({errcode: errcode.USER_HAS_NO_FCM_KEY, message: "user has no fcm key"});
+    if (err instanceof InvalidNotificationDetailError)
+      return res.status(404).send({errcode: err, message: "invalid notification detail"});
     logger.error(err);
     res.status(500).send({errcode: errcode.SERVER_FAULT, message:err});
   }

@@ -3,16 +3,8 @@ var router = express.Router();
 import errcode = require('@app/api/errcode');
 import RefLectureQueryService = require('@app/core/lecture/RefLectureQueryService');
 import * as log4js from 'log4js';
+import InvalidLectureTimemaskError from '@app/core/lecture/error/InvalidLectureTimemaskError';
 var logger = log4js.getLogger();
-
-// deprecated
-/*
-function timeRangesToBinaryConditions(timeJson) {
-  return Util.timeJsonToMask(timeJson).map(function(bit, idx) {
-    return {$bitsAllClear : ~bit<<1>>>1};
-  })
-}
-*/
 
 router.post('/', async function(req, res, next) {
   if (!req.body.year || !req.body.semester) {
@@ -25,13 +17,11 @@ router.post('/', async function(req, res, next) {
     var lectures = await RefLectureQueryService.extendedSearch(query);
     return res.json(lectures);
   } catch (err) {
-    switch(err) {
-    case errcode.INVALID_TIMEMASK:
+    if (err instanceof InvalidLectureTimemaskError) {
       return res.status(400).json({errcode:errcode.INVALID_TIMEMASK, message: "invalid timemask"});
-    default:
-      logger.error(err);
-      return res.status(500).json({errcode:errcode.SERVER_FAULT, message: "search error"});
     }
+    logger.error(err);
+    return res.status(500).json({errcode:errcode.SERVER_FAULT, message: "search error"});
   }
 });
 
