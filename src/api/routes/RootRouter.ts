@@ -10,13 +10,13 @@ var router = express.Router();
 
 import CourseBookService = require('@app/core/coursebook/CourseBookService');
 
-import authRouter = require('./auth');
-import timetableRouter = require('./timetable');
-import searchQueryRouter = require('./searchQuery');
-import tagsRouter = require('./tags');
-import notificationRouter = require('./notification');
-import userRouter = require('./user');
-import adminRouter = require('./admin');
+import AuthRouter = require('./AuthRouter');
+import TimetableRouter = require('./TimetableRouter');
+import SearchQueryRouter = require('./SearchQueryRouter');
+import TagListRouter = require('./TagListRouter');
+import NotificationRouter = require('./NotificationRouter');
+import UserRouter = require('./UserRouter');
+import AdminRouter = require('./AdminRouter');
 import apiKey = require('@app/core/config/apiKey');
 import UserService = require('@app/core/user/UserService');
 import FeedbackService = require('@app/core/feedback/FeedbackService');
@@ -24,10 +24,12 @@ import LectureColorService = require('@app/core/timetable/LectureColorService');
 
 import errcode = require('@app/api/errcode');
 import * as log4js from 'log4js';
+import RequestContext from '../model/RequestContext';
 var logger = log4js.getLogger();
 
 router.use(function(req, res, next) {
   res.setHeader('Cache-Control', 'public, max-age=86400');
+  req['context'] = {};
   next();
 });
 
@@ -50,9 +52,10 @@ var api_info;
  */
 router.use(function(req, res, next) {
   var token = <string>req.headers['x-access-apikey'];
+  let context: RequestContext = req['context'];
   res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
   apiKey.validateKey(token).then(function(platform){
-    req["api_platform"] = platform;
+    context.platform = platform;
     next();
   }, function(err) {
     res.status(403).json({errcode: errcode.WRONG_API_KEY, message: err});
@@ -107,9 +110,9 @@ router.get('/course_books/official', function(req, res, next) {
     "&openShtmFg="+openShtmFg+"&openDetaShtmFg="+openDetaShtmFg+"&sbjtCd="+course_number+"&ltNo="+lecture_number+"&sbjtSubhCd=000"});
 });
 
-router.use('/search_query', searchQueryRouter);
+router.use('/search_query', SearchQueryRouter);
 
-router.use('/tags', tagsRouter);
+router.use('/tags', TagListRouter);
 
 router.get('/colors', function(req, res, next) {
   res.json({message: "ok", colors: LectureColorService.getLegacyColors(), names: LectureColorService.getLegacyNames()});
@@ -137,16 +140,15 @@ router.post('/feedback', async function(req, res, next) {
   }
 });
 
-router.use('/auth', authRouter);
+router.use('/auth', AuthRouter);
 
 /**
  * Token Authenticator
  * Checks if the user is logged in
  * Which means all routers below this need authentication
- * If the user object is modified, you should re-login!!
  */
 router.use(function(req, res, next) {
-  if (req["user"]) return next();
+  let context: RequestContext = req['context'];
   var token = req.query.token || req.body.token || req.headers['x-access-token'];
   if (!token) {
     return res.status(401).json({
@@ -159,7 +161,7 @@ router.use(function(req, res, next) {
       return res.status(403).json({ errcode: errcode.WRONG_USER_TOKEN, message: 'Failed to authenticate token.' });
     res.setHeader('Cache-Control', 'private, max-age=0, must-revalidate');
     UserService.updateLastLoginTimestamp(user);
-    req["user"] = user;
+    context.user = user;
     next();
   }, function (err) {
     logger.error(err);
@@ -167,12 +169,12 @@ router.use(function(req, res, next) {
   });
 });
 
-router.use('/tables', timetableRouter);
+router.use('/tables', TimetableRouter);
 
-router.use('/user', userRouter);
+router.use('/user', UserRouter);
 
-router.use('/notification', notificationRouter);
+router.use('/notification', NotificationRouter);
 
-router.use('/admin', adminRouter);
+router.use('/admin', AdminRouter);
 
 export = router;

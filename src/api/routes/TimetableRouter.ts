@@ -20,10 +20,12 @@ import CustomLectureResetError from '@app/core/timetable/error/CusromLectureRese
 import UserLectureNotFoundError from '@app/core/timetable/error/UserLectureNotFoundError';
 import TimetableNotFoundError from '@app/core/timetable/error/TimetableNotFoundError';
 import InvalidLectureTimeJsonError from '@app/core/lecture/error/InvalidLectureTimeJsonError';
+import RequestContext from '../model/RequestContext';
 var logger = log4js.getLogger();
 
 router.get('/', async function(req, res, next) { //timetable list
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   try {
     let result = await TimetableService.getAbstractListByUserId(user._id);
     res.json(result);
@@ -34,7 +36,8 @@ router.get('/', async function(req, res, next) { //timetable list
 });
 
 router.get('/recent', async function(req, res, next) {
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   try {
     let result = await TimetableService.getRecentByUserId(user._id);
     if (!result) res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:'no timetable'});
@@ -46,7 +49,8 @@ router.get('/recent', async function(req, res, next) {
 });
 
 router.get('/:id', async function(req, res, next) { //get
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   try {
     let result = await TimetableService.getByMongooseId(user._id, req.params.id);
     if (!result) res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:'timetable not found'});
@@ -58,7 +62,8 @@ router.get('/:id', async function(req, res, next) { //get
 });
 
 router.get('/:year/:semester', async function(req, res, next) {
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   try {
     let result = await TimetableService.getBySemester(user._id, req.params.year, req.params.semester);
     if (!result) res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"No timetable for given semester"});
@@ -70,7 +75,8 @@ router.get('/:year/:semester', async function(req, res, next) {
 });
 
 router.post('/', async function(req, res, next) { //create
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   if (!req.body.year || !req.body.semester || !req.body.title)
     return res.status(400).json({errcode: errcode.NOT_ENOUGH_TO_CREATE_TIMETABLE, message:'not enough parameters'});
 
@@ -100,7 +106,8 @@ router.post('/', async function(req, res, next) { //create
  * Lecture id from search query
  */
 router.post('/:timetable_id/lecture/:lecture_id', async function(req, res, next) {
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   try {
     let table = await TimetableService.getByMongooseId(user._id, req.params.timetable_id);
     if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
@@ -129,7 +136,8 @@ router.post('/:timetable_id/lecture/:lecture_id', async function(req, res, next)
  * json object of lecture to add
  */
 router.post('/:id/lecture', async function(req, res, next) {
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   try {
     let table = await TimetableService.getByMongooseId(user._id, req.params.id);
     if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
@@ -167,7 +175,8 @@ router.post('/:id/lecture', async function(req, res, next) {
  */
 
 router.put('/:table_id/lecture/:lecture_id', async function(req, res, next) {
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   var rawLecture = req.body;
   if(!rawLecture) return res.status(400).json({errcode: errcode.NO_LECTURE_INPUT, message:"empty body"});
 
@@ -202,7 +211,8 @@ router.put('/:table_id/lecture/:lecture_id', async function(req, res, next) {
 });
 
 router.put('/:table_id/lecture/:lecture_id/reset', async function(req, res, next) {
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
 
   if (!req.params.lecture_id)
     return res.status(400).json({errcode: errcode.NO_LECTURE_ID, message:"need lecture_id"});
@@ -233,7 +243,8 @@ router.put('/:table_id/lecture/:lecture_id/reset', async function(req, res, next
  * delete a lecture from a timetable
  */
 router.delete('/:table_id/lecture/:lecture_id', async function(req, res, next) {
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   try {
     await TimetableLectureService.removeLecture(user._id, req.params.table_id, req.params.lecture_id);
     let table = await TimetableService.getByMongooseId(user._id, req.params.table_id);
@@ -251,7 +262,8 @@ router.delete('/:table_id/lecture/:lecture_id', async function(req, res, next) {
  * delete a timetable
  */
 router.delete('/:id', async function(req, res, next) { // delete
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   try {
     await TimetableService.remove(user._id, req.params.id);
     let tableList = await TimetableService.getAbstractListByUserId(user._id);
@@ -269,7 +281,8 @@ router.delete('/:id', async function(req, res, next) { // delete
  * copy a timetable
  */
 router.post('/:id/copy', async function(req, res, next) {
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   try {
     let table = await TimetableService.getByMongooseId(user._id, req.params.id);
     if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
@@ -283,7 +296,8 @@ router.post('/:id/copy', async function(req, res, next) {
 });
 
 router.put('/:id', async function(req, res, next) {
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   if (!req.body.title) return res.status(400).json({errcode: errcode.NO_TIMETABLE_TITLE, message:"should provide title"});
   
   try {

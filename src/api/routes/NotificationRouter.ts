@@ -6,10 +6,12 @@ import UserService = require('@app/core/user/UserService');
 
 import errcode = require('@app/api/errcode');
 import * as log4js from 'log4js';
+import RequestContext from '../model/RequestContext';
 var logger = log4js.getLogger();
 
 router.get('/', async function(req, res, next){
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  var user:User = context.user;
   var offset, limit;
   if (!req.query.offset) offset = 0;
   else offset = Number(req.query.offset);
@@ -27,7 +29,8 @@ router.get('/', async function(req, res, next){
 });
 
 router.get('/count', function(req, res, next){
-  var user:User = <User>req["user"];
+  let context: RequestContext = req['context'];
+  var user:User = context.user;
   NotificationService.countUnreadByUser(user).then(function(value){
     res.json({count: value});
   }, function(err) {

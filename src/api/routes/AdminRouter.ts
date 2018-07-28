@@ -15,19 +15,22 @@ import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeE
 import * as log4js from 'log4js';
 import NoFcmKeyError from '@app/core/notification/error/NoFcmKeyError';
 import InvalidNotificationDetailError from '@app/core/notification/error/InvalidNotificationDetailError';
+import RequestContext from '../model/RequestContext';
 var logger = log4js.getLogger();
 
 var router = express.Router();
 
 router.use(function(req, res, next) {
-  if (req["user"].isAdmin) return next();
+  let context: RequestContext = req['context'];
+  if (context.user.isAdmin) return next();
   else {
     return res.status(403).json({ errcode: errcode.NO_ADMIN_PRIVILEGE, message: 'Admin privilege required.' });
   }
 });
 
 router.post('/insert_noti', async function(req, res, next) {
-  let sender: User = req["user"];
+  let context: RequestContext = req['context'];
+  let sender: User = context.user;
 
   let userId: string     = req.body.user_id;
   let title: string      = req.body.title;
@@ -98,17 +101,5 @@ router.get('/statistics', async function(req, res, next) {
   let statistics = await AdminService.getStatistics();
   return res.json(statistics);
 });
-
-/*
-var path = require('path');
-var CourseBook = require(path.join(__dirname, 'model/courseBook'));
-
-
-router.get('/course_books', function(req, res, next) {
-  CourseBook.find({},'year semester', {sort : {year : -1, semester : -1 }}, function (err, courseBooks) {
-    res.send(200, courseBooks)
-  });
-});
-*/
 
 export = router;

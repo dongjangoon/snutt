@@ -14,16 +14,19 @@ import UserDeviceService = require('@app/core/user/UserDeviceService');
 import errcode = require('@app/api/errcode');
 import AlreadyRegisteredFbIdError from '@app/core/user/error/AlreadyRegisteredFbIdError';
 import DuplicateLocalIdError from '@app/core/user/error/DuplicateLocalIdError';
+import RequestContext from '../model/RequestContext';
 var logger = log4js.getLogger();
 var router = express.Router();
 
 router.get('/info', function (req, res, next) {
-  var user:User = req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   return res.json(UserService.getUserInfo(user));
 });
 
 router.put('/info', async function (req, res, next) {
-  var user:User = req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   try {
     if (req.body.email) 
       await UserService.setUserInfo(user, req.body.email);
@@ -36,7 +39,8 @@ router.put('/info', async function (req, res, next) {
 });
 
 router.post('/password', async function (req, res, next) {
-  var user:User = req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   if (UserCredentialService.hasLocal(user)) return res.status(403).json({errcode: errcode.ALREADY_LOCAL_ACCOUNT, message: "already have local id"});
   try {
     await UserCredentialService.attachLocal(user, req.body.id, req.body.password);
@@ -54,7 +58,8 @@ router.post('/password', async function (req, res, next) {
 });
 
 router.put('/password', async function (req, res, next) {
-  var user:User = req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   if (!UserCredentialService.hasLocal(user)) return res.status(403).json({errcode: errcode.NOT_LOCAL_ACCOUNT, message: "no local id"});
   try {
     let result = await UserCredentialService.isRightPassword(user, req.body.old_password);
@@ -71,7 +76,8 @@ router.put('/password', async function (req, res, next) {
 
 // Credential has been modified. Should re-send token
 router.post('/facebook', async function (req, res, next) {
-  let user:User = req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   if (!req.body.fb_token || !req.body.fb_id)
     return res.status(400).json({errcode: errcode.NO_FB_ID_OR_TOKEN, message: "both fb_id and fb_token required"});
 
@@ -95,7 +101,8 @@ router.post('/facebook', async function (req, res, next) {
 });
 
 router.delete('/facebook', async function (req, res, next) {
-  var user:User = req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   if (!UserCredentialService.hasFb(user)) return res.status(403).json({errcode: errcode.NOT_FB_ACCOUNT, message: "not attached yet"});
   if (!UserCredentialService.hasLocal(user)) return res.status(403).json({errcode: errcode.NOT_LOCAL_ACCOUNT, message: "no local id"});
   try {
@@ -108,34 +115,38 @@ router.delete('/facebook', async function (req, res, next) {
 });
 
 router.get('/facebook', function (req, res, next) {
-  var user:User = req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   return res.json({attached: UserCredentialService.hasFb(user), name: user.credential.fbName});
 });
 
 router.post('/device/:registration_id', async function (req, res, next) {
-  var user:User = req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   try {
     await UserDeviceService.attachDevice(user, req.params.registration_id);
   } catch (err) {
-    logger.error(err);
+    logger.error("error: ", err, ", registrationId: ", req.params.registration_id, ", platform: ", context.platform);
     return res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
   }
   res.json({message:"ok"});
 });
 
 router.delete('/device/:registration_id', async function (req, res, next) {
-  var user:User = req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   try {
     await UserDeviceService.detachDevice(user, req.params.registration_id);
   } catch (err) {
-    logger.error(err);
+    logger.error("error: ", err, ", registrationId: ", req.params.registration_id, ", platform: ", context.platform);
     return res.status(500).json({errcode: errcode.SERVER_FAULT, message:err});
   }
   res.json({message:"ok"});
 });
 
 router.delete('/account', async function(req, res, next){
-  var user:User = req["user"];
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
   try {
     await UserService.deactivate(user);
   } catch (err) {
