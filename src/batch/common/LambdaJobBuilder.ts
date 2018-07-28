@@ -6,7 +6,7 @@ import ArrayReader from "./ArrayReader";
 
 class IntermediateJob<T> {
     _reader: BatchReader<any>;
-    _processors: BatchProcessor<any, any>[];
+    _processors: BatchProcessor<any, any>[] = [];
 
     constructor(reader: () => Promise<T[]>) {
         this._reader = new (class SimpleReader extends ArrayReader<T> {

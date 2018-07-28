@@ -5,7 +5,7 @@ import BatchJob from "./BatchJob";
 
 class IntermediateJob<T> {
     _reader: BatchReader<any>;
-    _processors: BatchProcessor<any, any>[];
+    _processors: BatchProcessor<any, any>[] = [];
 
     constructor(reader: BatchReader<T>) {
         this._reader = reader;
