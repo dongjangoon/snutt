@@ -1,5 +1,5 @@
 import {LectureLine} from './fetch';
-import {LectureDocument, newRefLecture} from '@app/core/model/lecture';
+import RefLecture from '@app/core/lecture/model/RefLecture';
 import TimePlaceUtil = require('@app/core/timetable/util/TimePlaceUtil');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
@@ -14,10 +14,10 @@ export type TagStruct = {
 };
 
 export function parseLines(year:number, semesterIndex:number, lines:LectureLine[]) : {
-  new_lectures: LectureDocument[],
+  new_lectures: RefLecture[],
   tags: TagStruct
 } {
-  var new_lectures:LectureDocument[] = new Array<LectureDocument>();
+  var new_lectures:RefLecture[] = new Array<RefLecture>();
   var tags:TagStruct = {
     classification : [],
     department : [],
@@ -69,7 +69,7 @@ export function parseLines(year:number, semesterIndex:number, lines:LectureLine[
       }
     }
 
-    new_lectures.push(<any>newRefLecture({
+    new_lectures.push({
       year: year,
       semester: semesterIndex,
       classification: line.classification,
@@ -86,7 +86,7 @@ export function parseLines(year:number, semesterIndex:number, lines:LectureLine[
       quota: line.quota,
       remark: line.remark,
       category: line.category
-    }));
+    });
   }
 
   return {

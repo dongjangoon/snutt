@@ -1,7 +1,7 @@
-import { TimetableModel } from '@app/core/model/timetable';
-import { CourseBookModel } from '@app/core/model/courseBook';
-import * as log4js from 'log4js';
+import Timetable from '@app/core/timetable/model/Timetable';
+import TimetableService = require('@app/core/timetable/TimetableService');
 import UserRepository = require('@app/core/user/UserRepository');
+import CourseBookService = require('@app/core/coursebook/CourseBookService');
 
 import User from '@app/core/user/model/User';
 import UserInfo from '@app/core/user/model/UserInfo';
@@ -26,9 +26,9 @@ export function modify(user: User): Promise<void> {
   return UserRepository.update(user);
 }
 
-export async function updateNotificationCheckDate(user: User): Promise<void> {
+export function updateNotificationCheckDate(user: User): Promise<void> {
   user.notificationCheckedAt = new Date();
-  UserRepository.update(user);
+  return UserRepository.update(user);
 }
 
 export function getUserInfo(user: User): UserInfo {
@@ -42,24 +42,24 @@ export function getUserInfo(user: User): UserInfo {
   }
 }
 
-export async function deactivate(user: User): Promise<void> {
+export function deactivate(user: User): Promise<void> {
   user.active = false;
-  UserRepository.update(user);
+  return UserRepository.update(user);
 }
 
-export async function setUserInfo(user: User, email: string): Promise<void> {
+export function setUserInfo(user: User, email: string): Promise<void> {
   user.email = email;
-  UserRepository.update(user);
+  return UserRepository.update(user);
 }
 
 export function updateLastLoginTimestamp(user: User): void {
-  UserRepository.updateLastLoginTimestamp(user);
+  return UserRepository.updateLastLoginTimestamp(user);
 }
 
-async function createDefaultTimetable(user: User): Promise<TimetableModel> {
+async function createDefaultTimetable(user: User): Promise<Timetable> {
   let userId = user._id;
-  let coursebook = await CourseBookModel.getRecent();
-  return await TimetableModel.createFromParam({
+  let coursebook = await CourseBookService.getRecent();
+  return await TimetableService.addFromParam({
     user_id: userId,
     year: coursebook.year,
     semester: coursebook.semester,

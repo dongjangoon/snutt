@@ -1,5 +1,4 @@
 import FcmService = require('@app/core/fcm/FcmService');
-import FcmLogServie = require('@app/core/fcm/FcmLogService');
 import NotificationRepository = require('./NotificationRepository');
 import NoFcmKeyError from './error/NoFcmKeyError';
 
@@ -11,13 +10,12 @@ import InvalidNotificationDetailError from './error/InvalidNotificationDetailErr
 export async function sendFcmMsg(user: User, title: string, body: string, author: string, cause: string) {
   if (!user.fcmKey) throw new NoFcmKeyError();
   let destination = user.fcmKey;
-  let response = await FcmService.sendMsg(destination, title, body);
-  await FcmLogServie.addFcmLog(user._id, author, title + '\n' + body, cause, response);
+  let response = await FcmService.sendMsg(destination, title, body, author, cause);
   return response;
 }
 
 export async function sendGlobalFcmMsg(title: string, body: string, author: string, cause: string) {
-  let response = await FcmService.sendGlobalMsg(title, body);
+  let response = await FcmService.sendGlobalMsg(title, body, author, cause);
   return response;
 }
 

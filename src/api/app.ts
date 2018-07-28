@@ -15,7 +15,7 @@ import cors = require("cors");
 import http = require('http');
 import log4js = require('log4js');
 
-import routes = require('@app/api/routes');
+import RootRouter = require('@app/api/routes/RootRouter');
 import property = require('@app/core/config/property');
 
 var logger = log4js.getLogger();
@@ -37,7 +37,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
 app.use('/asset', express.static(__dirname + '/asset'));
-app.use('/', routes);
+app.use('/', RootRouter);
 // catch 404 and forward to error handler
 /*
 app.use(function(req, res, next) {

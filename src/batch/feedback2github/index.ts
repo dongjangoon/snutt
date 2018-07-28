@@ -9,95 +9,91 @@ require('module-alias/register');
 require('@app/core/config/mongo');
 require('@app/batch/config/log');
 
-import property = require('@app/core/config/property');
-import * as request from 'request-promise-native';
-import {FeedbackDocument, getFeedback, removeFeedback} from '@app/core/model/feedback';
-import * as log4js from 'log4js';
+import LambdaJobBuilder from '@app/batch/common/LambdaJobBuilder';
 
-var logger = log4js.getLogger();
-let githubToken = property.feedback2github_token;
+import FeedbackService = require('@app/core/feedback/FeedbackService');
+import Feedback from '@app/core/feedback/model/Feedback';
+import * as log4js from 'log4js';
+import Issue from './model/Issue';
+import property = require('@app/core/config/property');
+import GithubService = require('./GithubService');
+
 let repoOwner = property.feedback2github_repo_owner;
 let repoName = property.feedback2github_repo_name;
-let apiIssuesUrl = "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/issues";
-let apiHeader = {
-    Accept: "application/vnd.github.v3+json",
-    Authorization: "token " + githubToken,
-    "User-Agent": "bekker"
-};
 
-async function getUserName(): Promise<string> {
-    return request({
-        method: 'GET',
-        uri: "https://api.github.com/user",
-        headers: apiHeader,
-        json: true
-    }).then(function(result) {
-        return Promise.resolve(result.login);
-    });
+var logger = log4js.getLogger();
+
+interface StepItem {
+    issue: Issue,
+    feedbackId: string
 }
 
-async function dumpFeedback(feedbackObj: FeedbackDocument): Promise<void> {
-    let issue: any = {}
-    if (!feedbackObj.message) {
+async function reader(): Promise<Feedback[]> {
+    let userName = await GithubService.getUserName();
+    logger.info("Logged-in as " + userName);
+    logger.info("Dumping feedbacks into " + repoOwner + "/" + repoName);
+
+    let feedbacks = await FeedbackService.get(100, 0);
+
+    logger.info("Fetched " + feedbacks.length + " documents");
+    return feedbacks;
+}
+
+async function processor(feedback: Feedback): Promise<StepItem> {
+    let title;
+    if (!feedback.message) {
         logger.warn("No message field in feedback document");
-        issue.title = "(Empty Message)";
+        title = "(Empty Message)";
     } else {
-        issue.title = feedbackObj.message;
+        title = feedback.message;
     }
 
-    issue.body = "Issue created automatically by feedback2github\n";
-    if (feedbackObj.timestamp) {
-        issue.body += "Timestamp: " + new Date(feedbackObj.timestamp).toISOString() + " (UTC)\n";
+    let body = "Issue created automatically by feedback2github\n";
+    if (feedback.timestamp) {
+        body += "Timestamp: " + new Date(feedback.timestamp).toISOString() + " (UTC)\n";
     }
-    if (feedbackObj.email) {
-        issue.body += "Email: " + feedbackObj.email + "\n";
+    if (feedback.email) {
+        body += "Email: " + feedback.email + "\n";
     }
-    if (feedbackObj.platform) {
-        issue.body += "Platform: " + feedbackObj.platform + "\n";
+    if (feedback.platform) {
+        body += "Platform: " + feedback.platform + "\n";
     }
-    issue.body += "\n";
-    issue.body += feedbackObj.message;
+    body += "\n";
+    body += feedback.message;
 
-    if (feedbackObj.platform) {
-        issue.labels = [feedbackObj.platform];
+    let labels;
+    if (feedback.platform) {
+        labels = [feedback.platform];
     }
 
-    return request({
-        method: 'POST',
-        uri: apiIssuesUrl,
-        headers: apiHeader,
-        body: issue,
-        json: true
-    });
+    let issue: Issue = {
+        title: title,
+        body: body,
+        labels: labels
+    }
+
+    return {
+        issue: issue,
+        feedbackId: feedback._id
+    }
+}
+
+async function writer(item: StepItem): Promise<void> {
+    await GithubService.addIssue(repoOwner, repoName, item.issue);
+    await FeedbackService.remove(item.feedbackId);
 }
 
 async function main() {
     try {
-        let userName = await getUserName();
-        logger.info("Logged-in as " + userName);
-        logger.info("Dumping feedbacks into " + repoOwner + "/" + repoName);
-
-        let feedbacks = await getFeedback(100, 0);
-        let feedbackIds = [];
-
-        logger.info("Fetched " + feedbacks.length + " documents");
-
-        for (let i=0; i<feedbacks.length; i++) {
-            feedbackIds.push(feedbacks[i]._id);
-            await dumpFeedback(feedbacks[i]);
-        }
-        logger.info("Successfully inserted");
-
-        await removeFeedback(feedbackIds);
-        logger.info("Removed from mongodb");
+        let job = new LambdaJobBuilder("feedback2github").reader(reader)
+                .processor(processor)
+                .writer(writer);
+        await job.run();
     } catch (err) {
         logger.error(err);
     }
-
     // Wait for log4js to flush its logs
-    setTimeout(function() {
-        process.exit(0);
-    }, 100);
+    log4js.shutdown(function() { process.exit(0); });
   }
   
 if (!module.parent) {

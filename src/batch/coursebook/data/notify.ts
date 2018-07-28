@@ -1,11 +1,13 @@
 import { LectureDiff } from '@app/batch/coursebook/data/compare';
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
-import { TimetableModel } from '@app/core/model/timetable';
-import errcode = require('@app/api/errcode');
+import TimetableService = require('@app/core/timetable/TimetableService');
+import TimetableLectureService = require('@app/core/timetable/TimetableLectureService');
 import UserService = require('@app/core/user/UserService');
 import NotificationService = require('@app/core/notification/NotificationService');
+import ObjectUtil = require('@app/core/common/util/ObjectUtil');
 
 import log4js = require('log4js');
+import LectureTimeOverlapError from '@app/core/timetable/error/LectureTimeOverlapError';
 var logger = log4js.getLogger();
 
 export async function notifyUpdated(year:number, semesterIndex:number, diff:LectureDiff,
@@ -14,7 +16,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
   var num_removed_per_user: {[key: string]: number} = {}
 
   async function processUpdated(updated_lecture) {
-    let timetables = await TimetableModel.getWithLecture(
+    let timetables = await TimetableService.getHavingLecture(
       year, semesterIndex, updated_lecture.course_number, updated_lecture.lecture_number);
 
     for (let i=0; i<timetables.length; i++) {
@@ -24,26 +26,29 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
         lecture : updated_lecture
       };
 
-      let lectureId = timetable.findLectureId(updated_lecture.course_number, updated_lecture.lecture_number);
+      let lectureId = TimetableLectureService.getUserLectureFromTimetableByCourseNumber(
+          timetable, updated_lecture.course_number, updated_lecture.lecture_number)._id;
 
       try {
-        await timetable.updateLecture(lectureId, updated_lecture.after);
-        if (num_updated_per_user[timetable.userId]) num_updated_per_user[timetable.userId]++;
-        else num_updated_per_user[timetable.userId] = 1;
+        let userLecture = ObjectUtil.deepCopy(updated_lecture.after);
+        userLecture._id = lectureId;
+        await TimetableLectureService.partialModifyUserLecture(timetable.user_id, timetable._id, userLecture);
+        if (num_updated_per_user[timetable.user_id]) num_updated_per_user[timetable.user_id]++;
+        else num_updated_per_user[timetable.user_id] = 1;
         await NotificationService.add({
-          user_id: timetable.userId,
+          user_id: timetable.user_id,
           message: "'"+timetable.title+"' 시간표의 '"+updated_lecture.course_title+"' 강의가 업데이트 되었습니다.",
           type: NotificationTypeEnum.LECTURE_UPDATE,
           detail: noti_detail,
           created_at: new Date()
         });
       } catch (err) {
-        if (err == errcode.LECTURE_TIME_OVERLAP) {
-          await timetable.deleteLecture(lectureId);
-          if (num_removed_per_user[timetable.userId]) num_removed_per_user[timetable.userId]++;
-          else num_removed_per_user[timetable.userId] = 1; 
+        if (err instanceof LectureTimeOverlapError) {
+          await TimetableLectureService.removeLecture(timetable.user_id, timetable._id, lectureId);
+          if (num_removed_per_user[timetable.user_id]) num_removed_per_user[timetable.user_id]++;
+          else num_removed_per_user[timetable.user_id] = 1; 
           await NotificationService.add({
-            user_id: timetable.userId,
+            user_id: timetable.user_id,
             message: "'"+timetable.title+"' 시간표의 '"+updated_lecture.course_title+
               "' 강의가 업데이트되었으나, 시간표가 겹쳐 삭제되었습니다.",
             type: NotificationTypeEnum.LECTURE_REMOVE,
@@ -61,7 +66,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
   }
 
   async function processRemoved(removed_lecture) {
-    let timetables = await TimetableModel.getWithLecture(
+    let timetables = await TimetableService.getHavingLecture(
       year, semesterIndex, removed_lecture.course_number, removed_lecture.lecture_number);
 
     for (let i=0; i<timetables.length; i++) {
@@ -71,13 +76,14 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
         lecture : removed_lecture
       };
 
-      let lectureId = timetable.findLectureId(removed_lecture.course_number, removed_lecture.lecture_number);
-      
-      await timetable.deleteLecture(lectureId);
-      if (num_removed_per_user[timetable.userId]) num_removed_per_user[timetable.userId]++;
-      else num_removed_per_user[timetable.userId] = 1; 
+      let lectureId = TimetableLectureService.getUserLectureFromTimetableByCourseNumber(
+        timetable, removed_lecture.course_number, removed_lecture.lecture_number)._id;
+
+      await TimetableLectureService.removeLecture(timetable.user_id, timetable._id, lectureId);
+      if (num_removed_per_user[timetable.user_id]) num_removed_per_user[timetable.user_id]++;
+      else num_removed_per_user[timetable.user_id] = 1; 
       await NotificationService.add({
-        user_id: timetable.userId,
+        user_id: timetable.user_id,
         message: "'"+timetable.title+"' 시간표의 '"+removed_lecture.course_title+"' 강의가 폐강되어 삭제되었습니다.",
         type: NotificationTypeEnum.LECTURE_REMOVE,
         detail: noti_detail,

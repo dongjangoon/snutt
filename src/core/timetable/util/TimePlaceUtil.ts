@@ -2,6 +2,8 @@ import * as log4js from 'log4js';
 
 import errcode = require('@app/api/errcode');
 import TimePlace from '@app/core/timetable/model/TimePlace';
+import LectureTimeOverlapError from '../error/LectureTimeOverlapError';
+import InvalidLectureTimeJsonError from '../../lecture/error/InvalidLectureTimeJsonError';
 
 var logger = log4js.getLogger();
 
@@ -80,11 +82,11 @@ export function timeJsonToMask(timeJson:Array<TimePlace>, duplicateCheck?:boolea
     timeJson.forEach(function(lecture, lectureIdx) {
         var dayIdx = Number(lecture.day);
         var end = Number(lecture.start) + Number(lecture.len);
-        if (Number(lecture.len) <= 0) throw errcode.INVALID_TIMEJSON;
+        if (Number(lecture.len) <= 0) throw new InvalidLectureTimeJsonError();
         if (lecture.start >= 15) logger.warn("timeJsonToMask: lecture start bigger than 15");
         if (duplicateCheck) {
         for (var i = lecture.start * 2; i < end*2; i++) {
-            if (bitTable2D[dayIdx][i]) throw errcode.LECTURE_TIME_OVERLAP;
+            if (bitTable2D[dayIdx][i]) throw new LectureTimeOverlapError();
             bitTable2D[dayIdx][i] = 1;
         }
         } else {

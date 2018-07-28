@@ -1,20 +1,17 @@
 import bcrypt = require('bcrypt');
 import crypto = require('crypto');
-import log4js = require('log4js');
 
 import property = require('@app/core/config/property');
 import User from '@app/core/user/model/User';
 import UserCredential from '@app/core/user/model/UserCredential';
 import UserService = require('@app/core/user/UserService');
-import FacebookService = require('@app/core/FacebookService');
+import FacebookService = require('@app/core/facebook/FacebookService');
 import InvalidLocalPasswordError from '@app/core/user/error/InvalidLocalPasswordError';
 import InvalidLocalIdError from '@app/core/user/error/InvalidLocalIdError';
 import DuplicateLocalIdError from '@app/core/user/error/DuplicateLocalIdError';
 import AlreadyRegisteredFbIdError from '@app/core/user/error/AlreadyRegisteredFbIdError';
-import InvalidFbIdOrTokenError from '@app/core/error/InvalidFbIdOrTokenError';
+import InvalidFbIdOrTokenError from '@app/core/facebook/error/InvalidFbIdOrTokenError';
 import NotLocalAccountError from './error/NotLocalAccountError';
-
-let logger = log4js.getLogger();
 
 export async function isRightPassword(user: User, password: string): Promise<boolean> {
     let originalHash = user.credential.localPw;

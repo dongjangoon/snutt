@@ -10,22 +10,23 @@ require('@app/batch/config/log');
 require('@app/core/config/mongo');
 
 import { fetchSugangSnu } from './data/fetch';
-import { TagStruct, parseLines } from './data/parse';
-import { LectureDiff, compareLectures } from './data/compare';
+import { parseLines } from './data/parse';
+import { compareLectures } from './data/compare';
 import { notifyUpdated } from './data/notify';
-import { CourseBookModel } from '@app/core/model/courseBook';
-import { LectureDocument, deleteAllSemester, insertManyRefLecture } from '@app/core/model/lecture';
+import CourseBookService = require('@app/core/coursebook/CourseBookService');
+import RefLectureService = require('@app/core/lecture/RefLectureService');
 import NotificationService = require('@app/core/notification/NotificationService');
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
-import { TagList } from '@app/core/model/tagList';
+import TagListService = require('@app/core/taglist/TagListService');
 import * as log4js from 'log4js';
+import SimpleJob from '../common/SimpleJob';
 var logger = log4js.getLogger();
 
 /**
  * 현재 수강편람과 다음 수강편람
  */
 async function getUpdateCandidate(): Promise<Array<[number, number]>> {
-  let recentCoursebook = await CourseBookModel.getRecent();
+  let recentCoursebook = await CourseBookService.getRecent();
   if (!recentCoursebook) {
     let date = new Date();
     let year = date.getFullYear();
@@ -89,12 +90,12 @@ export async function fetchAndInsert(year: number, semesterIndex: number, fcm_en
   logger.info("Sending notifications...");
   await notifyUpdated(year, semesterIndex, compared, fcm_enabled);
 
-  await deleteAllSemester(year, semesterIndex);
+  await RefLectureService.removeBySemester(year, semesterIndex);
   logger.info("Removed existing lecture for this semester");
 
   logger.info("Inserting new lectures...");
-  var docs = await insertManyRefLecture(parsed.new_lectures);
-  logger.info("Insert complete with " + docs.length + " success and " + (parsed.new_lectures.length - docs.length) + " errors");
+  var inserted = await RefLectureService.addAll(parsed.new_lectures);
+  logger.info("Insert complete with " + inserted + " success and " + (parsed.new_lectures.length - inserted) + " errors");
 
   logger.info("Inserting tags from new lectures...");
   for (var key in parsed.tags) {
@@ -102,20 +103,18 @@ export async function fetchAndInsert(year: number, semesterIndex: number, fcm_en
       parsed.tags[key].sort();
     }
   }
-  await TagList.createOrUpdateTags(Number(year), semesterIndex, parsed.tags);
+  await TagListService.merge({year: Number(year), semester: semesterIndex, tags: parsed.tags});
   logger.info("Inserted tags");
 
   logger.info("saving coursebooks...");
   /* Send notification only when coursebook is new */
-  var doc = await CourseBookModel.findOneAndUpdate({ year: Number(year), semester: semesterIndex },
-    { updated_at: Date.now() },
-    {
-      new: false,   // return new doc
-      upsert: true // insert the document if it does not exist
-    })
-    .exec();
-
-  if (!doc) {
+  var existingDoc = await CourseBookService.get(Number(year), semesterIndex);
+  if (!existingDoc) {
+    await CourseBookService.add({
+      year: Number(year),
+      semester: semesterIndex,
+      updated_at: new Date()
+    });
     if (fcm_enabled) await NotificationService.sendGlobalFcmMsg("신규 수강편람", noti_msg, "batch/coursebook", "new coursebook");
     await NotificationService.add({
       user_id: null,
@@ -125,12 +124,13 @@ export async function fetchAndInsert(year: number, semesterIndex: number, fcm_en
       created_at: new Date()
     });
     logger.info("Notification inserted");
+  } else {
+    await CourseBookService.modifyUpdatedAt(existingDoc, new Date());
   }
   return;
 }
 
-
-async function main() {
+async function run() {
   let cands: Array<[number, number]>;
   if (process.argv.length != 4) {
     cands = await getUpdateCandidate();
@@ -147,11 +147,17 @@ async function main() {
       continue;
     }
   }
+}
 
+async function main() {
+  try {
+    await new SimpleJob("coursebook", run).run();
+  } catch (err) {
+    logger.error(err);
+  }
+  
   // Wait for log4js to flush its logs
-  setTimeout(function () {
-    process.exit(0);
-  }, 100);
+  log4js.shutdown(function() { process.exit(0); });
 }
 
 if (!module.parent) {
