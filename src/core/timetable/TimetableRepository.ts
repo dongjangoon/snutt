@@ -1,13 +1,11 @@
 import mongoose = require('mongoose');
 import Timetable from './model/Timetable';
-import UserLecture from '@app/core/lecture/model/UserLecture';
+import UserLecture from './/model/UserLecture';
 import AbstractTimetable from './model/AbstractTimetable';
 import InvalidLectureUpdateRequestError from './error/InvalidLectureUpdateRequestError';
 import TimetableNotFoundError from './error/TimetableNotFoundError';
 import UserLectureNotFoundError from './error/UserLectureNotFoundError';
 import ObjectUtil = require('@app/core/common/util/ObjectUtil');
-import log4js = require('log4js');
-let logger = log4js.getLogger();
 
 let userLectureSchema = new mongoose.Schema({
   classification: String,                           // 교과 구분

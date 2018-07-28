@@ -1,4 +1,4 @@
-import Lecture from "./Lecture";
+import Lecture from '@app/core/lecture/model/Lecture';
 import LectureColor from './LectureColor';
 
 export default interface UserLecture extends Lecture {

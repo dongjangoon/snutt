@@ -20,7 +20,7 @@ import adminRouter = require('./admin');
 import apiKey = require('@app/core/config/apiKey');
 import UserService = require('@app/core/user/UserService');
 import FeedbackService = require('@app/core/feedback/FeedbackService');
-import LectureColorService = require('@app/core/lecture/LectureColorService');
+import LectureColorService = require('@app/core/timetable/LectureColorService');
 
 import errcode = require('@app/api/errcode');
 import * as log4js from 'log4js';

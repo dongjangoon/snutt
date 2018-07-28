@@ -2,6 +2,7 @@ import express = require('express');
 var router = express.Router();
 
 import TimetableService = require('@app/core/timetable/TimetableService');
+import TimetableLectureService = require('@app/core/timetable/TimetableLectureService');
 import User from '@app/core/user/model/User';
 import errcode = require('@app/api/errcode');
 import * as log4js from 'log4js';
@@ -11,8 +12,8 @@ import LectureTimeOverlapError from '@app/core/timetable/error/LectureTimeOverla
 import RefLectrureNotFoundError from '@app/core/lecture/error/RefLectureNotFoundError';
 import WrongRefLectureSemesterError from '@app/core/timetable/error/WrongRefLectureSemesterError';
 import InvalidLectureTimemaskError from '@app/core/lecture/error/InvalidLectureTimemaskError';
-import InvalidLectureColorError from '@app/core/lecture/error/InvalidLectureColorError';
-import InvalidLectureColorIndexError from '@app/core/lecture/error/InvalidLectureColorIndexError';
+import InvalidLectureColorError from '@app/core/timetable/error/InvalidLectureColorError';
+import InvalidLectureColorIndexError from '@app/core/timetable/error/InvalidLectureColorIndexError';
 import InvalidLectureUpdateRequestError from '@app/core/timetable/error/InvalidLectureUpdateRequestError';
 import NotCustomLectureError from '@app/core/timetable/error/NotCustomLectureError';
 import CustomLectureResetError from '@app/core/timetable/error/CusromLectureResetError';
@@ -104,7 +105,7 @@ router.post('/:timetable_id/lecture/:lecture_id', async function(req, res, next)
     let table = await TimetableService.getByMongooseId(user._id, req.params.timetable_id);
     if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
     
-    await TimetableService.addRefLecture(table, req.params.lecture_id);
+    await TimetableLectureService.addRefLecture(table, req.params.lecture_id);
     res.json(await TimetableService.getByMongooseId(user._id, req.params.timetable_id));
   } catch (err) {
     if (err instanceof DuplicateLectureError)
@@ -132,7 +133,7 @@ router.post('/:id/lecture', async function(req, res, next) {
   try {
     let table = await TimetableService.getByMongooseId(user._id, req.params.id);
     if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
-    await TimetableService.addCustomLecture(table, req.body);
+    await TimetableLectureService.addCustomLecture(table, req.body);
     res.json(await TimetableService.getByMongooseId(user._id, req.params.id));
   } catch (err) {
     if (err instanceof InvalidLectureTimemaskError)
@@ -178,7 +179,7 @@ router.put('/:table_id/lecture/:lecture_id', async function(req, res, next) {
     if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
 
     rawLecture._id = req.params.lecture_id;
-    await TimetableService.partialModifyUserLecture(user._id, table._id, rawLecture);
+    await TimetableLectureService.partialModifyUserLecture(user._id, table._id, rawLecture);
     res.json(await TimetableService.getByMongooseId(user._id, req.params.table_id));
   } catch (err) {
     if (err instanceof InvalidLectureTimemaskError)
@@ -209,7 +210,7 @@ router.put('/:table_id/lecture/:lecture_id/reset', async function(req, res, next
   try {
     let table = await TimetableService.getByMongooseId(user._id, req.params.table_id);
     if (!table) return res.status(404).json({errcode:errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
-    await TimetableService.resetLecture(user._id, table._id, req.params.lecture_id);
+    await TimetableLectureService.resetLecture(user._id, table._id, req.params.lecture_id);
     res.json(await TimetableService.getByMongooseId(user._id, req.params.table_id));
   } catch (err) {
     if (err instanceof CustomLectureResetError) {
@@ -234,7 +235,7 @@ router.put('/:table_id/lecture/:lecture_id/reset', async function(req, res, next
 router.delete('/:table_id/lecture/:lecture_id', async function(req, res, next) {
   var user:User = <User>req["user"];
   try {
-    await TimetableService.removeLecture(user._id, req.params.table_id, req.params.lecture_id);
+    await TimetableLectureService.removeLecture(user._id, req.params.table_id, req.params.lecture_id);
     let table = await TimetableService.getByMongooseId(user._id, req.params.table_id);
     res.json(table);
   } catch (err) {

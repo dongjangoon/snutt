@@ -1,4 +1,4 @@
-import UserLecture from "@app/core/lecture/model/UserLecture";
+import UserLecture from "../model/UserLecture";
 
 export default class NotCustomLectureError extends Error {
     constructor(public lecture: UserLecture) {

@@ -1,4 +1,4 @@
-import UserLecture from '@app/core/lecture/model/UserLecture';
+import UserLecture from './UserLecture';
 
 export default interface Timetable {
     _id?: string;

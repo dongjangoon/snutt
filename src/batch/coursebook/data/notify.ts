@@ -1,6 +1,7 @@
 import { LectureDiff } from '@app/batch/coursebook/data/compare';
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
 import TimetableService = require('@app/core/timetable/TimetableService');
+import TimetableLectureService = require('@app/core/timetable/TimetableLectureService');
 import UserService = require('@app/core/user/UserService');
 import NotificationService = require('@app/core/notification/NotificationService');
 import ObjectUtil = require('@app/core/common/util/ObjectUtil');
@@ -25,13 +26,13 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
         lecture : updated_lecture
       };
 
-      let lectureId = TimetableService.getUserLectureFromTimetableByCourseNumber(
+      let lectureId = TimetableLectureService.getUserLectureFromTimetableByCourseNumber(
           timetable, updated_lecture.course_number, updated_lecture.lecture_number)._id;
 
       try {
         let userLecture = ObjectUtil.deepCopy(updated_lecture.after);
         userLecture._id = lectureId;
-        await TimetableService.partialModifyUserLecture(timetable.user_id, timetable._id, userLecture);
+        await TimetableLectureService.partialModifyUserLecture(timetable.user_id, timetable._id, userLecture);
         if (num_updated_per_user[timetable.user_id]) num_updated_per_user[timetable.user_id]++;
         else num_updated_per_user[timetable.user_id] = 1;
         await NotificationService.add({
@@ -43,7 +44,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
         });
       } catch (err) {
         if (err instanceof LectureTimeOverlapError) {
-          await TimetableService.removeLecture(timetable.user_id, timetable._id, lectureId);
+          await TimetableLectureService.removeLecture(timetable.user_id, timetable._id, lectureId);
           if (num_removed_per_user[timetable.user_id]) num_removed_per_user[timetable.user_id]++;
           else num_removed_per_user[timetable.user_id] = 1; 
           await NotificationService.add({
@@ -75,10 +76,10 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
         lecture : removed_lecture
       };
 
-      let lectureId = TimetableService.getUserLectureFromTimetableByCourseNumber(
+      let lectureId = TimetableLectureService.getUserLectureFromTimetableByCourseNumber(
         timetable, removed_lecture.course_number, removed_lecture.lecture_number)._id;
 
-      await TimetableService.removeLecture(timetable.user_id, timetable._id, lectureId);
+      await TimetableLectureService.removeLecture(timetable.user_id, timetable._id, lectureId);
       if (num_removed_per_user[timetable.user_id]) num_removed_per_user[timetable.user_id]++;
       else num_removed_per_user[timetable.user_id] = 1; 
       await NotificationService.add({
