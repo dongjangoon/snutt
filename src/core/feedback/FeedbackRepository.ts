@@ -37,6 +37,7 @@ export function deleteAllByMongoIds(ids: any[]): Promise<void> {
 function fromMongoose(doc): Feedback {
     if (doc == null) return doc;
     return {
+        _id: doc['_id'],
         email: doc['email'],
         message: doc['message'],
         timestamp: doc['timestamp'],
