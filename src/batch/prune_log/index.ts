@@ -12,14 +12,19 @@ require('@app/batch/config/log');
 import FcmLogService = require('@app/core/fcm/FcmLogService');
 import RefLectureQueryService = require('@app/core/lecture/RefLectureQueryService');
 import * as log4js from 'log4js';
+import SimpleJob from '../common/SimpleJob';
 var logger = log4js.getLogger();
+
+async function run() {
+  let currentTimestamp = Date.now();
+  let thresholdTimestamp = currentTimestamp - 1000 * 3600 * 24 * 180; // 180 days
+  await FcmLogService.removeBeforeTimestamp(thresholdTimestamp);
+  await RefLectureQueryService.removeQueryLogBeforeTimestamp(thresholdTimestamp);
+}
 
 async function main() {
   try {
-    let currentTimestamp = Date.now();
-    let thresholdTimestamp = currentTimestamp - 1000 * 3600 * 24 * 180; // 180 days
-    await FcmLogService.removeBeforeTimestamp(thresholdTimestamp);
-    await RefLectureQueryService.removeQueryLogBeforeTimestamp(thresholdTimestamp);
+    await new SimpleJob("prune_log", run).run();
   } catch (err) {
     logger.error(err);
   }

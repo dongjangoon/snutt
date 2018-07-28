@@ -4,10 +4,12 @@ import BatchWriter from "./BatchWriter";
 import BatchJob from "./BatchJob";
 
 class IntermediateJob<T> {
+    _jobName: string;
     _reader: BatchReader<any>;
     _processors: BatchProcessor<any, any>[] = [];
 
-    constructor(reader: BatchReader<T>) {
+    constructor(jobName: string, reader: BatchReader<T>) {
+        this._jobName = jobName;
         this._reader = reader;
     }
 
@@ -17,12 +19,14 @@ class IntermediateJob<T> {
     }
 
     writer(writer: BatchWriter<T>): BatchJob {
-        return new BatchJob(this._reader, this._processors, writer);
+        return new BatchJob(this._jobName, this._reader, this._processors, writer);
     }
 }
 
 export default class BatchJobBuilder {
-    static reader<R>(reader: BatchReader<R>) {
-        return new IntermediateJob<R>(reader);
+    constructor(public jobName: string) { }
+
+    reader<R>(reader: BatchReader<R>) {
+        return new IntermediateJob<R>(this.jobName, reader);
     }
 }

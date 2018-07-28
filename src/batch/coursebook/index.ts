@@ -10,8 +10,8 @@ require('@app/batch/config/log');
 require('@app/core/config/mongo');
 
 import { fetchSugangSnu } from './data/fetch';
-import { TagStruct, parseLines } from './data/parse';
-import { LectureDiff, compareLectures } from './data/compare';
+import { parseLines } from './data/parse';
+import { compareLectures } from './data/compare';
 import { notifyUpdated } from './data/notify';
 import CourseBookService = require('@app/core/coursebook/CourseBookService');
 import RefLectureService = require('@app/core/lecture/RefLectureService');
@@ -19,6 +19,7 @@ import NotificationService = require('@app/core/notification/NotificationService
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
 import TagListService = require('@app/core/taglist/TagListService');
 import * as log4js from 'log4js';
+import SimpleJob from '../common/SimpleJob';
 var logger = log4js.getLogger();
 
 /**
@@ -129,8 +130,7 @@ export async function fetchAndInsert(year: number, semesterIndex: number, fcm_en
   return;
 }
 
-
-async function main() {
+async function run() {
   let cands: Array<[number, number]>;
   if (process.argv.length != 4) {
     cands = await getUpdateCandidate();
@@ -147,11 +147,17 @@ async function main() {
       continue;
     }
   }
+}
 
+async function main() {
+  try {
+    await new SimpleJob("coursebook", run).run();
+  } catch (err) {
+    logger.error(err);
+  }
+  
   // Wait for log4js to flush its logs
-  setTimeout(function () {
-    process.exit(0);
-  }, 100);
+  log4js.shutdown(function() { process.exit(0); });
 }
 
 if (!module.parent) {

@@ -85,11 +85,10 @@ async function writer(item: StepItem): Promise<void> {
 
 async function main() {
     try {
-        let job = LambdaJobBuilder.reader(reader)
+        let job = new LambdaJobBuilder("feedback2github").reader(reader)
                 .processor(processor)
                 .writer(writer);
         await job.run();
-        logger.info("Successfully inserted");
     } catch (err) {
         logger.error(err);
     }

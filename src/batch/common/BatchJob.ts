@@ -1,14 +1,19 @@
 import BatchReader from "./BatchReader";
 import BatchProcessor from "./BatchProcessor";
 import BatchWriter from "./BatchWriter";
+import AbstractJob from "./AbstractJob";
 
-export default class BatchJob {
-    constructor(public reader: BatchReader<any>,
-        public processors: BatchProcessor<any, any>[],
-        public writer: BatchWriter<any>) {
+export default class BatchJob extends AbstractJob {
+    constructor(
+        public jobName: string,
+        private reader: BatchReader<any>,
+        private processors: BatchProcessor<any, any>[],
+        private writer: BatchWriter<any>
+    ) {
+        super(jobName);
     }
 
-    async run(): Promise<void> {
+    protected async doRun(): Promise<void> {
         await this.reader.open();
         while(true) {
             let item = await this.reader.read();

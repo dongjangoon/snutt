@@ -5,10 +5,12 @@ import BatchJob from "./BatchJob";
 import ArrayReader from "./ArrayReader";
 
 class IntermediateJob<T> {
+    _jobName: string;
     _reader: BatchReader<any>;
     _processors: BatchProcessor<any, any>[] = [];
 
-    constructor(reader: () => Promise<T[]>) {
+    constructor(jobName:string, reader: () => Promise<T[]>) {
+        this._jobName = jobName;
         this._reader = new (class SimpleReader extends ArrayReader<T> {
             getItems() {
                 return reader();
@@ -26,7 +28,7 @@ class IntermediateJob<T> {
     }
 
     writer(writer: (T) => Promise<void>): BatchJob {
-        return new BatchJob(this._reader, this._processors, 
+        return new BatchJob(this._jobName, this._reader, this._processors, 
         new (class SimpleWriter implements BatchWriter<T> {
             write(item) {
                 return writer(item);
@@ -36,7 +38,8 @@ class IntermediateJob<T> {
 }
 
 export default class LambdaJobBuilder {
-    static reader<R>(reader: () => Promise<R[]>) {
-        return new IntermediateJob<R>(reader);
+    constructor(public jobName: string) {}
+    reader<R>(reader: () => Promise<R[]>) {
+        return new IntermediateJob<R>(this.jobName, reader);
     }
 }
