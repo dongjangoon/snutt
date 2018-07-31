@@ -1,5 +1,5 @@
 export default interface BatchReader<T> {
-    open(): Promise<void>;
-    close(): Promise<void>;
-    read(): Promise<T>;
+    open(executionContext?): Promise<void>;
+    close(executionContext?): Promise<void>;
+    read(executionContext?): Promise<T>;
 }
