@@ -1,13 +1,12 @@
 import * as log4js from 'log4js';
 
-import errcode = require('@app/api/errcode');
 import TimePlace from '@app/core/timetable/model/TimePlace';
 import LectureTimeOverlapError from '../error/LectureTimeOverlapError';
 import InvalidLectureTimeJsonError from '../../lecture/error/InvalidLectureTimeJsonError';
 
 var logger = log4js.getLogger();
 
-export function timeAndPlaceToJson(timesString: string, locationsString: string): Array<TimePlace> {
+export function timeAndPlaceToJson(timesString: string, locationsString: string): TimePlace[] {
     if (timesString === '')
         return [];
 
@@ -38,7 +37,7 @@ export function timeAndPlaceToJson(timesString: string, locationsString: string)
     for (let i = 0; i< classes.length; i++) {
         // If the day of the week is not the one we expected
         if (classes[i].day < 0) {
-        return null;
+            return null;
         }
     }
 

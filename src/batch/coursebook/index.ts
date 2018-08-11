@@ -9,8 +9,7 @@ require('module-alias/register')
 require('@app/batch/config/log');
 require('@app/core/config/mongo');
 
-import { fetchSugangSnu } from './data/fetch';
-import { parseLines } from './data/parse';
+import { parseTagFromLectureList } from './data/parse';
 import { compareLectures } from './data/compare';
 import { notifyUpdated } from './data/notify';
 import CourseBookService = require('@app/core/coursebook/CourseBookService');
@@ -18,6 +17,7 @@ import RefLectureService = require('@app/core/lecture/RefLectureService');
 import NotificationService = require('@app/core/notification/NotificationService');
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
 import TagListService = require('@app/core/taglist/TagListService');
+import SugangSnuService = require('./sugangsnu/SugangSnuService');
 import * as log4js from 'log4js';
 import SimpleJob from '../common/SimpleJob';
 var logger = log4js.getLogger();
@@ -62,21 +62,20 @@ async function getUpdateCandidate(): Promise<Array<[number, number]>> {
 
 export async function fetchAndInsert(year: number, semesterIndex: number, fcm_enabled: boolean): Promise<void> {
   var semesterString = (['1', '여름', '2', '겨울'])[semesterIndex - 1];
-  var saved_cnt = 0, err_cnt = 0;
 
   var noti_msg = year + "년도 " + semesterString + "학기 수강편람이 추가되었습니다.";
 
   logger.info("Fetching from sugang.snu.ac.kr...");
-  let fetched = await fetchSugangSnu(year, semesterIndex);
-  logger.info("Loading lectures...");
-  let parsed = parseLines(year, semesterIndex, fetched);
-  if (parsed.new_lectures.length == 0) {
+  let fetched = await SugangSnuService.getRefLectureList(year, semesterIndex);
+  if (fetched.length == 0) {
     logger.warn("No lecture found.");
     return;
   }
-  logger.info("Load complete with " + parsed.new_lectures.length + " courses");
+  logger.info("Load complete with " + fetched.length + " courses");
+  logger.info("Parsing tags...");
+  let tags = parseTagFromLectureList(fetched);
   logger.info("Compare lectures...");
-  let compared = await compareLectures(year, semesterIndex, parsed.new_lectures);
+  let compared = await compareLectures(year, semesterIndex, fetched);
   if (compared.updated.length === 0 &&
     compared.created.length === 0 &&
     compared.removed.length === 0) {
@@ -94,16 +93,16 @@ export async function fetchAndInsert(year: number, semesterIndex: number, fcm_en
   logger.info("Removed existing lecture for this semester");
 
   logger.info("Inserting new lectures...");
-  var inserted = await RefLectureService.addAll(parsed.new_lectures);
-  logger.info("Insert complete with " + inserted + " success and " + (parsed.new_lectures.length - inserted) + " errors");
+  var inserted = await RefLectureService.addAll(fetched);
+  logger.info("Insert complete with " + inserted + " success and " + (fetched.length - inserted) + " errors");
 
   logger.info("Inserting tags from new lectures...");
-  for (var key in parsed.tags) {
-    if (parsed.tags.hasOwnProperty(key)) {
-      parsed.tags[key].sort();
+  for (var key in tags) {
+    if (tags.hasOwnProperty(key)) {
+      tags[key].sort();
     }
   }
-  await TagListService.merge({year: Number(year), semester: semesterIndex, tags: parsed.tags});
+  await TagListService.merge({year: Number(year), semester: semesterIndex, tags: tags});
   logger.info("Inserted tags");
 
   logger.info("saving coursebooks...");
