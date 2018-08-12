@@ -7,7 +7,7 @@ export default class ExcelSheetWrapper {
     }
   
     getRowSize(): number {
-      return xlsx.utils.decode_range(this.sheet['!ref']).e.r;
+      return xlsx.utils.decode_range(this.sheet['!ref']).e.r + 1;
     }
   
     getCell(r: number, c: number): string {

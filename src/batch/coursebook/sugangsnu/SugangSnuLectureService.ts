@@ -9,7 +9,7 @@ var logger = log4js.getLogger();
 export function getRefLectureListFromExcelSheet(sheet: ExcelSheetWrapper, year: number, semester: number, lectureCategory: number): RefLecture[] {
     let ret: RefLecture[] = [];
     let rowsize = sheet.getRowSize();
-    for (let i = 3; i <= rowsize; i++) {
+    for (let i = 3; i < rowsize; i++) {
         let line = getSugangSnuLectureFromSheetRow(sheet, i);
         if (line !== null) {
             ret.push(getRefLectureFromSugangSnuLecture(year, semester, lectureCategory, line));
