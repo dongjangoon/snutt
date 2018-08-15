@@ -11,8 +11,9 @@ export function getRefLectureListFromExcelSheet(sheet: ExcelSheetWrapper, year: 
     let rowsize = sheet.getRowSize();
     for (let i = 3; i < rowsize; i++) {
         let line = getSugangSnuLectureFromSheetRow(sheet, i);
-        if (line !== null) {
-            ret.push(getRefLectureFromSugangSnuLecture(year, semester, lectureCategory, line));
+        let lecture = getRefLectureFromSugangSnuLecture(year, semester, lectureCategory, line);
+        if (lecture !== null) {
+            ret.push(lecture);
         }
     }
     return ret;
