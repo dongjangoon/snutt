@@ -11,6 +11,7 @@ var logger = log4js.getLogger();
 function like(str: string, matchStartChar?: boolean): string {
   //replace every character(eg. 'c') to '.*c', except for first character
   var cstr = str.split("");
+  cstr = cstr.filter(x => x !== ' ');
   var joined = cstr.join('[^()]*');
   if (matchStartChar) joined = '^'+joined;
   return joined;
