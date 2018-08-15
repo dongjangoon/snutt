@@ -120,17 +120,34 @@ async function toMongoQuery(lquery:LectureQuery): Promise<Object> {
 }
 
 /**
- * Course title을 분석하지 않고
- * 따로 입력받은 필터로만 검색
+ * Course title을 분석하여
+ * 전공, 학과, 학년 등의 정보를 따로 뽑아냄.
  */
-export async function explicitSearch(lquery: LectureQuery): Promise<RefLecture[]> {
+export async function extendedSearch(lquery: LectureQuery): Promise<RefLecture[]> {
   var mquery = await toMongoQuery(lquery);
-    
+
+  if (lquery.title) {
+    let extendedQuery = makeExtendedQueryFromTitle(lquery.title);
+    mquery["$or"] = [ {course_title : mquery["course_title"]}, extendedQuery ];
+    delete mquery["course_title"];
+  }
+
+  if (lquery.etc) {
+    mquery = {
+      $and : [
+        mquery,
+        RefLectureQueryEtcTagService.getEtcTagMQuery(lquery.etc)
+      ]
+    }
+  }
+
   var offset, limit;
   if (!lquery.offset) offset = 0;
   else offset = lquery.offset;
   if (!lquery.limit) limit = 20;
   else limit = lquery.limit;
+
+  logger.error(JSON.stringify(mquery));
 
   return RefLectureService.query(mquery, limit, offset).catch(function(err){
       logger.error(err);
@@ -138,17 +155,9 @@ export async function explicitSearch(lquery: LectureQuery): Promise<RefLecture[]
     });
 }
 
-/**
- * Course title을 분석하여
- * 전공, 학과, 학년 등의 정보를 따로 뽑아냄.
- */
-export async function extendedSearch(lquery: LectureQuery): Promise<RefLecture[]> {
-  var mquery = await toMongoQuery(lquery);
-  var title = lquery.title;
-  if (!title) return explicitSearch(lquery);
-  var words = title.split(' ');
-
+function makeExtendedQueryFromTitle(title: string) {
   var andQueryList = [];
+  var words = title.split(' ');
   for(let i=0; i<words.length; i++) {
     var orQueryList = [];
 
@@ -203,20 +212,5 @@ export async function extendedSearch(lquery: LectureQuery): Promise<RefLecture[]
     
     andQueryList.push({"$or" : orQueryList});
   }
-  if (lquery.etc) {
-    andQueryList.push(RefLectureQueryEtcTagService.getEtcTagMQuery(lquery.etc));
-  }
-  mquery["$or"] = [ {course_title : mquery["course_title"]}, {$and : andQueryList} ];
-  delete mquery["course_title"];
-
-  var offset, limit;
-  if (!lquery.offset) offset = 0;
-  else offset = lquery.offset;
-  if (!lquery.limit) limit = 20;
-  else limit = lquery.limit;
-
-  return RefLectureService.query(mquery, limit, offset).catch(function(err){
-      logger.error(err);
-      return Promise.reject(errcode.SERVER_FAULT);
-    });
+  return {"$and": andQueryList};
 }
