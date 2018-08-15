@@ -9,7 +9,7 @@ export function getRecent(): Promise<CourseBook> {
     return CourseBookRepository.findRecent();
 }
 
-export function get(year: number, semester: number): Promise<CourseBook> {
+export function get(year: number, semester: number): Promise<CourseBook | null> {
     return CourseBookRepository.findByYearAndSemester(year, semester);
 }
 
