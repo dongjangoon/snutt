@@ -17,7 +17,7 @@ export async function findAll(): Promise<CourseBook[]> {
     return docs.map(fromMongoose);
 }
 
-export async function findRecent(): Promise<CourseBook> {
+export async function findRecent(): Promise<CourseBook | null> {
     let doc = await mongooseModel
         .findOne({}, '-_id year semester updated_at')
         .sort([["year", -1], ["semester", -1]])
@@ -25,7 +25,7 @@ export async function findRecent(): Promise<CourseBook> {
     return fromMongoose(doc);
 }
 
-export async function findByYearAndSemester(year: number, semester: number): Promise<CourseBook> {
+export async function findByYearAndSemester(year: number, semester: number): Promise<CourseBook | null> {
     let doc = await mongooseModel
         .findOne({year: year, semester: semester})
         .exec();
@@ -41,7 +41,8 @@ export async function update(courseBook: CourseBook): Promise<void> {
         {year: courseBook.year, semester: courseBook.semester},courseBook).exec();
 }
 
-function fromMongoose(mongooseDoc): CourseBook {
+function fromMongoose(mongooseDoc): CourseBook | null {
+    if (mongooseDoc === null) return null;
     return {
         year: mongooseDoc.year,
         semester: mongooseDoc.semester,
