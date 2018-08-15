@@ -1,13 +1,12 @@
 import * as log4js from 'log4js';
 
-import errcode = require('@app/api/errcode');
 import TimePlace from '@app/core/timetable/model/TimePlace';
 import LectureTimeOverlapError from '../error/LectureTimeOverlapError';
 import InvalidLectureTimeJsonError from '../../lecture/error/InvalidLectureTimeJsonError';
 
 var logger = log4js.getLogger();
 
-export function timeAndPlaceToJson(timesString: string, locationsString: string): Array<TimePlace> {
+export function timeAndPlaceToJson(timesString: string, locationsString: string): TimePlace[] {
     if (timesString === '')
         return [];
 
@@ -38,7 +37,7 @@ export function timeAndPlaceToJson(timesString: string, locationsString: string)
     for (let i = 0; i< classes.length; i++) {
         // If the day of the week is not the one we expected
         if (classes[i].day < 0) {
-        return null;
+            return null;
         }
     }
 
@@ -83,12 +82,13 @@ export function timeJsonToMask(timeJson:Array<TimePlace>, duplicateCheck?:boolea
         var dayIdx = Number(lecture.day);
         var end = Number(lecture.start) + Number(lecture.len);
         if (Number(lecture.len) <= 0) throw new InvalidLectureTimeJsonError();
-        if (lecture.start >= 15) logger.warn("timeJsonToMask: lecture start bigger than 15");
+        if (lecture.start < 0) logger.warn("timeJsonToMask: lecture start less than 0");
+        if (lecture.start > 14) logger.warn("timeJsonToMask: lecture start bigger than 14");
         if (duplicateCheck) {
-        for (var i = lecture.start * 2; i < end*2; i++) {
-            if (bitTable2D[dayIdx][i]) throw new LectureTimeOverlapError();
-            bitTable2D[dayIdx][i] = 1;
-        }
+            for (var i = lecture.start * 2; i < end*2; i++) {
+                if (bitTable2D[dayIdx][i]) throw new LectureTimeOverlapError();
+                bitTable2D[dayIdx][i] = 1;
+            }
         } else {
             for (var i = lecture.start * 2; i < end*2; i++) {
                 bitTable2D[dayIdx][i] = 1;

@@ -9,29 +9,29 @@ class IntermediateJob<T> {
     _reader: BatchReader<any>;
     _processors: BatchProcessor<any, any>[] = [];
 
-    constructor(jobName:string, reader: () => Promise<T[]>) {
+    constructor(jobName:string, reader: (any?) => Promise<T[]>) {
         this._jobName = jobName;
         this._reader = new (class SimpleReader extends ArrayReader<T> {
-            getItems() {
-                return reader();
+            getItems(executionContext?) {
+                return reader(executionContext);
             }
         });
     }
 
-    processor<N>(processor: (T) => Promise<N>): IntermediateJob<N> {
+    processor<N>(processor: (T, any?) => Promise<N>): IntermediateJob<N> {
         this._processors.push(new (class SimpleProcessor implements BatchProcessor<T, N> {
-            process(item) {
-                return processor(item);
+            process(item, executionContext?) {
+                return processor(item, executionContext);
             }
         }));
         return <any>this;
     }
 
-    writer(writer: (T) => Promise<void>): BatchJob {
+    writer(writer: (T, any?) => Promise<void>): BatchJob {
         return new BatchJob(this._jobName, this._reader, this._processors, 
         new (class SimpleWriter implements BatchWriter<T> {
-            write(item) {
-                return writer(item);
+            write(item, executionContext?) {
+                return writer(item, executionContext);
             }
         }));
     }
@@ -39,7 +39,7 @@ class IntermediateJob<T> {
 
 export default class LambdaJobBuilder {
     constructor(public jobName: string) {}
-    reader<R>(reader: () => Promise<R[]>) {
+    reader<R>(reader: (any?) => Promise<R[]>) {
         return new IntermediateJob<R>(this.jobName, reader);
     }
 }

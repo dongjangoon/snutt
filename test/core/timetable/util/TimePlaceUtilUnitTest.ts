@@ -65,6 +65,10 @@ describe('TimePlaceUtilUnitTest', function() {
             parseInt("00000"+"00000"+"00000"+"00000"+"00000"+"01100", 2), 0, 0, 0],
             TimePlaceUtil.timeJsonToMask([{day: 1, start: 13, len: 1, place: "302-308"},
             {day: 3, start: 13, len: 1, place: "302-308"}]));
+        assert.deepEqual([0, parseInt("00000"+"00000"+"00000"+"00000"+"00000"+"00000", 2), 0,
+            parseInt("00000"+"00000"+"00000"+"00000"+"00000"+"00000", 2), 0, 0, 0],
+            TimePlaceUtil.timeJsonToMask([{day: 1, start: -1, len: 1, place: "302-308"},
+            {day: 3, start: 15, len: 1, place: "302-308"}]));
     });
 
     it("equalTimeJson__true", async function() {

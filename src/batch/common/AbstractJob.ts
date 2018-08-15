@@ -6,13 +6,13 @@ export default abstract class AbstractJob {
         public jobName: string
     ) { }
 
-    public async run(): Promise<void> {
+    public async run(executionContext?): Promise<void> {
         logger.info("Starting Job [" + this.jobName + "]");
         let startTime = process.hrtime();
-        await this.doRun();
+        await this.doRun(executionContext);
         let timeMargin = process.hrtime(startTime);
         logger.info("Job [" + this.jobName + "] completed, took " + timeMargin[0] + "s");
     }
 
-    protected abstract async doRun(): Promise<void>;
+    protected abstract async doRun(executionContext?): Promise<void>;
 }

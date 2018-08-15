@@ -1,3 +1,3 @@
 export default interface BatchWriter<T> {
-    write(item: T): Promise<void>;
+    write(item: T, executionContext?): Promise<void>;
 }

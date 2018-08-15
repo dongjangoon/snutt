@@ -3,12 +3,12 @@ import AbstractJob from "./AbstractJob";
 export default class SimpleJob extends AbstractJob {
     constructor(
         public jobName: string,
-        private runner: () => Promise<void>
+        private runner: (any?) => Promise<void>
     ) {
         super(jobName);
     }
 
-    protected doRun() {
-        return this.runner();
+    protected doRun(executionContext?) {
+        return this.runner(executionContext);
     }
 }

@@ -1,6 +1,4 @@
-import {LectureLine} from './fetch';
 import RefLecture from '@app/core/lecture/model/RefLecture';
-import TimePlaceUtil = require('@app/core/timetable/util/TimePlaceUtil');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -13,12 +11,8 @@ export type TagStruct = {
   category : string[]
 };
 
-export function parseLines(year:number, semesterIndex:number, lines:LectureLine[]) : {
-  new_lectures: RefLecture[],
-  tags: TagStruct
-} {
-  var new_lectures:RefLecture[] = new Array<RefLecture>();
-  var tags:TagStruct = {
+export function parseTagFromLectureList(lines:RefLecture[]): TagStruct {
+  var tags: TagStruct = {
     classification : [],
     department : [],
     academic_year : [],
@@ -57,40 +51,7 @@ export function parseLines(year:number, semesterIndex:number, lines:LectureLine[
         }
       }
     }
-
-    var timeJson = TimePlaceUtil.timeAndPlaceToJson(line.class_time, line.location);
-    if (timeJson === null) logger.warn("timeJson not found from (" + line.class_time + ", " + line.location + ")");
-    // TimeMask limit is 15*2
-    for (let j=0; j<timeJson.length; j++) {
-      var t_end = timeJson[j].start+timeJson[j].len;
-      if (t_end > 15) {
-        logger.warn("("+line.course_number+", "+line.lecture_number+", "+line.course_number+
-          ") ends at "+t_end);
-      }
-    }
-
-    new_lectures.push({
-      year: year,
-      semester: semesterIndex,
-      classification: line.classification,
-      department: line.department,
-      academic_year: line.academic_year,
-      course_number: line.course_number,
-      lecture_number: line.lecture_number,
-      course_title: line.course_title,
-      credit: line.credit,
-      class_time: line.class_time,
-      class_time_json: timeJson,
-      class_time_mask: TimePlaceUtil.timeJsonToMask(timeJson),
-      instructor: line.instructor,
-      quota: line.quota,
-      remark: line.remark,
-      category: line.category
-    });
   }
 
-  return {
-    new_lectures: new_lectures,
-    tags: tags
-  }
+  return tags;
 }

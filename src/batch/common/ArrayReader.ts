@@ -4,10 +4,10 @@ export default abstract class ArrayReader<R> implements BatchReader<R> {
     index: number = 0;
     items: R[] = [];
 
-    abstract async getItems(): Promise<R[]>;
+    abstract async getItems(executionContext?): Promise<R[]>;
 
-    async open(): Promise<void> {
-        this.items = await this.getItems();
+    async open(executionContext?): Promise<void> {
+        this.items = await this.getItems(executionContext);
     }
     async close() { }
     async read() {
