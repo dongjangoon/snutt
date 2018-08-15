@@ -2,6 +2,7 @@ import errcode = require('@app/api/errcode');
 import * as log4js from 'log4js';
 
 import RefLectureService = require('./RefLectureService');
+import RefLectureQueryEtcTagService = require('./RefLectureQueryEtcTagService');
 import RefLectureQueryLogRepository = require('./RefLectureQueryLogRepository');
 import RefLecture from './model/RefLecture';
 var logger = log4js.getLogger();
@@ -57,14 +58,15 @@ export type LectureQuery = {
   year:number;
   semester:number;
   title:string;
-  classification:Array<string>;
-  credit:Array<number>;
-  course_number:Array<string>;
-  academic_year:Array<string>;
-  instructor:Array<string>;
-  department:Array<string>;
-  category:Array<string>;
-  time_mask:Array<number>;
+  classification:string[];
+  credit:number[];
+  course_number:string[];
+  academic_year:string[];
+  instructor:string[];
+  department:string[];
+  category:string[];
+  time_mask:number[];
+  etc:string[];
   offset:number;
   limit:number;
 }
@@ -77,7 +79,7 @@ async function toMongoQuery(lquery:LectureQuery): Promise<Object> {
   mquery["year"] = lquery.year;
   mquery["semester"] = lquery.semester;
   if (lquery.title)
-    mquery["course_title"] = { $regex: like(lquery.title, false), $options: 'i' };
+    mquery["course_title"] = { $regex: like(lquery.title, true), $options: 'i' };
   if (lquery.credit && lquery.credit.length)
     mquery["credit"] = { $in: lquery.credit };
   if (lquery.instructor && lquery.instructor.length)
@@ -167,7 +169,7 @@ export async function extendedSearch(lquery: LectureQuery): Promise<RefLecture[]
        */
       orQueryList.push({ credit : result });
     } else if (isHangulInString(words[i])) {
-      let regex = like(words[i], false);
+      let regex = like(words[i], true);
       orQueryList.push({ course_title : { $regex: regex, $options: 'i' } });
       /*
        * 교수명을 regex로 처리하면 '수영' -> 김수영 교수님의 강좌, 조수영 교수님의 강좌와 같이
@@ -199,6 +201,9 @@ export async function extendedSearch(lquery: LectureQuery): Promise<RefLecture[]
     }
     
     andQueryList.push({"$or" : orQueryList});
+  }
+  if (lquery.etc) {
+    andQueryList.push(RefLectureQueryEtcTagService.getEtcTagMQuery(lquery.etc));
   }
   mquery["$or"] = [ {course_title : mquery["course_title"]}, {$and : andQueryList} ];
 

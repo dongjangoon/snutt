@@ -1,4 +1,5 @@
 import RefLecture from '@app/core/lecture/model/RefLecture';
+import TagListEtcTagService = require('@app/core/taglist/TagListEtcTagService');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -8,7 +9,8 @@ export type TagStruct = {
   academic_year : string[],
   credit : string[],
   instructor : string[],
-  category : string[]
+  category : string[],
+  etc: string[]
 };
 
 export function parseTagFromLectureList(lines:RefLecture[]): TagStruct {
@@ -18,7 +20,8 @@ export function parseTagFromLectureList(lines:RefLecture[]): TagStruct {
     academic_year : [],
     credit : [],
     instructor : [],
-    category : []
+    category : [],
+    etc: TagListEtcTagService.getEtcTagList()
   };
   for (let i=0; i<lines.length; i++) {
     var line = lines[i];

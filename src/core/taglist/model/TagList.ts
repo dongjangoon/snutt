@@ -8,6 +8,7 @@ export default interface TagList {
     academic_year: string[],
     credit: string[],
     instructor: string[],
-    category: string[]
+    category: string[],
+    etc: string[]
   };
 };

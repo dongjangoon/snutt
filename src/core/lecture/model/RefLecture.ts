@@ -6,4 +6,3 @@ export default interface RefLecture extends Lecture {
     course_number: string,   // 교과목 번호
     lecture_number: string,  // 강좌 번호
 }
-  

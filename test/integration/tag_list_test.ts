@@ -9,7 +9,8 @@ export = function(app, db, request) {
         academic_year: ["1학년"],
         credit: [ "1학점", "2학점" ],
         instructor: [ "장병탁" ],
-        category: ["인간과 사회"]
+        category: ["인간과 사회"],
+        etc: []
     }});
   });
 
@@ -26,7 +27,8 @@ export = function(app, db, request) {
         academic_year: ["1학년"],
         credit: [ "1학점", "2학점" ],
         instructor: [ "문병로" ],
-        category: ["인간과 사회"]
+        category: ["인간과 사회"],
+        etc: []
     }});
     let updated = await TagListService.getBySemester(2015, 1);
     assert.equal(updated.tags.instructor[0], '문병로');
