@@ -207,6 +207,7 @@ export async function extendedSearch(lquery: LectureQuery): Promise<RefLecture[]
     andQueryList.push(RefLectureQueryEtcTagService.getEtcTagMQuery(lquery.etc));
   }
   mquery["$or"] = [ {course_title : mquery["course_title"]}, {$and : andQueryList} ];
+  delete mquery["course_title"];
 
   var offset, limit;
   if (!lquery.offset) offset = 0;
