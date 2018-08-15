@@ -27,9 +27,10 @@ const semesterQueryString = {
 
 export async function getRefLectureList(year: number, semester: number): Promise<RefLecture[]> {
     let ret: RefLecture[] = [];
-    ret.concat(await getRefLectureListForCategory(year, semester, null));
+    // apply의 경우 두번째 인자의 개수가 너무 많을 경우 fail할 수 있음
+    ret.push.apply(ret, await getRefLectureListForCategory(year, semester, null));
     for (let category of SugangSnuLectureCategoryService.lectureCategoryList) {
-        ret.concat(await getRefLectureListForCategory(year, semester, category));
+        ret.push.apply(ret, await getRefLectureListForCategory(year, semester, category));
     }
     return ret;
 }
