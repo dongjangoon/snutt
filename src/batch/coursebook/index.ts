@@ -1,10 +1,3 @@
-/**
- * fetch.rb로부터 긁어온 txt 파일을 읽어 몽고 디비에 입력합니다.
- * $ node import_txt 2016 1
- * 
- * @author Hyeungshik Jung, zxzl@github
- * @author Jang Ryeol, ryeolj5911@gmail.com
- */
 require('module-alias/register')
 require('@app/batch/config/log');
 require('@app/core/config/mongo');
@@ -89,6 +82,9 @@ export async function fetchAndInsert(year: number, semesterIndex: number, fcm_en
   logger.info("Sending notifications...");
   await notifyUpdated(year, semesterIndex, compared, fcm_enabled);
 
+  // TODO: 현재 모든 강의를 지우고 다시 삽입하는 형식으로는
+  // 순단이 생길 수 밖에 없음
+  // 하나하나씩 지우고 삽입 필요
   await RefLectureService.removeBySemester(year, semesterIndex);
   logger.info("Removed existing lecture for this semester");
 

@@ -82,12 +82,13 @@ export function timeJsonToMask(timeJson:Array<TimePlace>, duplicateCheck?:boolea
         var dayIdx = Number(lecture.day);
         var end = Number(lecture.start) + Number(lecture.len);
         if (Number(lecture.len) <= 0) throw new InvalidLectureTimeJsonError();
-        if (lecture.start >= 15) logger.warn("timeJsonToMask: lecture start bigger than 15");
+        if (lecture.start < 0) logger.warn("timeJsonToMask: lecture start less than 0");
+        if (lecture.start > 14) logger.warn("timeJsonToMask: lecture start bigger than 14");
         if (duplicateCheck) {
-        for (var i = lecture.start * 2; i < end*2; i++) {
-            if (bitTable2D[dayIdx][i]) throw new LectureTimeOverlapError();
-            bitTable2D[dayIdx][i] = 1;
-        }
+            for (var i = lecture.start * 2; i < end*2; i++) {
+                if (bitTable2D[dayIdx][i]) throw new LectureTimeOverlapError();
+                bitTable2D[dayIdx][i] = 1;
+            }
         } else {
             for (var i = lecture.start * 2; i < end*2; i++) {
                 bitTable2D[dayIdx][i] = 1;

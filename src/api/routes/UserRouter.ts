@@ -1,7 +1,3 @@
-/**
- * routes/api/user.js
- * API for User CRUD
- */
 import express = require('express');
 import log4js = require('log4js');
 
@@ -28,13 +24,13 @@ router.put('/info', async function (req, res, next) {
   let context: RequestContext = req['context'];
   let user:User = context.user;
   try {
-    if (req.body.email) 
+    if (req.body.email) {
       await UserService.setUserInfo(user, req.body.email);
+    }
   } catch (err) {
     logger.error(err);
     return res.status(500).json({errcode: errcode.SERVER_FAULT, messsage:"server fault"});
   }
-
   res.json({message:"ok"});
 });
 
