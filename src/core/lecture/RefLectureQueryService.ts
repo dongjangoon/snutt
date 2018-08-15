@@ -207,13 +207,6 @@ export async function extendedSearch(lquery: LectureQuery): Promise<RefLecture[]
   }
   mquery["$or"] = [ {course_title : mquery["course_title"]}, {$and : andQueryList} ];
 
-  /*
-   * Course title can be in the subchunk of the keyword.
-   * ex) '컴공 논설실' => '논리설계실험'
-   * We have to reset course_title regex to find those.
-   */
-  delete mquery["course_title"];
-
   var offset, limit;
   if (!lquery.offset) offset = 0;
   else offset = lquery.offset;
