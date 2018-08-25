@@ -1,10 +1,10 @@
-import errcode = require('@app/api/errcode');
 import * as log4js from 'log4js';
 
 import RefLectureService = require('./RefLectureService');
 import RefLectureQueryEtcTagService = require('./RefLectureQueryEtcTagService');
 import RefLectureQueryLogRepository = require('./RefLectureQueryLogRepository');
 import RefLecture from './model/RefLecture';
+import InvalidLectureTimemaskError from './error/InvalidLectureTimemaskError';
 var logger = log4js.getLogger();
 
 //something similar to LIKE query in SQL
@@ -50,7 +50,7 @@ export type LectureQuery = {
 /**
  * 라우터에서 전송받은 Body를 mongo query로 변환
  */
-async function toMongoQuery(lquery:LectureQuery): Promise<Object> {
+function toMongoQuery(lquery:LectureQuery): Object {
   var mquery = {}; // m for Mongo
   mquery["year"] = lquery.year;
   mquery["semester"] = lquery.semester;
@@ -71,7 +71,9 @@ async function toMongoQuery(lquery:LectureQuery): Promise<Object> {
   if (lquery.department && lquery.department.length) // in this case result should be sorted by departments
     mquery["department"] = { $in : lquery.department };
   if (lquery.time_mask) {
-    if (lquery.time_mask.length != 7) return Promise.reject(errcode.INVALID_TIMEMASK);
+    if (lquery.time_mask.length != 7) {
+      throw new InvalidLectureTimemaskError();
+    }
     /**
      * 시간이 아예 입력되지 않은 강의는 제외
      * 시간 검색의 의미에 잘 맞지 않는다고 판단, 제외했음
@@ -107,8 +109,8 @@ async function toMongoQuery(lquery:LectureQuery): Promise<Object> {
  * Course title을 분석하여
  * 전공, 학과, 학년 등의 정보를 따로 뽑아냄.
  */
-export async function extendedSearch(lquery: LectureQuery): Promise<RefLecture[]> {
-  var mquery = await toMongoQuery(lquery);
+export function extendedSearch(lquery: LectureQuery): Promise<RefLecture[]> {
+  var mquery = toMongoQuery(lquery);
 
   var offset, limit;
   if (!lquery.offset) offset = 0;
@@ -116,8 +118,5 @@ export async function extendedSearch(lquery: LectureQuery): Promise<RefLecture[]
   if (!lquery.limit) limit = 20;
   else limit = lquery.limit;
 
-  return RefLectureService.query(mquery, limit, offset).catch(function(err){
-      logger.error(err);
-      return Promise.reject(errcode.SERVER_FAULT);
-    });
+  return RefLectureService.query(mquery, limit, offset);
 }
