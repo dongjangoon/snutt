@@ -8,12 +8,12 @@ import ObjectUtil = require('@app/core/common/util/ObjectUtil');
 
 import log4js = require('log4js');
 import LectureTimeOverlapError from '@app/core/timetable/error/LectureTimeOverlapError';
-var logger = log4js.getLogger();
+let logger = log4js.getLogger();
 
 export async function notifyUpdated(year:number, semesterIndex:number, diff:LectureDiff,
     fcm_enabled:boolean):Promise<void> {
-  var num_updated_per_user: {[key: string]: number} = {}
-  var num_removed_per_user: {[key: string]: number} = {}
+  let num_updated_per_user: {[key: string]: number} = {}
+  let num_removed_per_user: {[key: string]: number} = {}
 
   async function processUpdated(updated_lecture) {
     let timetables = await TimetableService.getHavingLecture(
@@ -21,7 +21,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
 
     for (let i=0; i<timetables.length; i++) {
       let timetable = timetables[i];
-      var noti_detail = {
+      let noti_detail = {
         timetable_id : timetable._id,
         lecture : updated_lecture
       };
@@ -71,7 +71,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
 
     for (let i=0; i<timetables.length; i++) {
       let timetable = timetables[i];
-      var noti_detail = {
+      let noti_detail = {
         timetable_id : timetable._id,
         lecture : removed_lecture
       };
@@ -98,21 +98,22 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
   }
 
   async function sendFcm() {
-      var users = [];
-      for (var user_id in Object.keys(num_updated_per_user)) {
+      let users = [];
+      for (let user_id in Object.keys(num_updated_per_user)) {
         users.push(user_id);
       }
 
-      for (var user_id in Object.keys(num_removed_per_user)) {
+      for (let user_id in Object.keys(num_removed_per_user)) {
         if (user_id in Object.keys(num_updated_per_user)) continue;
         users.push(user_id);
       }
 
-      for (var i=0; i<users.length; i++) {
-        logger.info(i + "th user fcm");
-        var updated_num = num_updated_per_user[user_id];
-        var removed_num = num_removed_per_user[user_id];
-        var msg;
+      for (let i=0; i<users.length; i++) {
+        let user_id = users[i];
+        logger.info((i + 1) + "th user fcm");
+        let updated_num = num_updated_per_user[user_id];
+        let removed_num = num_removed_per_user[user_id];
+        let msg;
         if (updated_num & removed_num)
           msg = "수강편람이 업데이트되어 "+updated_num+"개 강의가 변경되고 "+removed_num+"개 강의가 삭제되었습니다.";
         else if (updated_num)
@@ -122,10 +123,21 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
         else
           continue;
 
-        let user = await UserService.getByMongooseId(users[i]);
+        let user = await UserService.getByMongooseId(user_id);
 
-        if (user && user.fcmKey) {
+        if (!user) {
+          logger.warn("user not found");
+          continue;
+        }
+
+        if (!user.fcmKey) {
+          logger.warn("user has no fcmKey");
+          continue;
+        }
+        try {
           await NotificationService.sendFcmMsg(user, "수강편람 업데이트", msg, "batch/coursebook", "lecture updated");
+        } catch (err) {
+          logger.error("Failed to send update fcm: {}", err);
         }
       }
   }

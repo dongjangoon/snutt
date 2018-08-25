@@ -17,13 +17,6 @@ function like(str: string, matchStartChar?: boolean): string {
   return joined;
 }
 
-function isHangulCode(c:number) {
-  if( 0x1100<=c && c<=0x11FF ) return true;
-  if( 0x3130<=c && c<=0x318F ) return true;
-  if( 0xAC00<=c && c<=0xD7A3 ) return true;
-  return false;
-}
-
 export function addQueryLogAsync(query) {
   RefLectureQueryLogRepository.insert(query).catch(function(err) {
     logger.error("addQueryLogAsync failed : " + err);
@@ -32,24 +25,6 @@ export function addQueryLogAsync(query) {
 
 export function removeQueryLogBeforeTimestamp(timestamp: number): Promise<void> {
   return RefLectureQueryLogRepository.deleteBeforeTimestamp(timestamp);
-}
-
-function isHangulInString(str:string) {
-  for (let i=0; i<str.length; i++) {
-    let code = str.charCodeAt(i);
-    if (isHangulCode(code)) return true;
-  }
-  return false;
-}
-
-/*
- * Find like ??학점
- */
-const creditRegex = /^(\d+)학점$/;
-function getCreditFromString(str:string): number {
-  let result = str.match(creditRegex);
-  if (result) return Number(result[1]);
-  else return null;
 }
 
 /**
@@ -116,6 +91,15 @@ async function toMongoQuery(lquery:LectureQuery): Promise<Object> {
     });
   }
 
+  if (lquery.etc) {
+    mquery = {
+      $and : [
+        mquery,
+        RefLectureQueryEtcTagService.getEtcTagMQuery(lquery.etc)
+      ]
+    }
+  }
+
   return mquery;
 }
 
@@ -126,91 +110,14 @@ async function toMongoQuery(lquery:LectureQuery): Promise<Object> {
 export async function extendedSearch(lquery: LectureQuery): Promise<RefLecture[]> {
   var mquery = await toMongoQuery(lquery);
 
-  if (lquery.title) {
-    let extendedQuery = makeExtendedQueryFromTitle(lquery.title);
-    mquery["$or"] = [ {course_title : mquery["course_title"]}, extendedQuery ];
-    delete mquery["course_title"];
-  }
-
-  if (lquery.etc) {
-    mquery = {
-      $and : [
-        mquery,
-        RefLectureQueryEtcTagService.getEtcTagMQuery(lquery.etc)
-      ]
-    }
-  }
-
   var offset, limit;
   if (!lquery.offset) offset = 0;
   else offset = lquery.offset;
   if (!lquery.limit) limit = 20;
   else limit = lquery.limit;
 
-  logger.error(JSON.stringify(mquery));
-
   return RefLectureService.query(mquery, limit, offset).catch(function(err){
       logger.error(err);
       return Promise.reject(errcode.SERVER_FAULT);
     });
-}
-
-function makeExtendedQueryFromTitle(title: string) {
-  var andQueryList = [];
-  var words = title.split(' ');
-  for(let i=0; i<words.length; i++) {
-    var orQueryList = [];
-
-    var result;
-    if (words[i] == '전공') {
-      /* 전공은 전선 혹은 전필 */
-      orQueryList.push({ classification : { $in: [ "전선", "전필" ] } });
-    } else if (words[i] == '석박' || words[i] == '대학원') {
-      /*
-       * 아래에서 classification은 like query가 아니므로 '석박'으로 검색하면 결과가 안나옴.
-       */
-      orQueryList.push({ academic_year : { $in : ["석사", "박사", "석박사통합"] } });
-    } else if (words[i] == '학부' || words[i] == '학사') {
-      orQueryList.push({ academic_year : { $nin : ["석사", "박사", "석박사통합"] } });
-    } else if (result = getCreditFromString(words[i])) {
-      /*
-       * LectureModel에는 학점이 정수로 저장됨.
-       * '1학점' '3학점'과 같은 단어에서 학점을 정규식으로 추출
-       */
-      orQueryList.push({ credit : result });
-    } else if (isHangulInString(words[i])) {
-      let regex = like(words[i], true);
-      orQueryList.push({ course_title : { $regex: regex, $options: 'i' } });
-      /*
-       * 교수명을 regex로 처리하면 '수영' -> 김수영 교수님의 강좌, 조수영 교수님의 강좌와 같이
-       * 원치 않는 결과가 나옴
-       */
-      orQueryList.push({ instructor : words[i] });
-      orQueryList.push({ category : { $regex: regex, $options: 'i' } });
-
-      /*
-       * '컴공과', '전기과' 등으로 검색할 때, 실제 학과명은 '컴퓨터공학부', '전기공학부'이므로
-       * 검색이 안됨. 만약 '과' 혹은 '부'로 끝나는 단어라면 regex의 마지막 단어를 빼버린다.
-       */
-      var lastChar = words[i].charAt(words[i].length - 1);
-      if (lastChar == '과' || lastChar == '부') {
-        orQueryList.push({ department : { $regex: '^'+regex.slice(0, -1), $options: 'i' } });
-      } else {
-        orQueryList.push({ department : { $regex: '^'+regex, $options: 'i' } });
-      }
-      orQueryList.push({ classification : words[i] });
-      orQueryList.push({ academic_year : words[i] });
-    } else {
-      /* 한국인이므로 영문은 약자로 입력하지 않는다고 가정 */
-      let regex = words[i];
-      orQueryList.push({ course_title : { $regex: regex, $options: 'i' } });
-      /* 영문 이름의 교수는 성이나 이름만 입력하는 경우가 많음 */
-      orQueryList.push({ instructor : { $regex: regex, $options: 'i' } });
-      orQueryList.push({ course_number : words[i] });
-      orQueryList.push({ lecture_number : words[i] });
-    }
-    
-    andQueryList.push({"$or" : orQueryList});
-  }
-  return {"$and": andQueryList};
 }
