@@ -8,12 +8,11 @@ import InvalidLectureTimemaskError from './error/InvalidLectureTimemaskError';
 var logger = log4js.getLogger();
 
 //something similar to LIKE query in SQL
-function like(str: string, matchStartChar?: boolean): string {
+function makeTitleRegEx(str: string): string {
   //replace every character(eg. 'c') to '.*c', except for first character
   var cstr = str.split("");
   cstr = cstr.filter(x => x !== ' ');
-  var joined = cstr.join('[^()]*');
-  if (matchStartChar) joined = '^'+joined;
+  var joined = '^' + cstr.join('[^()]*');
   return joined;
 }
 
@@ -55,7 +54,7 @@ function toMongoQuery(lquery:LectureQuery): Object {
   mquery["year"] = lquery.year;
   mquery["semester"] = lquery.semester;
   if (lquery.title)
-    mquery["course_title"] = { $regex: like(lquery.title, true), $options: 'i' };
+    mquery["course_title"] = { $regex: makeTitleRegEx(lquery.title), $options: 'i' };
   if (lquery.credit && lquery.credit.length)
     mquery["credit"] = { $in: lquery.credit };
   if (lquery.instructor && lquery.instructor.length)
