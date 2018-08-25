@@ -15,8 +15,9 @@ var TagListSchema = new mongoose.Schema({
     academic_year: {type: [String]},
     credit: {type: [String]},
     instructor: {type: [String]},
-    category: {type: [String]}
-    }
+    category: {type: [String]},
+    etc: {type: [String]},
+  }
 });
 
 TagListSchema.index({year: 1, semester: 1});

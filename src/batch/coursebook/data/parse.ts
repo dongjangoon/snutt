@@ -1,4 +1,5 @@
 import RefLecture from '@app/core/lecture/model/RefLecture';
+import TagListEtcTagService = require('@app/core/taglist/TagListEtcTagService');
 import * as log4js from 'log4js';
 var logger = log4js.getLogger();
 
@@ -8,7 +9,8 @@ export type TagStruct = {
   academic_year : string[],
   credit : string[],
   instructor : string[],
-  category : string[]
+  category : string[],
+  etc: string[]
 };
 
 export function parseTagFromLectureList(lines:RefLecture[]): TagStruct {
@@ -18,7 +20,8 @@ export function parseTagFromLectureList(lines:RefLecture[]): TagStruct {
     academic_year : [],
     credit : [],
     instructor : [],
-    category : []
+    category : [],
+    etc: TagListEtcTagService.getEtcTagList()
   };
   for (let i=0; i<lines.length; i++) {
     var line = lines[i];
@@ -29,10 +32,10 @@ export function parseTagFromLectureList(lines:RefLecture[]): TagStruct {
       academic_year : line.academic_year,
       credit : line.credit+'학점',
       instructor : line.instructor,
-      category : line.category
+      category : line.category,
     };
 
-    for (let key in tags) {
+    for (let key in new_tag) {
       if (tags.hasOwnProperty(key)){
         var existing_tag = null;
         for (let j=0; j<tags[key].length; j++) {
@@ -43,8 +46,8 @@ export function parseTagFromLectureList(lines:RefLecture[]): TagStruct {
         }
         if (existing_tag === null) {
           if (new_tag[key] === undefined) {
-            console.log(key);
-            console.log(line);
+            logger.error(key);
+            logger.error(line);
           }
           if (new_tag[key].length < 2) continue;
           tags[key].push(new_tag[key]);
