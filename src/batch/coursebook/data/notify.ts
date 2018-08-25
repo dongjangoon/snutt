@@ -12,8 +12,26 @@ let logger = log4js.getLogger();
 
 export async function notifyUpdated(year:number, semesterIndex:number, diff:LectureDiff,
     fcm_enabled:boolean):Promise<void> {
-  let num_updated_per_user: {[key: string]: number} = {}
-  let num_removed_per_user: {[key: string]: number} = {}
+  let userIdNumUpdatedMap: Map<string, number> = new Map();
+  let userIdNumRemovedMap: Map<string, number> = new Map();
+
+  function incrementUpdated(userId: string) {
+    let oldValue = userIdNumUpdatedMap.get(userId);
+    if (oldValue) {
+      userIdNumUpdatedMap.set(userId, oldValue + 1);
+    } else {
+      userIdNumUpdatedMap.set(userId, 1);
+    }
+  }
+
+  function incrementRemoved(userId: string) {
+    let oldValue = userIdNumRemovedMap.get(userId);
+    if (oldValue) {
+      userIdNumRemovedMap.set(userId, oldValue + 1);
+    } else {
+      userIdNumRemovedMap.set(userId, 1);
+    }
+  }
 
   async function processUpdated(updated_lecture) {
     let timetables = await TimetableService.getHavingLecture(
@@ -33,8 +51,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
         let userLecture = ObjectUtil.deepCopy(updated_lecture.after);
         userLecture._id = lectureId;
         await TimetableLectureService.partialModifyUserLecture(timetable.user_id, timetable._id, userLecture);
-        if (num_updated_per_user[timetable.user_id]) num_updated_per_user[timetable.user_id]++;
-        else num_updated_per_user[timetable.user_id] = 1;
+        incrementUpdated(timetable.user_id);
         await NotificationService.add({
           user_id: timetable.user_id,
           message: "'"+timetable.title+"' 시간표의 '"+updated_lecture.course_title+"' 강의가 업데이트 되었습니다.",
@@ -45,8 +62,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
       } catch (err) {
         if (err instanceof LectureTimeOverlapError) {
           await TimetableLectureService.removeLecture(timetable.user_id, timetable._id, lectureId);
-          if (num_removed_per_user[timetable.user_id]) num_removed_per_user[timetable.user_id]++;
-          else num_removed_per_user[timetable.user_id] = 1; 
+          incrementRemoved(timetable.user_id);
           await NotificationService.add({
             user_id: timetable.user_id,
             message: "'"+timetable.title+"' 시간표의 '"+updated_lecture.course_title+
@@ -80,8 +96,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
         timetable, removed_lecture.course_number, removed_lecture.lecture_number)._id;
 
       await TimetableLectureService.removeLecture(timetable.user_id, timetable._id, lectureId);
-      if (num_removed_per_user[timetable.user_id]) num_removed_per_user[timetable.user_id]++;
-      else num_removed_per_user[timetable.user_id] = 1; 
+      incrementRemoved(timetable.user_id);
       await NotificationService.add({
         user_id: timetable.user_id,
         message: "'"+timetable.title+"' 시간표의 '"+removed_lecture.course_title+"' 강의가 폐강되어 삭제되었습니다.",
@@ -98,32 +113,34 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
   }
 
   async function sendFcm() {
-      let users = [];
-      for (let user_id in Object.keys(num_updated_per_user)) {
-        users.push(user_id);
+      let users: Set<string> = new Set();
+
+      for (let userId of userIdNumRemovedMap.keys()) {
+        users.add(userId);
       }
 
-      for (let user_id in Object.keys(num_removed_per_user)) {
-        if (user_id in Object.keys(num_updated_per_user)) continue;
-        users.push(user_id);
+      for (let userId of userIdNumUpdatedMap.keys()) {
+        users.add(userId);
       }
 
-      for (let i=0; i<users.length; i++) {
-        let user_id = users[i];
-        logger.info((i + 1) + "th user fcm");
-        let updated_num = num_updated_per_user[user_id];
-        let removed_num = num_removed_per_user[user_id];
+      let index = 1;
+      for (let userId of users) {
+        logger.info((index++) + "th user fcm");
+        let updated_num = userIdNumUpdatedMap.get(userId);
+        let removed_num = userIdNumRemovedMap.get(userId);
         let msg;
-        if (updated_num & removed_num)
+        if (updated_num & removed_num) {
           msg = "수강편람이 업데이트되어 "+updated_num+"개 강의가 변경되고 "+removed_num+"개 강의가 삭제되었습니다.";
-        else if (updated_num)
+        } else if (updated_num) {
           msg = "수강편람이 업데이트되어 "+updated_num+"개 강의가 변경되었습니다.";
-        else if (removed_num)
+        } else if (removed_num) {
           msg = "수강편람이 업데이트되어 "+removed_num+"개 강의가 삭제되었습니다.";
-        else
+        } else {
+          logger.error("Both updated_num and removed_num is undefined");
           continue;
+        }
 
-        let user = await UserService.getByMongooseId(user_id);
+        let user = await UserService.getByMongooseId(userId);
 
         if (!user) {
           logger.warn("user not found");
