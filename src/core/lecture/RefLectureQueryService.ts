@@ -156,7 +156,7 @@ export async function getLectureListByQueryWithCache(lquery: LectureQuery): Prom
       return cached.slice(lquery.offset, lquery.offset + lquery.limit);
     } else {
       let lectureList = await getAllLectureListByQuery(lquery);
-      await RefLectureQueryCacheRepository.setLectureListCache(lquery.year, lquery.semester, lquery.title, lectureList);
+      RefLectureQueryCacheRepository.setLectureListCache(lquery.year, lquery.semester, lquery.title, lectureList);
       return lectureList.slice(lquery.offset, lquery.offset + lquery.limit);
     }
   } else {
