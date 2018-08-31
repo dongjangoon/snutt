@@ -1,3 +1,3 @@
-export function getLectureQueryKey(queryString: string) {
-    return "lq-" + queryString;
+export function getLectureQueryKey(year: number, semester: number, queryString: string) {
+    return "lq-" + year + "-" + semester + "-" + queryString;
 }

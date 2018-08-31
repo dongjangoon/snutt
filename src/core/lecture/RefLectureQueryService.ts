@@ -151,12 +151,12 @@ export async function getLectureListByQueryWithCache(lquery: LectureQuery): Prom
   if (!lquery.limit) lquery.limit = 20;
   if (!lquery.offset) lquery.offset = 0;
   if (isTitleOnlyQuery(lquery) && lquery.title) {
-    let cached = await RefLectureQueryCacheRepository.getLectureListCache(lquery.title);
+    let cached = await RefLectureQueryCacheRepository.getLectureListCache(lquery.year, lquery.semester, lquery.title);
     if (cached !== null) {
       return cached.slice(lquery.offset, lquery.offset + lquery.limit);
     } else {
       let lectureList = await getAllLectureListByQuery(lquery);
-      await RefLectureQueryCacheRepository.setLectureListCache(lquery.title, lectureList);
+      await RefLectureQueryCacheRepository.setLectureListCache(lquery.year, lquery.semester, lquery.title, lectureList);
       return lectureList.slice(lquery.offset, lquery.offset + lquery.limit);
     }
   } else {

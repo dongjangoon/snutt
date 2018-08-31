@@ -15,6 +15,41 @@ function checkRedisClient() {
     }
 }
 
+export async function pollRedisClient(): Promise<redis.RedisClient> {
+    if (redisClient) return redisClient;
+
+    function checkRedisClientTimeoutWithoutReject(timeout: number) {
+        return new Promise<redis.RedisClient>(function(resolve, reject) {
+            setTimeout(async function() {
+                try {
+                    checkRedisClient();
+                    resolve(redisClient);
+                } catch (err) {
+                }
+            }, timeout);
+        })
+    }
+
+    function checkRedisClientTimeout(timeout: number) {
+        return new Promise<redis.RedisClient>(function(resolve, reject) {
+            setTimeout(async function() {
+                try {
+                    checkRedisClient();
+                    resolve(redisClient);
+                } catch (err) {
+                    reject(err);
+                }
+            }, timeout);
+        })
+    }
+
+    return await Promise.race([
+        checkRedisClientTimeoutWithoutReject(100),
+        checkRedisClientTimeoutWithoutReject(200),
+        checkRedisClientTimeoutWithoutReject(500),
+        checkRedisClientTimeout(1000)]);
+}
+
 export function configGet(key: string): Promise<string> {
     checkRedisClient();
     return new Promise(function (resolve, reject) {

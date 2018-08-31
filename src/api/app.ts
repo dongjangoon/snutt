@@ -17,6 +17,7 @@ import http = require('http');
 import log4js = require('log4js');
 
 import RootRouter = require('@app/api/routes/RootRouter');
+import RedisUtil = require('@app/core/redis/RedisUtil');
 import property = require('@app/core/config/property');
 
 var logger = log4js.getLogger();
@@ -140,5 +141,10 @@ function onListening() {
     : 'port ' + addr.port;
   logger.debug('Listening on ' + bind);
 }
+
+RedisUtil.pollRedisClient().then(function() {
+  logger.info('Flushing all redis data');
+  RedisUtil.flushall();
+});
 
 export = app;

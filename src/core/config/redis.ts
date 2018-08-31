@@ -12,9 +12,6 @@ client.on('connect', async function() {
     logger.info('Redis client connected');
     global['redisClient'] = client;
 
-    logger.info('Flushing all redis data');
-    await RedisUtil.flushall();
-
     let maxmemory = await RedisUtil.configGet('maxmemory');
     let maxmemoryPolicy = await RedisUtil.configGet('maxmemory-policy');
     logger.info("Redis maxmemory: " + maxmemory);

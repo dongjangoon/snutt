@@ -11,6 +11,7 @@ import NotificationService = require('@app/core/notification/NotificationService
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
 import TagListService = require('@app/core/taglist/TagListService');
 import SugangSnuService = require('./sugangsnu/SugangSnuService');
+import RedisUtil = require('@app/core/redis/RedisUtil');
 import * as log4js from 'log4js';
 import SimpleJob from '../common/SimpleJob';
 var logger = log4js.getLogger();
@@ -122,6 +123,9 @@ export async function fetchAndInsert(year: number, semesterIndex: number, fcm_en
   } else {
     await CourseBookService.modifyUpdatedAt(existingDoc, new Date());
   }
+
+  logger.info('Flushing all redis data');
+  await RedisUtil.flushall();
   return;
 }
 
