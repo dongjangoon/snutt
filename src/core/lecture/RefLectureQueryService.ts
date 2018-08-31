@@ -1,4 +1,5 @@
 import * as log4js from 'log4js';
+import RefLectureQueryCacheRepository = require('@app/core/lecture/RefLectureQueryCacheRepository');
 
 import RefLectureService = require('./RefLectureService');
 import RefLectureQueryEtcTagService = require('./RefLectureQueryEtcTagService');
@@ -134,16 +135,6 @@ function toMongoQuery(lquery:LectureQuery): Object {
     }
   }
 
-  return mquery;
-}
-
-/**
- * Course title을 분석하여
- * 전공, 학과, 학년 등의 정보를 따로 뽑아냄.
- */
-export function getLectureListByQuery(lquery: LectureQuery): Promise<RefLecture[]> {
-  var mquery = toMongoQuery(lquery);
-
   if (lquery.title) {
     mquery = {
       $or: [
@@ -153,13 +144,53 @@ export function getLectureListByQuery(lquery: LectureQuery): Promise<RefLecture[
     }
   }
 
-  var offset, limit;
-  if (!lquery.offset) offset = 0;
-  else offset = lquery.offset;
-  if (!lquery.limit) limit = 20;
-  else limit = lquery.limit;
+  return mquery;
+}
 
+export async function getLectureListByQueryWithCache(lquery: LectureQuery): Promise<RefLecture[]> {
+  if (!lquery.limit) lquery.limit = 20;
+  if (!lquery.offset) lquery.offset = 0;
+  if (isTitleOnlyQuery(lquery)) {
+    let cached = await RefLectureQueryCacheRepository.getLectureListCache(lquery.title);
+    if (cached !== null) {
+      return cached.slice(lquery.offset, lquery.offset + lquery.limit);
+    } else {
+      let lectureList = await getAllLectureListByQuery(lquery);
+      await RefLectureQueryCacheRepository.setLectureListCache(lquery.title, lectureList);
+      return lectureList.slice(lquery.offset, lquery.offset + lquery.limit);
+    }
+  } else {
+    return await getLectureListByQuery(lquery, lquery.limit, lquery.offset);
+  }
+}
+
+function getLectureListByQuery(lquery: LectureQuery, limit: number, offset: number): Promise<RefLecture[]> {
+  var mquery = toMongoQuery(lquery);
   return RefLectureService.query(mquery, limit, offset);
+}
+
+function getAllLectureListByQuery(lquery: LectureQuery): Promise<RefLecture[]> {
+  var mquery = toMongoQuery(lquery);
+  return RefLectureService.queryAll(mquery);
+}
+
+function isTitleOnlyQuery(lquery: LectureQuery): boolean {
+  for (let key in lquery) {
+    if (lquery.hasOwnProperty(key)) {
+      if (key === 'year' || key === 'semester' || key === 'title' || key === 'offset' || key === 'limit') {
+        continue;
+      } else {
+        if (!isEmptyArray(lquery[key])) {
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+
+function isEmptyArray(array: any[]): boolean {
+  return array === null || array === undefined || (typeof array.length === 'number' && array.length === 0);
 }
 
 /**

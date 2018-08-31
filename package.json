@@ -21,6 +21,7 @@
     "@types/mongoose": "^4.7.2",
     "@types/morgan": "^1.7.32",
     "@types/node": "^6.0.55",
+    "@types/redis": "^2.8.6",
     "@types/request": "^2.0.0",
     "@types/request-promise-native": "~1.0.6",
     "@types/rewire": "^2.5.28",

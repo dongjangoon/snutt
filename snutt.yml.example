@@ -10,3 +10,5 @@ feedback2github:
   token: testapikey
   repo_owner: wafflestudio
   repo_name: snutt-feedbacks
+redis:
+  port: 16379

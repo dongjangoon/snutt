@@ -5,6 +5,10 @@ export function query(query: any, limit: number, offset: number): Promise<RefLec
     return RefLectureRepository.query(query, limit, offset);
 }
 
+export function queryAll(query: any): Promise<RefLecture[]> {
+    return RefLectureRepository.queryAll(query);
+}
+
 export function getByMongooseId(mongooseId: string): Promise<RefLecture> {
     return RefLectureRepository.findByMongooseId(mongooseId);
 }

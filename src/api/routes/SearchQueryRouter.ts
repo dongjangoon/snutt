@@ -14,7 +14,7 @@ router.post('/', async function(req, res, next) {
   var query: any = req.body;
   try {
     RefLectureQueryService.addQueryLogAsync(query);
-    var lectures = await RefLectureQueryService.getLectureListByQuery(query);
+    var lectures = await RefLectureQueryService.getLectureListByQueryWithCache(query);
     return res.json(lectures);
   } catch (err) {
     if (err instanceof InvalidLectureTimemaskError) {

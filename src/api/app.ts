@@ -4,6 +4,7 @@
  */
 require('module-alias/register');
 require('@app/core/config/mongo');
+require('@app/core/config/redis');
 require('@app/api/config/log');
 
 import express = require("express");

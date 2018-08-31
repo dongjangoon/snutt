@@ -23,5 +23,6 @@ export = {
     feedback2github_token: config.feedback2github.token,
     feedback2github_repo_name: config.feedback2github.repo_name,
     feedback2github_repo_owner: config.feedback2github.repo_owner,
-    mongoUri: config.mongo
+    mongoUri: config.mongo,
+    redisPort: config.redis.port
 };
