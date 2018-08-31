@@ -155,9 +155,15 @@ export async function getLectureListByQueryWithCache(lquery: LectureQuery): Prom
     if (cached !== null) {
       return cached.slice(lquery.offset, lquery.offset + lquery.limit);
     } else {
-      let lectureList = await getAllLectureListByQuery(lquery);
-      RefLectureQueryCacheRepository.setLectureListCache(lquery.year, lquery.semester, lquery.title, lectureList);
-      return lectureList.slice(lquery.offset, lquery.offset + lquery.limit);
+      let toBeReturnedPromise = getLectureListByQuery(lquery, lquery.limit, lquery.offset);
+      // Cache 설정은 기다리지 않는다
+      getAllLectureListByQuery(lquery).then(function(lectureList) {
+        RefLectureQueryCacheRepository.setLectureListCache(lquery.year, lquery.semester, lquery.title, lectureList);
+      }).catch(function(err){
+        logger.error(err);
+      });
+      // Cache 없이 검색한 결과를 미리 반환한다
+      return await toBeReturnedPromise;
     }
   } else {
     return await getLectureListByQuery(lquery, lquery.limit, lquery.offset);
