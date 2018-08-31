@@ -42,6 +42,12 @@ export async function query(query, limit, offset): Promise<RefLecture[]> {
   return docs.map(fromMongoose);
 }
 
+export async function queryAll(query): Promise<RefLecture[]> {
+  let docs = await mongooseModel.find(query).sort('course_title')
+    .exec();
+  return docs.map(fromMongoose);
+}
+
 export async function findByCourseNumber
     (year: number, semester: number, courseNumber: string, lectureNumber: string): Promise<RefLecture> {
   let doc = await mongooseModel.findOne({'year': year, 'semester': semester,
