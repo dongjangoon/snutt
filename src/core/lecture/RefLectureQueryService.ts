@@ -144,7 +144,6 @@ function toMongoQuery(lquery:LectureQuery): Object {
 export function getLectureListByQuery(lquery: LectureQuery): Promise<RefLecture[]> {
   var mquery = toMongoQuery(lquery);
 
-
   if (lquery.title) {
     mquery = {
       $or: [
@@ -163,6 +162,9 @@ export function getLectureListByQuery(lquery: LectureQuery): Promise<RefLecture[
   return RefLectureService.query(mquery, limit, offset);
 }
 
+/**
+ * 타이틀로부터 정보를 뽑아내어 상세 검색을 돕는다
+ */
 function makeSearchQueryFromTitle(title: string): Object {
   var words = title.split(' ');	
   var andQueryList = [];	
@@ -179,6 +181,11 @@ function makeSearchQueryFromTitle(title: string): Object {
       orQueryList.push({ academic_year : { $in : ["석사", "박사", "석박사통합"] } });	
     } else if (words[i] == '학부' || words[i] == '학사') {	
       orQueryList.push({ academic_year : { $nin : ["석사", "박사", "석박사통합"] } });	
+    } else if (words[i] == '체육') {
+      /**
+       * 체육 교양 검색하려다가 체교과 전공 넣는 수가 있다
+       */
+      orQueryList.push({ category: '체육'});
     } else if (result = getCreditFromString(words[i])) {	
       /*	
        * LectureModel에는 학점이 정수로 저장됨.	
