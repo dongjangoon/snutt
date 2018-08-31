@@ -154,7 +154,7 @@ export async function getLectureListByQueryWithCache(lquery: LectureQuery): Prom
     let cached = await RefLectureQueryCacheRepository.getLectureListCache(
       lquery.year, lquery.semester, lquery.title, lquery.limit, lquery.offset);
     if (cached !== null) {
-      return cached.slice(lquery.offset, lquery.offset + lquery.limit);
+      return cached;
     } else {
       return await cacheLectureListByQuery(lquery, lquery.limit, lquery.offset);
     }
@@ -170,12 +170,13 @@ function getLectureListByQuery(lquery: LectureQuery, limit: number, offset: numb
 
 async function cacheLectureListByQuery(lquery: LectureQuery, limit: number, offset: number): Promise<RefLecture[]> {
   const preCacheSize = 10;
-  let lectureList = await getLectureListByQuery(lquery, lquery.limit * preCacheSize, lquery.offset);
+  let lectureList = await getLectureListByQuery(lquery, limit * preCacheSize, offset);
 
   // Cache 없이 검색한 결과를 미리 반환한다
   for (let i=0; i < preCacheSize; i++) {
     let lectureSlice = lectureList.slice(limit * i, limit * (i+1));
-    RefLectureQueryCacheRepository.setLectureListCache(lquery.year, lquery.semester, lquery.title, limit, offset + limit * i, lectureSlice)
+    RefLectureQueryCacheRepository.setLectureListCache(
+      lquery.year, lquery.semester, lquery.title, limit, offset + limit * i, lectureSlice)
       .catch(function(err) {
         logger.error(err);
       });
