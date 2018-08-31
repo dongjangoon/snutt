@@ -83,7 +83,6 @@ export function get(key: string): Promise<string> {
             if (err) {
                 reject(err);
             } else {
-                logger.info('get ' + key);
                 resolve(value);
             }
         })
@@ -97,7 +96,6 @@ export function set(key: string, value: string): Promise<void> {
             if (err) {
                 reject(err);
             } else {
-                logger.info('set ' + key);
                 resolve();
             }
         })
