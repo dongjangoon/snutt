@@ -151,19 +151,12 @@ export async function getLectureListByQueryWithCache(lquery: LectureQuery): Prom
   if (!lquery.limit) lquery.limit = 20;
   if (!lquery.offset) lquery.offset = 0;
   if (isTitleOnlyQuery(lquery) && lquery.title) {
-    let cached = await RefLectureQueryCacheRepository.getLectureListCache(lquery.year, lquery.semester, lquery.title);
+    let cached = await RefLectureQueryCacheRepository.getLectureListCache(
+      lquery.year, lquery.semester, lquery.title, lquery.limit, lquery.offset);
     if (cached !== null) {
       return cached.slice(lquery.offset, lquery.offset + lquery.limit);
     } else {
-      let toBeReturnedPromise = getLectureListByQuery(lquery, lquery.limit, lquery.offset);
-      // Cache 설정은 기다리지 않는다
-      getAllLectureListByQuery(lquery).then(function(lectureList) {
-        RefLectureQueryCacheRepository.setLectureListCache(lquery.year, lquery.semester, lquery.title, lectureList);
-      }).catch(function(err){
-        logger.error(err);
-      });
-      // Cache 없이 검색한 결과를 미리 반환한다
-      return await toBeReturnedPromise;
+      return await cacheLectureListByQuery(lquery, lquery.limit, lquery.offset);
     }
   } else {
     return await getLectureListByQuery(lquery, lquery.limit, lquery.offset);
@@ -175,9 +168,20 @@ function getLectureListByQuery(lquery: LectureQuery, limit: number, offset: numb
   return RefLectureService.query(mquery, limit, offset);
 }
 
-function getAllLectureListByQuery(lquery: LectureQuery): Promise<RefLecture[]> {
-  var mquery = toMongoQuery(lquery);
-  return RefLectureService.queryAll(mquery);
+async function cacheLectureListByQuery(lquery: LectureQuery, limit: number, offset: number): Promise<RefLecture[]> {
+  const preCacheSize = 10;
+  let lectureList = await getLectureListByQuery(lquery, lquery.limit * preCacheSize, lquery.offset);
+
+  // Cache 없이 검색한 결과를 미리 반환한다
+  for (let i=0; i < preCacheSize; i++) {
+    let lectureSlice = lectureList.slice(limit * i, limit * (i+1));
+    RefLectureQueryCacheRepository.setLectureListCache(lquery.year, lquery.semester, lquery.title, limit, offset + limit * i, lectureSlice)
+      .catch(function(err) {
+        logger.error(err);
+      });
+  }
+
+  return lectureList.slice(0, limit);
 }
 
 function isTitleOnlyQuery(lquery: LectureQuery): boolean {
