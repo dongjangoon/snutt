@@ -150,7 +150,7 @@ function toMongoQuery(lquery:LectureQuery): Object {
 export async function getLectureListByQueryWithCache(lquery: LectureQuery): Promise<RefLecture[]> {
   if (!lquery.limit) lquery.limit = 20;
   if (!lquery.offset) lquery.offset = 0;
-  if (isTitleOnlyQuery(lquery)) {
+  if (isTitleOnlyQuery(lquery) && lquery.title) {
     let cached = await RefLectureQueryCacheRepository.getLectureListCache(lquery.title);
     if (cached !== null) {
       return cached.slice(lquery.offset, lquery.offset + lquery.limit);
