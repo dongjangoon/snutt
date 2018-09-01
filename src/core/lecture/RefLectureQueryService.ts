@@ -130,16 +130,16 @@ function toMongoQuery(lquery:LectureQuery): Object {
     mquery = {
       $and : [
         mquery,
-        RefLectureQueryEtcTagService.getEtcTagMQuery(lquery.etc)
+        RefLectureQueryEtcTagService.getEtcTagMQuery(lquery.etc),
       ]
     }
   }
 
   if (lquery.title) {
     mquery = {
-      $or: [
+      $and: [
         mquery,
-        makeSearchQueryFromTitle(lquery.title)
+        makeSearchQueryFromTitle(lquery.title),
       ]
     }
   }
