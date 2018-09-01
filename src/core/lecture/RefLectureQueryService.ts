@@ -8,6 +8,9 @@ import RefLecture from './model/RefLecture';
 import InvalidLectureTimemaskError from './error/InvalidLectureTimemaskError';
 var logger = log4js.getLogger();
 
+const CACHE_PAGE_SIZE = 20;
+const CACHE_PREFETCH_NUM_PAGE = 5;
+
 function makeLikeRegEx(str: string): string {
   //replace every character(eg. 'c') to '.*c', except for first character
   var cstr = str.split("");
@@ -143,13 +146,7 @@ export async function getLectureListByQueryWithCache(lquery: LectureQuery): Prom
   if (!lquery.limit) lquery.limit = 20;
   if (!lquery.offset) lquery.offset = 0;
   if (isTitleOnlyQuery(lquery) && lquery.title) {
-    let cached = await RefLectureQueryCacheRepository.getLectureListCache(
-      lquery.year, lquery.semester, lquery.title, lquery.limit, lquery.offset);
-    if (cached !== null) {
-      return cached;
-    } else {
-      return await cacheLectureListByQuery(lquery, lquery.limit, lquery.offset);
-    }
+    return await getCachedLectureListByLimitAndOffset(lquery, lquery.limit, lquery.offset);
   } else {
     return await getLectureListByQuery(lquery, lquery.limit, lquery.offset);
   }
@@ -160,21 +157,35 @@ function getLectureListByQuery(lquery: LectureQuery, limit: number, offset: numb
   return RefLectureService.query(mquery, limit, offset);
 }
 
-async function cacheLectureListByQuery(lquery: LectureQuery, limit: number, offset: number): Promise<RefLecture[]> {
-  const preCacheSize = 10;
-  let lectureList = await getLectureListByQuery(lquery, limit * preCacheSize, offset);
+async function getCachedLectureListByLimitAndOffset(lquery: LectureQuery, limit: number, offset: number): Promise<RefLecture[]> {
+
+  let cached = 
+  if (cached !== null) {
+    return cached;
+  } else {
+    return await setCacheLectureList(lquery, lquery.limit, lquery.offset);
+  }
+}
+
+function getCachedLectureList(lquery: LectureQuery, pageNo: number): Promise<RefLecture[]> {
+  return RefLectureQueryCacheRepository.getLectureListCache(lquery.year, lquery.semester, lquery.title, pageNo);
+}
+
+async function setCachedLectureList(lquery: LectureQuery, pageNo: number): Promise<RefLecture[]> {
+  const offset = pageNo * CACHE_PAGE_SIZE;
+  let lectureList = await getLectureListByQuery(lquery, CACHE_PAGE_SIZE * CACHE_PREFETCH_NUM_PAGE, offset);
 
   // Cache 없이 검색한 결과를 미리 반환한다
-  for (let i=0; i < preCacheSize; i++) {
-    let lectureSlice = lectureList.slice(limit * i, limit * (i+1));
+  for (let i=0; i < CACHE_PREFETCH_NUM_PAGE; i++) {
+    let lectureSlice = lectureList.slice(CACHE_PAGE_SIZE * i, CACHE_PAGE_SIZE * (i+1));
     RefLectureQueryCacheRepository.setLectureListCache(
-      lquery.year, lquery.semester, lquery.title, limit, offset + limit * i, lectureSlice)
+      lquery.year, lquery.semester, lquery.title, pageNo + i, lectureSlice)
       .catch(function(err) {
         logger.error(err);
       });
   }
 
-  return lectureList.slice(0, limit);
+  return lectureList.slice(0, CACHE_PAGE_SIZE);
 }
 
 function isTitleOnlyQuery(lquery: LectureQuery): boolean {
