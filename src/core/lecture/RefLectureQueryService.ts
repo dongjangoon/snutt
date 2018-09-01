@@ -174,16 +174,21 @@ async function getCachedLectureListByLimitAndOffset(lquery: LectureQuery, limit:
 
 async function getCachedLectureList(lquery: LectureQuery, pageLimit: number, pageOffset: number): Promise<RefLecture[]> {
   let ret: RefLecture[] = [];
+  let pageList = makeIntegerSequence(pageOffset, pageLimit);
+  let cachedList = await RefLectureQueryCacheRepository.getListOfLectureListCacheFromPageList(lquery.year, lquery.semester, lquery.title, pageList);
   for (let i = 0; i < pageLimit; i++) {
-    let cached = await RefLectureQueryCacheRepository.getLectureListCache(lquery.year, lquery.semester, lquery.title, pageOffset + i);
-    if (cached === null) {
+    if (cachedList[i] === null) {
       ret.push.apply(ret, await setCachedLectureList(lquery, pageLimit - i, pageOffset + i));
       break;
     } else {
-      ret.push.apply(ret, cached);
+      ret.push.apply(ret, cachedList[i]);
     }
   }
   return ret;
+}
+
+function makeIntegerSequence(start: number, n: number): number[] {
+  return Array.from(new Array(n), (_, index) => start + index);
 }
 
 async function setCachedLectureList(lquery: LectureQuery, pageLimit: number, pageOffset: number): Promise<RefLecture[]> {
