@@ -136,6 +136,7 @@ function toMongoQuery(lquery:LectureQuery): Object {
   }
 
   if (lquery.title) {
+    delete mquery["course_title"];
     mquery = {
       $and: [
         mquery,
