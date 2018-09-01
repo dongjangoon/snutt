@@ -8,15 +8,6 @@ import RefLecture from './model/RefLecture';
 import InvalidLectureTimemaskError from './error/InvalidLectureTimemaskError';
 var logger = log4js.getLogger();
 
-function makeTitleRegEx(str: string): string {
-  //replace every character(eg. 'c') to '.*c', except for first character
-  var cstr = str.split("");
-  cstr = cstr.filter(x => x !== ' ');
-  var joined = '^' + cstr.join('[^()]*');
-  return joined;
-}
-
-// 첫번째 글짜가 똑같을 필요가 없다
 function makeLikeRegEx(str: string): string {
   //replace every character(eg. 'c') to '.*c', except for first character
   var cstr = str.split("");
@@ -88,7 +79,7 @@ function toMongoQuery(lquery:LectureQuery): Object {
   mquery["year"] = lquery.year;
   mquery["semester"] = lquery.semester;
   if (lquery.title)
-    mquery["course_title"] = { $regex: makeTitleRegEx(lquery.title), $options: 'i' };
+    mquery["course_title"] = { $regex: makeLikeRegEx(lquery.title), $options: 'i' };
   if (lquery.credit && lquery.credit.length)
     mquery["credit"] = { $in: lquery.credit };
   if (lquery.instructor && lquery.instructor.length)
@@ -126,21 +117,21 @@ function toMongoQuery(lquery:LectureQuery): Object {
     });
   }
 
-  if (lquery.etc) {
-    mquery = {
-      $and : [
-        mquery,
-        RefLectureQueryEtcTagService.getEtcTagMQuery(lquery.etc),
-      ]
-    }
-  }
-
   if (lquery.title) {
     delete mquery["course_title"];
     mquery = {
       $and: [
         mquery,
         makeSearchQueryFromTitle(lquery.title),
+      ]
+    }
+  }
+
+  if (lquery.etc) {
+    mquery = {
+      $and : [
+        mquery,
+        RefLectureQueryEtcTagService.getEtcTagMQuery(lquery.etc),
       ]
     }
   }
@@ -235,14 +226,15 @@ function makeSearchQueryFromTitle(title: string): Object {
        * '1학점' '3학점'과 같은 단어에서 학점을 정규식으로 추출	
        */	
       orQueryList.push({ credit : result });	
-    } else if (isHangulInString(words[i])) {	
-      let regex = makeLikeRegEx(words[i]);	
+    } else if (isHangulInString(words[i])) {
+      let regex = makeLikeRegEx(words[i]);
+      orQueryList.push({ course_title : { $regex: regex, $options: 'i' } });
       /*	
        * 교수명을 regex로 처리하면 '수영' -> 김수영 교수님의 강좌, 조수영 교수님의 강좌와 같이	
        * 원치 않는 결과가 나옴	
        */	
-      orQueryList.push({ instructor : words[i] });	
-      orQueryList.push({ category : { $regex: regex } });
+      orQueryList.push({ instructor : words[i] });
+      orQueryList.push({ category : { $regex: regex, $options: 'i' } });
 
       var lastChar = words[i].charAt(words[i].length - 1);	
       /*
