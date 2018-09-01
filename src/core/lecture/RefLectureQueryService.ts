@@ -6,6 +6,7 @@ import RefLectureQueryEtcTagService = require('./RefLectureQueryEtcTagService');
 import RefLectureQueryLogRepository = require('./RefLectureQueryLogRepository');
 import RefLecture from './model/RefLecture';
 import InvalidLectureTimemaskError from './error/InvalidLectureTimemaskError';
+import EtcTagEnum from "@app/core/taglist/model/EtcTagEnum";
 var logger = log4js.getLogger();
 
 const CACHE_PAGE_SIZE = 20;
@@ -253,6 +254,10 @@ function makeSearchQueryFromTitle(title: string): Object {
        * 체육 교양 검색하려다가 체교과 전공 넣는 수가 있다
        */
       orQueryList.push({ category: '체육'});
+    } else if (words[i] == '영강' || words[i] == '영어강의') {
+      orQueryList.push({ etc: EtcTagEnum.ENGLISH_LECTURE});
+    } else if (words[i] == '군휴학' || words[i] == '군휴학원격') {
+      orQueryList.push({ etc: EtcTagEnum.MILITARY_REMOTE_LECTURE});
     } else if (result = getCreditFromString(words[i])) {	
       /*	
        * LectureModel에는 학점이 정수로 저장됨.	
