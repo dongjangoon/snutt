@@ -135,7 +135,7 @@ function toMongoQuery(lquery:LectureQuery): Object {
     mquery = {
       $and : [
         mquery,
-        RefLectureQueryEtcTagService.getEtcTagMQuery(lquery.etc),
+        RefLectureQueryEtcTagService.getMQueryFromEtcTagList(lquery.etc),
       ]
     }
   }
@@ -255,9 +255,9 @@ function makeSearchQueryFromTitle(title: string): Object {
        */
       orQueryList.push({ category: '체육'});
     } else if (words[i] == '영강' || words[i] == '영어강의') {
-      orQueryList.push({ etc: EtcTagEnum.ENGLISH_LECTURE});
+      orQueryList.push(RefLectureQueryEtcTagService.getMQueryFromEtcTag(EtcTagEnum.ENGLISH_LECTURE));
     } else if (words[i] == '군휴학' || words[i] == '군휴학원격') {
-      orQueryList.push({ etc: EtcTagEnum.MILITARY_REMOTE_LECTURE});
+      orQueryList.push(RefLectureQueryEtcTagService.getMQueryFromEtcTag(EtcTagEnum.MILITARY_REMOTE_LECTURE));
     } else if (result = getCreditFromString(words[i])) {	
       /*	
        * LectureModel에는 학점이 정수로 저장됨.	
