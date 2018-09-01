@@ -181,8 +181,13 @@ async function getCachedLectureList(lquery: LectureQuery, pageLimit: number, pag
     if (cachedList[i] === null) {
       ret.push.apply(ret, await setCachedLectureList(lquery, pageLimit - i, pageOffset + i));
       break;
-    } else {
-      ret.push.apply(ret, cachedList[i]);
+    }
+
+    ret.push.apply(ret, cachedList[i]);
+    
+    // 다음 페이지엔 데이터가 없다
+    if (cachedList[i].length < CACHE_PAGE_SIZE) {
+        break;
     }
   }
   return ret;
