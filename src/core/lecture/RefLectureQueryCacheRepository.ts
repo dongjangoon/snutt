@@ -16,7 +16,7 @@ function parseLectureListString(str: string): RefLecture[] | null {
     if (!lectureList || typeof lectureList.length !== 'number') {
         return null;
     } else {
-        lectureList;
+        return lectureList;
     }
 }
 
