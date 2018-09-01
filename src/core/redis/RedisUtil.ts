@@ -101,3 +101,16 @@ export function set(key: string, value: string): Promise<void> {
         })
     })
 }
+
+export function mget(keyList: string[]): Promise<string[]> {
+    checkRedisClient();
+    return new Promise(function (resolve, reject) {
+        redisClient.mget(...keyList, function(err, value: string[]) {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(value);
+            }
+        })
+    })
+}

@@ -4,18 +4,24 @@ import log4js = require('log4js');
 import RefLecture from './model/RefLecture';
 let logger = log4js.getLogger();
 
-export async function getLectureListCache(year:number, semester:number, queryString: string, limit: number, offset: number): Promise<RefLecture[] | null> {
-    let key = RedisKeyUtil.getLectureQueryKey(year, semester, queryString, limit, offset);
-    let lectureListString = await RedisUtil.get(key);
-    let lectureList: RefLecture[] = JSON.parse(lectureListString);
-    if (!lectureList || typeof lectureList.length !== 'number') {
-        return null;
-    }
-    return lectureList;
+export async function getListOfLectureListCacheFromPageList(year:number, semester:number, queryString: string, pageList: number[]): Promise<RefLecture[][] | null> {
+    let keyList = pageList.map(page => RedisKeyUtil.getLectureQueryKey(year, semester, queryString, page))
+    let lectureListStringList = await RedisUtil.mget(keyList);
+    let lectureListList: RefLecture[][] = lectureListStringList.map(parseLectureListString);
+    return lectureListList;
 }
 
-export async function setLectureListCache(year:number, semester:number, queryString: string, limit: number, offset: number, lectureList: RefLecture[]): Promise<void> {
-    let key = RedisKeyUtil.getLectureQueryKey(year, semester, queryString, limit, offset);
+function parseLectureListString(str: string): RefLecture[] | null {
+    let lectureList: RefLecture[] = JSON.parse(str);
+    if (!lectureList || typeof lectureList.length !== 'number') {
+        return null;
+    } else {
+        return lectureList;
+    }
+}
+
+export async function setLectureListCache(year:number, semester:number, queryString: string, page: number, lectureList: RefLecture[]): Promise<void> {
+    let key = RedisKeyUtil.getLectureQueryKey(year, semester, queryString, page);
     let lectureListString = JSON.stringify(lectureList);
     await RedisUtil.set(key, lectureListString);
 }
