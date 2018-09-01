@@ -1,6 +1,7 @@
 require('module-alias/register')
 require('@app/batch/config/log');
 require('@app/core/config/mongo');
+require('@app/core/config/redis');
 
 import { parseTagFromLectureList } from './data/parse';
 import { compareLectures } from './data/compare';
