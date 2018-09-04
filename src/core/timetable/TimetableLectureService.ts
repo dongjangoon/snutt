@@ -18,6 +18,8 @@ import RefLecture from '@app/core/lecture/model/RefLecture';
 import TimetableRepository = require('./TimetableRepository');
 import TimetableService = require('./TimetableService');
 import Timetable from './model/Timetable';
+import TimePlace from './model/TimePlace';
+import InvalidLectureTimeJsonError from '../lecture/error/InvalidLectureTimeJsonError';
 
 export async function addRefLecture(timetable: Timetable, lectureId: string): Promise<void> {
   let lecture = await RefLectureService.getByMongooseId(lectureId);
@@ -125,6 +127,10 @@ function validateLectureTime(table: Timetable, lecture: UserLecture): void {
   if (isOverlappingLecture(table, lecture)) {
     throw new LectureTimeOverlapError();
   }
+
+  for (let i=0; i<lecture.class_time_json.length; i++) {
+    validateLectureTimeJson(lecture.class_time_json[i]);
+  }
 }
 
 function isOverlappingLecture(table: Timetable, lecture: UserLecture): boolean {
@@ -150,6 +156,12 @@ function getOverlappingLectureIds(table: Timetable, lecture: UserLecture): strin
     }
   }
   return lectureIds;
+}
+
+function validateLectureTimeJson(timePlace: TimePlace): void {
+  if (!ObjectUtil.isNumber(timePlace.day) || !ObjectUtil.isNumber(timePlace.len) || !ObjectUtil.isNumber(timePlace.start)) {
+    throw new InvalidLectureTimeJsonError();
+  }
 }
 
 function getAvailableColorIndices(table: Timetable): number[] {
