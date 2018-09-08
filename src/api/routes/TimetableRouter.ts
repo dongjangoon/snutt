@@ -1,5 +1,5 @@
-import express = require('express');
-var router = express.Router();
+import ExpressPromiseRouter from 'express-promise-router';
+var router = ExpressPromiseRouter();
 
 import TimetableService = require('@app/core/timetable/TimetableService');
 import TimetableLectureService = require('@app/core/timetable/TimetableLectureService');
@@ -23,7 +23,10 @@ import RequestContext from '../model/RequestContext';
 import { restGet, restPost } from '../decorator/RestDecorator';
 import ApiError from '../error/ApiError';
 import ErrorCode from '../enum/ErrorCode';
+import UserAuthorizeMiddleware from '../middleware/UserAuthorizeMiddleware';
 var logger = log4js.getLogger();
+
+router.use(UserAuthorizeMiddleware);
 
 restGet(router, '/')(function(context, req) {
   let user:User = context.user;
@@ -115,35 +118,35 @@ restPost(router, '/:timetable_id/lecture/:lecture_id')(async function(context, r
  * param ===================================
  * json object of lecture to add
  */
-router.post('/:id/lecture', async function(req, res, next) {
-  let context: RequestContext = req['context'];
+restPost(router, '/:id/lecture')(async function(context, req) {
   let user:User = context.user;
   try {
     let table = await TimetableService.getByMongooseId(user._id, req.params.id);
-    if (!table) return res.status(404).json({errcode: ErrorCode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+    if (!table) {
+      throw new ApiError(404, ErrorCode.TIMETABLE_NOT_FOUND, "timetable not found");
+    }
     await TimetableLectureService.addCustomLecture(table, req.body);
-    res.json(await TimetableService.getByMongooseId(user._id, req.params.id));
+    return await TimetableService.getByMongooseId(user._id, req.params.id);
   } catch (err) {
     if (err instanceof InvalidLectureTimemaskError)
-      return res.status(403).json({errcode: ErrorCode.INVALID_TIMEMASK, message:"invalid timemask"});
+      throw new ApiError(400, ErrorCode.INVALID_TIMEMASK, "invalid timemask");
     if (err instanceof InvalidLectureTimeJsonError)
-      return res.status(400).json({errcode: ErrorCode.INVALID_TIMEJSON, message:"invalid timejson"});
+      throw new ApiError(400, ErrorCode.INVALID_TIMEJSON, "invalid timejson");
     if (err instanceof DuplicateLectureError)
-      return res.status(403).json({errcode: ErrorCode.DUPLICATE_LECTURE, message:"duplicate lecture"});
+      throw new ApiError(403, ErrorCode.DUPLICATE_LECTURE, "duplicate lecture");
     if (err instanceof LectureTimeOverlapError)
-      return res.status(403).json({errcode: ErrorCode.LECTURE_TIME_OVERLAP, message:"lecture time overlap"});
+      throw new ApiError(403, ErrorCode.LECTURE_TIME_OVERLAP, "lecture time overlap");
     if (err instanceof InvalidLectureColorError)
-      return res.status(400).json({errcode: ErrorCode.INVALID_COLOR, message:"invalid color"});
+      throw new ApiError(400, ErrorCode.INVALID_COLOR, "invalid color");
     if (err instanceof InvalidLectureColorIndexError)
-      return res.status(400).json({errcode: ErrorCode.INVALID_COLOR, message:"invalid color"});
+      throw new ApiError(400, ErrorCode.INVALID_COLOR, "invalid color");
     if (err instanceof InvalidLectureUpdateRequestError)
-      return res.status(400).json({errcode: ErrorCode.NO_LECTURE_TITLE, message:"no lecture title"});
+      throw new ApiError(400, ErrorCode.NO_LECTURE_TITLE, "no lecture title");
     if (err instanceof NotCustomLectureError)
-      return res.status(403).json({errcode: ErrorCode.NOT_CUSTOM_LECTURE, message:"only custom lectures allowed"});
+      throw new ApiError(403, ErrorCode.NOT_CUSTOM_LECTURE, "only custon lectures allowed");
     if (err instanceof WrongRefLectureSemesterError)
-      return res.status(403).json({errcode: ErrorCode.WRONG_SEMESTER, message:"wrong semester"});
-    logger.error(err)
-    return res.status(500).json({errcode: ErrorCode.SERVER_FAULT, message:"insert lecture failed"});
+      throw new ApiError(403, ErrorCode.WRONG_SEMESTER, "wrong semester");
+    throw err;
   }
 });
 

@@ -1,4 +1,4 @@
-import express = require('express');
+import ExpressPromiseRouter from 'express-promise-router';
 import log4js = require('log4js');
 
 import User from '@app/core/user/model/User';
@@ -11,27 +11,24 @@ import AlreadyRegisteredFbIdError from '@app/core/user/error/AlreadyRegisteredFb
 import DuplicateLocalIdError from '@app/core/user/error/DuplicateLocalIdError';
 import RequestContext from '../model/RequestContext';
 import ErrorCode from '../enum/ErrorCode';
+import { restGet, restPut } from '../decorator/RestDecorator';
+import UserAuthorizeMiddleware from '../middleware/UserAuthorizeMiddleware';
 var logger = log4js.getLogger();
-var router = express.Router();
+var router = ExpressPromiseRouter();
 
-router.get('/info', function (req, res, next) {
-  let context: RequestContext = req['context'];
+router.use(UserAuthorizeMiddleware);
+
+restGet(router, '/info')(async function (context, req) {
   let user:User = context.user;
-  return res.json(UserService.getUserInfo(user));
+  return UserService.getUserInfo(user);
 });
 
-router.put('/info', async function (req, res, next) {
-  let context: RequestContext = req['context'];
+restPut(router, '/info')(async function (context, req) {
   let user:User = context.user;
-  try {
-    if (req.body.email) {
-      await UserService.setUserInfo(user, req.body.email);
-    }
-  } catch (err) {
-    logger.error(err);
-    return res.status(500).json({errcode: ErrorCode.SERVER_FAULT, messsage:"server fault"});
+  if (req.body.email) {
+    await UserService.setUserInfo(user, req.body.email);
   }
-  res.json({message:"ok"});
+  return {message:"ok"};
 });
 
 router.post('/password', async function (req, res, next) {

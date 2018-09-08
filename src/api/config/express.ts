@@ -9,6 +9,7 @@ import log4js = require('log4js');
 
 import RootRouter = require('@app/api/routes/RootRouter');
 import property = require('@app/core/config/property');
+import ApiErrorHandler from "../middleware/ApiErrorHandler";
 
 var logger = log4js.getLogger();
 var app = express();
@@ -30,39 +31,8 @@ app.use(cookieParser());
 
 app.use('/asset', express.static(__dirname + '/asset'));
 app.use('/', RootRouter);
-// catch 404 and forward to error handler
-/*
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
-*/
 
-// error handlers
-
-// development error handler
-// will print stacktrace
-if (app.get('env') === 'development' ||
-  app.get('env') === 'mocha') {
-  app.use(function(err, req, res, next) {
-    res.status(err.status || 500);
-    res.send({
-      message: err.message,
-      error: err
-    });
-  });
-}
-
-// production error handler
-// no stacktraces leaked to user
-app.use(function(err, req, res, next) {
-  res.status(err.status || 500);
-  res.send({
-    message: err.message,
-    error: {}
-  });
-});
+app.use(ApiErrorHandler);
 
 /**
  * Get port from environment and store in Express.

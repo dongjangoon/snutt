@@ -1,8 +1,8 @@
 /**
  * Created by north on 16. 2. 24.
  */
-import express = require('express');
-var router = express.Router();
+import ExpressPromiseRouter from 'express-promise-router';
+var router = ExpressPromiseRouter();
 import TagListService = require('@app/core/taglist/TagListService');
 import * as log4js from 'log4js';
 import TagListNotFoundError from '@app/core/taglist/error/TagListNotFoundError';

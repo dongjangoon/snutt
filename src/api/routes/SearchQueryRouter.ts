@@ -1,5 +1,5 @@
-import express = require('express');
-var router = express.Router();
+import ExpressPromiseRouter from 'express-promise-router';
+var router = ExpressPromiseRouter();
 import RefLectureQueryService = require('@app/core/lecture/RefLectureQueryService');
 import * as log4js from 'log4js';
 import InvalidLectureTimemaskError from '@app/core/lecture/error/InvalidLectureTimemaskError';

@@ -1,5 +1,5 @@
-import express = require('express');
-var router = express.Router();
+import ExpressPromiseRouter from 'express-promise-router';
+var router = ExpressPromiseRouter();
 
 import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');

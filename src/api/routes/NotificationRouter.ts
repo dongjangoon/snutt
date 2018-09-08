@@ -1,12 +1,15 @@
-import express = require('express');
-var router = express.Router();
+import ExpressPromiseRouter from 'express-promise-router';
+var router = ExpressPromiseRouter();
 import NotificationService = require('@app/core/notification/NotificationService');
 import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');
 
 import * as log4js from 'log4js';
 import { restGet } from '../decorator/RestDecorator';
+import UserAuthorizeMiddleware from '../middleware/UserAuthorizeMiddleware';
 var logger = log4js.getLogger();
+
+router.use(UserAuthorizeMiddleware);
 
 restGet(router, '/')(async function(context, req){
   var user:User = context.user;

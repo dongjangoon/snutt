@@ -1,8 +1,4 @@
-/**
- * 외부 Admin 모듈과 http 통신.
- * Admin 권한을 가진 user만이 사용 가능
- */
-import express = require('express');
+import ExpressPromiseRouter from 'express-promise-router';
 import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');
 import NotificationService = require('@app/core/notification/NotificationService');
@@ -20,9 +16,12 @@ import ApiError from '../error/ApiError';
 import ApiServerFaultError from '../error/ApiServerFaultError';
 import Feedback from '@app/core/feedback/model/Feedback';
 import ErrorCode from '../enum/ErrorCode';
+import UserAuthorizeMiddleware from '../middleware/UserAuthorizeMiddleware';
 var logger = log4js.getLogger();
 
-var router = express.Router();
+var router = ExpressPromiseRouter();
+
+router.use(UserAuthorizeMiddleware);
 
 router.use(function(req, res, next) {
   let context: RequestContext = req['context'];
