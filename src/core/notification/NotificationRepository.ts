@@ -3,11 +3,9 @@
  * Jang Ryeol, ryeolj5911@gmail.com
  */
 import mongoose = require('mongoose');
-import errcode = require('@app/api/errcode');
 import User from '@app/core/user/model/User';
 import NotificationTypeEnum from './model/NotificationTypeEnum';
 import Notification from './model/Notification';
-
 
 var NotificationSchema = new mongoose.Schema({
   user_id : { type: mongoose.Schema.Types.ObjectId, ref: 'User', default : null},
@@ -44,21 +42,6 @@ export function countUnreadByUser(user: User): Promise<number> {
 export async function insert(notification: Notification): Promise<void> {
   await new mongooseModel(notification).save();
 }
-
-// if user_id_array is null or not array, create it as global
-NotificationSchema.statics.createNotification = function (user_id, message, type, detail) {
-  if (!type) type = 0;
-  if (Number(type) == NotificationTypeEnum.LINK_ADDR && typeof(detail) != "string") return Promise.reject(errcode.INVALID_NOTIFICATION_DETAIL);
-  var notification = new mongooseModel({
-    user_id : user_id,
-    message : message,
-    created_at : Date.now(),
-    type : Number(type),
-    detail : detail
-  });
-
-  return notification.save();
-};
 
 function fromMongoose(mongooseDoc): Notification {
   return {

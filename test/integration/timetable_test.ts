@@ -7,7 +7,7 @@
 "use strict";
 
 import assert = require('assert');
-import errcode = require('@app/api/errcode');
+import ErrorCode from '@app/api/enum/ErrorCode';
 import log4js = require('log4js');
 let logger = log4js.getLogger();
 
@@ -109,7 +109,7 @@ export = function(app, db, request) {
       .send({year:2016, semester:3, title:"MyTimeTable"})
       .expect(403)
       .end(function(err, res) {
-        assert.equal(res.body.errcode, errcode.DUPLICATE_TIMETABLE_TITLE);
+        assert.equal(res.body.errcode, ErrorCode.DUPLICATE_TIMETABLE_TITLE);
         done(err);
       });
   });
@@ -161,7 +161,7 @@ export = function(app, db, request) {
       .send({title:"MyTimeTable2"})
       .expect(403)
       .end(function(err, res) {
-        assert.equal(res.body.errcode, errcode.DUPLICATE_TIMETABLE_TITLE);
+        assert.equal(res.body.errcode, ErrorCode.DUPLICATE_TIMETABLE_TITLE);
         done(err);
       });
   });
@@ -202,7 +202,7 @@ export = function(app, db, request) {
       .set('x-access-token', token)
       .expect(403)
       .end(function(err, res) {
-        assert.equal(res.body.errcode, errcode.WRONG_SEMESTER);
+        assert.equal(res.body.errcode, ErrorCode.WRONG_SEMESTER);
         if (err) {
           console.log(res.body);
           done(err);
@@ -284,7 +284,7 @@ export = function(app, db, request) {
       .send({course_number: "400.333", title:"abcd"})
       .expect(403)
       .end(function(err, res) {
-        assert.equal(res.body.errcode, errcode.ATTEMPT_TO_MODIFY_IDENTITY);
+        assert.equal(res.body.errcode, ErrorCode.ATTEMPT_TO_MODIFY_IDENTITY);
         if (err) {
           done(err);
         } else {
@@ -305,7 +305,7 @@ export = function(app, db, request) {
       .set('x-access-token', token)
       .expect(403)
       .end(function(err, res) {
-        assert.equal(res.body.errcode, errcode.DUPLICATE_LECTURE);
+        assert.equal(res.body.errcode, ErrorCode.DUPLICATE_LECTURE);
         if (err) console.log(res.body);
         done(err);
       });
@@ -426,7 +426,7 @@ export = function(app, db, request) {
       })
       .expect(403)
       .end(function(err, res) {
-        assert.equal(res.body.errcode, errcode.LECTURE_TIME_OVERLAP);
+        assert.equal(res.body.errcode, ErrorCode.LECTURE_TIME_OVERLAP);
         done(err);
       });
   });
@@ -469,7 +469,7 @@ export = function(app, db, request) {
       })
       .expect(403)
       .end(function(err, res) {
-        assert.equal(res.body.errcode, errcode.LECTURE_TIME_OVERLAP);
+        assert.equal(res.body.errcode, ErrorCode.LECTURE_TIME_OVERLAP);
         done(err);
       });
   });
@@ -511,7 +511,7 @@ export = function(app, db, request) {
       })
       .expect(400)
       .end(function(err, res) {
-        assert.equal(res.body.errcode, errcode.INVALID_COLOR);
+        assert.equal(res.body.errcode, ErrorCode.INVALID_COLOR);
         done(err);
       });
   });
@@ -521,7 +521,7 @@ export = function(app, db, request) {
       .set('x-access-token', token)
       .expect(403)
       .end(function(err, res) {
-        assert.equal(res.body.errcode, errcode.IS_CUSTOM_LECTURE);
+        assert.equal(res.body.errcode, ErrorCode.IS_CUSTOM_LECTURE);
         done(err);
       });
   });
@@ -588,7 +588,7 @@ export = function(app, db, request) {
         if (err) {
           done(err);
         }
-        assert.equal(res.body.errcode, errcode.INVALID_TIMEMASK);
+        assert.equal(res.body.errcode, ErrorCode.INVALID_TIMEMASK);
         done(err);
       });
   });
@@ -602,7 +602,7 @@ export = function(app, db, request) {
       }})
       .expect(400)
       .end(function(err, res) {
-        assert.equal(res.body.errcode, errcode.INVALID_COLOR);
+        assert.equal(res.body.errcode, ErrorCode.INVALID_COLOR);
         done(err);
       });
   });
@@ -624,7 +624,7 @@ export = function(app, db, request) {
           }]})
       .expect(403)
       .end(function(err, res) {
-        assert.equal(res.body.errcode, errcode.LECTURE_TIME_OVERLAP);
+        assert.equal(res.body.errcode, ErrorCode.LECTURE_TIME_OVERLAP);
         done(err);
       });
   });
@@ -641,7 +641,7 @@ export = function(app, db, request) {
           }]})
       .expect(403)
       .end(function(err, res) {
-        assert.equal(res.body.errcode, errcode.LECTURE_TIME_OVERLAP);
+        assert.equal(res.body.errcode, ErrorCode.LECTURE_TIME_OVERLAP);
         done(err);
       });
   });
@@ -658,7 +658,7 @@ export = function(app, db, request) {
           }]})
       .expect(403)
       .end(function(err, res) {
-        assert.equal(res.body.errcode, errcode.LECTURE_TIME_OVERLAP);
+        assert.equal(res.body.errcode, ErrorCode.LECTURE_TIME_OVERLAP);
         done(err);
       });
   });
@@ -706,7 +706,7 @@ export = function(app, db, request) {
       })
       .expect(403)
       .end(function(err, res) {
-        assert.equal(res.body.errcode, errcode.NOT_CUSTOM_LECTURE);
+        assert.equal(res.body.errcode, ErrorCode.NOT_CUSTOM_LECTURE);
         done(err);
       });
   });

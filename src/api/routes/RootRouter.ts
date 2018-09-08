@@ -21,10 +21,13 @@ import apiKey = require('@app/core/config/apiKey');
 import UserService = require('@app/core/user/UserService');
 import FeedbackService = require('@app/core/feedback/FeedbackService');
 import LectureColorService = require('@app/core/timetable/LectureColorService');
+import SugangSnuSyllabusService = require('@app/core/coursebook/sugangsnu/SugangSnuSyllabusService')
 
-import errcode = require('@app/api/errcode');
 import * as log4js from 'log4js';
 import RequestContext from '../model/RequestContext';
+import { restGet, restPost } from '../decorator/RestDecorator';
+import ErrorCode from '../enum/ErrorCode';
+import ApiError from '../error/ApiError';
 var logger = log4js.getLogger();
 
 router.use(function(req, res, next) {
@@ -58,86 +61,47 @@ router.use(function(req, res, next) {
     context.platform = platform;
     next();
   }, function(err) {
-    res.status(403).json({errcode: errcode.WRONG_API_KEY, message: err});
+    res.status(403).json({errcode: ErrorCode.WRONG_API_KEY, message: err});
   });
 });
 
-router.get('/course_books', async function(req, res, next) {
-  try {
-    res.json(await CourseBookService.getAll());
-  } catch (err) {
-    logger.error(err);
-    return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server fault"});
-  }
-});
+restGet(router, '/course_books')(CourseBookService.getAll);
 
-router.get('/course_books/recent', async function(req, res, next) {
-  try {
-    res.json(await CourseBookService.getRecent());
-  } catch (err) {
-    logger.error(err);
-    return res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server fault"});
-  }
-});
+restGet(router, '/course_books/recent')(CourseBookService.getRecent);
 
-router.get('/course_books/official', function(req, res, next) {
+restGet(router, '/course_books/official')(async function(context, req) {
   var year = req.query.year;
   var semester = Number(req.query.semester);
   var lecture_number = req.query.lecture_number;
   var course_number = req.query.course_number;
-
-  var openShtmFg = "", openDetaShtmFg = ""
-  switch (semester) {
-  case 1:
-      openShtmFg = "U000200001";
-      openDetaShtmFg = "U000300001";
-      break;
-  case 2:
-      openShtmFg = "U000200001";
-      openDetaShtmFg = "U000300002";
-      break;
-  case 3:
-      openShtmFg = "U000200002";
-      openDetaShtmFg = "U000300001";
-      break;
-  case 4:
-      openShtmFg = "U000200002";
-      openDetaShtmFg = "U000300002";
-      break;
-  }
-
-  res.json({url: "http://sugang.snu.ac.kr/sugang/cc/cc103.action?openSchyy="+year+
-    "&openShtmFg="+openShtmFg+"&openDetaShtmFg="+openDetaShtmFg+"&sbjtCd="+course_number+"&ltNo="+lecture_number+"&sbjtSubhCd=000"});
+  return {
+    url: SugangSnuSyllabusService.getSyllabusUrl(year, semester, lecture_number, course_number)
+  };
 });
 
 router.use('/search_query', SearchQueryRouter);
 
 router.use('/tags', TagListRouter);
 
-router.get('/colors', function(req, res, next) {
-  res.json({message: "ok", colors: LectureColorService.getLegacyColors(), names: LectureColorService.getLegacyNames()});
+restGet(router, '/colors')(async function(context, req) {
+  return {message: "ok", colors: LectureColorService.getLegacyColors(), names: LectureColorService.getLegacyNames()};
 });
 
-router.get('/colors/:colorName', function(req, res, next) {
+restGet(router, '/colors/:colorName')(async function(context, req) {
   let colorWithName = LectureColorService.getColorList(req.params.colorName);
-  if (colorWithName) res.json({message: "ok", colors: colorWithName.colors, names: colorWithName.names});
-  else res.status(404).json({errcode:errcode.COLORLIST_NOT_FOUND, message: "color list not found"});
+  if (colorWithName) return {message: "ok", colors: colorWithName.colors, names: colorWithName.names};
+  else throw new ApiError(404, ErrorCode.COLORLIST_NOT_FOUND, "color list not found");
 });
 
-router.get('/app_version', function(req, res, next) {
+restGet(router, '/app_version')(async function() {
   var version = apiKey.getAppVersion(api_info.string);
-  if (version) res.json({version: version});
-  else res.status(404).json({errcode:errcode.UNKNOWN_APP, message: "unknown app"});
+  if (version) return {version: version};
+  else throw new ApiError(404, ErrorCode.UNKNOWN_APP, "unknown app");
 });
 
-router.post('/feedback', async function(req, res, next) {
-  try {
-    await FeedbackService.add(req.body.email, req.body.message, req["api_platform"]);
-    res.json({message:"ok"});
-  } catch (err) {
-    logger.error(err);
-    res.status(500).json({errcode: errcode.SERVER_FAULT, message: "server fault"});
-  }
+restPost(router, '/feedback')(async function(context, req) {
+  await FeedbackService.add(req.body.email, req.body.message, req["api_platform"]);
+  return {message:"ok"};
 });
 
 router.use('/auth', AuthRouter);
@@ -152,20 +116,20 @@ router.use(function(req, res, next) {
   var token = req.query.token || req.body.token || req.headers['x-access-token'];
   if (!token) {
     return res.status(401).json({
-      errcode: errcode.NO_USER_TOKEN,
+      errcode: ErrorCode.NO_USER_TOKEN,
       message: 'No token provided.'
     });
   }
   UserService.getByCredentialHash(token).then(function(user){
     if (!user)
-      return res.status(403).json({ errcode: errcode.WRONG_USER_TOKEN, message: 'Failed to authenticate token.' });
+      return res.status(403).json({ errcode: ErrorCode.WRONG_USER_TOKEN, message: 'Failed to authenticate token.' });
     res.setHeader('Cache-Control', 'private, max-age=0, must-revalidate');
     UserService.updateLastLoginTimestamp(user);
     context.user = user;
     next();
   }, function (err) {
     logger.error(err);
-    return res.status(403).json({ errcode: errcode.WRONG_USER_TOKEN, message: 'Failed to authenticate token.' });
+    return res.status(403).json({ errcode: ErrorCode.WRONG_USER_TOKEN, message: 'Failed to authenticate token.' });
   });
 });
 

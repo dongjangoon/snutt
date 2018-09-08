@@ -1,27 +1,27 @@
 import express = require('express');
 var router = express.Router();
-import errcode = require('@app/api/errcode');
 import RefLectureQueryService = require('@app/core/lecture/RefLectureQueryService');
 import * as log4js from 'log4js';
 import InvalidLectureTimemaskError from '@app/core/lecture/error/InvalidLectureTimemaskError';
+import { restPost } from '../decorator/RestDecorator';
+import ApiError from '../error/ApiError';
+import ErrorCode from '../enum/ErrorCode';
 var logger = log4js.getLogger();
 
-router.post('/', async function(req, res, next) {
+restPost(router, '/')(async function(context, req) {
   if (!req.body.year || !req.body.semester) {
-    return res.status(400).json({errcode:errcode.NO_YEAR_OR_SEMESTER, message: 'no year and semester'});
+    throw new ApiError(400, ErrorCode.NO_YEAR_OR_SEMESTER, "no year or semester");
   }
 
   var query: any = req.body;
   try {
     RefLectureQueryService.addQueryLogAsync(query);
-    var lectures = await RefLectureQueryService.getLectureListByQueryWithCache(query);
-    return res.json(lectures);
+    return await RefLectureQueryService.getLectureListByQueryWithCache(query);
   } catch (err) {
     if (err instanceof InvalidLectureTimemaskError) {
-      return res.status(400).json({errcode:errcode.INVALID_TIMEMASK, message: "invalid timemask"});
+      throw new ApiError(400, ErrorCode.INVALID_TIMEMASK, "invalid timemask");
     }
-    logger.error(err);
-    return res.status(500).json({errcode:errcode.SERVER_FAULT, message: "search error"});
+    throw err;
   }
 });
 
