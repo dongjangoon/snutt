@@ -1,8 +1,8 @@
 import ExpressPromiseRouter from 'express-promise-router';
-import NonApiCacheControlMiddleware from '../middleware/NonApiCacheControlMiddleware';
+import StaticPageCacheControlMiddleware from '../middleware/StaticPageCacheControlMiddleware';
 var router = ExpressPromiseRouter();
 
-router.use(NonApiCacheControlMiddleware);
+router.use(StaticPageCacheControlMiddleware);
 
 router.get('/terms_of_service', function(req, res, next) {
   res.render('terms_of_service.html');
