@@ -22,7 +22,7 @@ app.engine('.html', require('ejs').renderFile);
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 if (app.get('env') !== 'mocha')
-  app.use(morgan('tiny'));
+  app.use(morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" :response-time ms'));
 // Only for development
 app.use(cors());
 app.use(bodyParser.json());
