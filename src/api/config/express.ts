@@ -19,6 +19,9 @@ app.set('views', path.join(__dirname, 'views'));
 //app.set('view engine', 'jade');
 app.engine('.html', require('ejs').renderFile);
 
+// X-Forwarded-For 헤더를 신뢰할 주소. 앞단에 nginx 프록시를 둘 경우 필요함. localhost만을 활성화한다
+app.set('trust proxy', 'loopback')
+
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 if (app.get('env') !== 'mocha')
