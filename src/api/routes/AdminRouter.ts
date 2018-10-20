@@ -1,9 +1,4 @@
-/**
- * 외부 Admin 모듈과 http 통신.
- * Admin 권한을 가진 user만이 사용 가능
- */
-import express = require('express');
-import errcode = require('@app/api/errcode');
+import ExpressPromiseRouter from 'express-promise-router';
 import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');
 import NotificationService = require('@app/core/notification/NotificationService');
@@ -16,20 +11,27 @@ import * as log4js from 'log4js';
 import NoFcmKeyError from '@app/core/notification/error/NoFcmKeyError';
 import InvalidNotificationDetailError from '@app/core/notification/error/InvalidNotificationDetailError';
 import RequestContext from '../model/RequestContext';
+import { restPost, restGet } from '../decorator/RestDecorator';
+import ApiError from '../error/ApiError';
+import ApiServerFaultError from '../error/ApiServerFaultError';
+import Feedback from '@app/core/feedback/model/Feedback';
+import ErrorCode from '../enum/ErrorCode';
+import UserAuthorizeMiddleware from '../middleware/UserAuthorizeMiddleware';
 var logger = log4js.getLogger();
 
-var router = express.Router();
+var router = ExpressPromiseRouter();
+
+router.use(UserAuthorizeMiddleware);
 
 router.use(function(req, res, next) {
   let context: RequestContext = req['context'];
   if (context.user.isAdmin) return next();
   else {
-    return res.status(403).json({ errcode: errcode.NO_ADMIN_PRIVILEGE, message: 'Admin privilege required.' });
+    return res.status(403).json({ errcode: ErrorCode.NO_ADMIN_PRIVILEGE, message: 'Admin privilege required.' });
   }
 });
 
-router.post('/insert_noti', async function(req, res, next) {
-  let context: RequestContext = req['context'];
+restPost(router, '/insert_noti')(async function (context, req) {
   let sender: User = context.user;
 
   let userId: string     = req.body.user_id;
@@ -43,7 +45,7 @@ router.post('/insert_noti', async function(req, res, next) {
     if (userId && userId.length > 0) {
       let receiver = await UserService.getByLocalId(userId);
       if (!receiver) {
-        return res.status(404).send({errcode: errcode.USER_NOT_FOUND, message: "user not found"});
+        throw new ApiError(404, ErrorCode.USER_NOT_FOUND, "user not found");
       }
       if (insertFcm) {
         await NotificationService.sendFcmMsg(receiver, title, body, sender._id, "admin");
@@ -67,39 +69,34 @@ router.post('/insert_noti', async function(req, res, next) {
         created_at: new Date()
       });
     }
-    res.send({message: "ok"});
+    return {
+      message: "ok"
+    };
   } catch (err) {
     if (err instanceof NoFcmKeyError)
-      return res.status(404).send({errcode: errcode.USER_HAS_NO_FCM_KEY, message: "user has no fcm key"});
+      throw new ApiError(404, ErrorCode.USER_HAS_NO_FCM_KEY, "user has no fcm key");
     if (err instanceof InvalidNotificationDetailError)
-      return res.status(404).send({errcode: err, message: "invalid notification detail"});
+      throw new ApiError(404, ErrorCode.INVALID_NOTIFICATION_DETAIL, "invalid notification detail");
+    if (err instanceof ApiError) {
+      throw err;
+    } 
     logger.error(err);
-    res.status(500).send({errcode: errcode.SERVER_FAULT, message:err});
+    throw new ApiServerFaultError();
   }
+})
+
+restGet(router, '/recent_fcm_log')(FcmLogService.getRecentFcmLog)
+
+restGet(router, '/coursebooks')(CourseBookService.getAll)
+
+restGet(router, '/feedbacks')(function(context, req): Promise<Feedback[]> {
+    let limit = 10;
+    let offset = 0;
+    if (req.body.limit) limit = req.body.limit;
+    if (req.body.offset) offset = req.body.offset;
+    return FeedbackService.get(limit, offset);
 });
 
-router.get('/recent_fcm_log', async function(req, res, next) {
-  let logs = await FcmLogService.getRecentFcmLog();
-  return res.json(logs);
-});
-
-router.get('/coursebooks', async function(req, res, next) {
-  let coursebooks = await CourseBookService.getAll();
-  return res.json(coursebooks);
-});
-
-router.get('/feedbacks', async function(req, res, next) {
-  let limit = 10;
-  let offset = 0;
-  if (req.body.limit) limit = req.body.limit;
-  if (req.body.offset) offset = req.body.offset;
-  let feedbacks = await FeedbackService.get(limit, offset);
-  return res.json(feedbacks);
-});
-
-router.get('/statistics', async function(req, res, next) {
-  let statistics = await AdminService.getStatistics();
-  return res.json(statistics);
-});
+restGet(router, '/statistics')(AdminService.getStatistics);
 
 export = router;

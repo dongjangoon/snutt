@@ -1,10 +1,9 @@
-import express = require('express');
-var router = express.Router();
+import ExpressPromiseRouter from 'express-promise-router';
+var router = ExpressPromiseRouter();
 
 import TimetableService = require('@app/core/timetable/TimetableService');
 import TimetableLectureService = require('@app/core/timetable/TimetableLectureService');
 import User from '@app/core/user/model/User';
-import errcode = require('@app/api/errcode');
 import * as log4js from 'log4js';
 import DuplicateTimetableTitleError from '@app/core/timetable/error/DuplicateTimetableTitleError';
 import DuplicateLectureError from '@app/core/timetable/error/DuplicateLectureError';
@@ -21,64 +20,50 @@ import UserLectureNotFoundError from '@app/core/timetable/error/UserLectureNotFo
 import TimetableNotFoundError from '@app/core/timetable/error/TimetableNotFoundError';
 import InvalidLectureTimeJsonError from '@app/core/lecture/error/InvalidLectureTimeJsonError';
 import RequestContext from '../model/RequestContext';
+import { restGet, restPost } from '../decorator/RestDecorator';
+import ApiError from '../error/ApiError';
+import ErrorCode from '../enum/ErrorCode';
+import UserAuthorizeMiddleware from '../middleware/UserAuthorizeMiddleware';
 var logger = log4js.getLogger();
 
-router.get('/', async function(req, res, next) { //timetable list
-  let context: RequestContext = req['context'];
+router.use(UserAuthorizeMiddleware);
+
+restGet(router, '/')(function(context, req) {
   let user:User = context.user;
-  try {
-    let result = await TimetableService.getAbstractListByUserId(user._id);
-    res.json(result);
-  } catch (err) {
-    logger.error(err);
-    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'fetch timetable list failed'});
-  }
+  return TimetableService.getAbstractListByUserId(user._id);
 });
 
-router.get('/recent', async function(req, res, next) {
-  let context: RequestContext = req['context'];
+restGet(router, '/recent')(async function(context, req) {
   let user:User = context.user;
-  try {
-    let result = await TimetableService.getRecentByUserId(user._id);
-    if (!result) res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:'no timetable'});
-    else res.json(result);
-  } catch (err) {
-    logger.error(err);
-    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'find table failed'});
+  let result = await TimetableService.getRecentByUserId(user._id);
+  if (!result) {
+    throw new ApiError(404, ErrorCode.TIMETABLE_NOT_FOUND, "no timetable");
   }
+  return result;
 });
 
-router.get('/:id', async function(req, res, next) { //get
-  let context: RequestContext = req['context'];
+restGet(router, '/:id')(async function(context, req) {
   let user:User = context.user;
-  try {
-    let result = await TimetableService.getByMongooseId(user._id, req.params.id);
-    if (!result) res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:'timetable not found'});
-    else res.json(result);
-  } catch (err) {
-    logger.error(err);
-    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
+  let result = await TimetableService.getByMongooseId(user._id, req.params.id);
+  if (!result) {
+    throw new ApiError(404, ErrorCode.TIMETABLE_NOT_FOUND, "timetable not found");
   }
+  return result;
 });
 
-router.get('/:year/:semester', async function(req, res, next) {
-  let context: RequestContext = req['context'];
+restGet(router, '/:year/:semester')(async function(context, req) {
   let user:User = context.user;
-  try {
-    let result = await TimetableService.getBySemester(user._id, req.params.year, req.params.semester);
-    if (!result) res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"No timetable for given semester"});
-    else res.json(result);
-  } catch (err) {
-    logger.error(err);
-    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"find table failed"});
+  let result = await TimetableService.getBySemester(user._id, req.params.year, req.params.semester);
+  if (!result) {
+    throw new ApiError(404, ErrorCode.TIMETABLE_NOT_FOUND, "No timetable for given semester");
   }
+  return result;
 });
 
-router.post('/', async function(req, res, next) { //create
-  let context: RequestContext = req['context'];
+restPost(router, '/')(async function(context, req) {
   let user:User = context.user;
   if (!req.body.year || !req.body.semester || !req.body.title)
-    return res.status(400).json({errcode: errcode.NOT_ENOUGH_TO_CREATE_TIMETABLE, message:'not enough parameters'});
+    throw new ApiError(400, ErrorCode.NOT_ENOUGH_TO_CREATE_TIMETABLE, "not enough parameters");
 
   try {
     await TimetableService.addFromParam({
@@ -88,14 +73,12 @@ router.post('/', async function(req, res, next) { //create
       title : req.body.title
     });
 
-    let tableList = await TimetableService.getAbstractListByUserId(user._id);
-    res.json(tableList);
+    return await TimetableService.getAbstractListByUserId(user._id);
   } catch (err) {
     if (err instanceof DuplicateTimetableTitleError) {
-      return res.status(403).json({errcode: errcode.DUPLICATE_TIMETABLE_TITLE, message: err});
+      throw new ApiError(403, ErrorCode.DUPLICATE_TIMETABLE_TITLE, "duplicate timetable title");
     }
-    logger.error(err);
-    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:'server fault'});
+    throw err;
   }
 });
 
@@ -105,27 +88,27 @@ router.post('/', async function(req, res, next) { //create
  * param ===================================
  * Lecture id from search query
  */
-router.post('/:timetable_id/lecture/:lecture_id', async function(req, res, next) {
-  let context: RequestContext = req['context'];
+restPost(router, '/:timetable_id/lecture/:lecture_id')(async function(context, req) {
   let user:User = context.user;
   try {
     let table = await TimetableService.getByMongooseId(user._id, req.params.timetable_id);
-    if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
-    
+    if (!table) {
+      throw new ApiError(404, ErrorCode.TIMETABLE_NOT_FOUND, "timetable not found");
+    }
+
     await TimetableLectureService.addRefLecture(table, req.params.lecture_id);
-    res.json(await TimetableService.getByMongooseId(user._id, req.params.timetable_id));
+    return await TimetableService.getByMongooseId(user._id, req.params.timetable_id);
   } catch (err) {
     if (err instanceof DuplicateLectureError)
-      return res.status(403).json({errcode: errcode.DUPLICATE_LECTURE, message:"duplicate lecture"});
+      throw new ApiError(403, ErrorCode.DUPLICATE_LECTURE, "duplicate lecture");
     else if (err instanceof LectureTimeOverlapError)
-      return res.status(403).json({errcode: errcode.LECTURE_TIME_OVERLAP, message:"lecture time overlap"});
+      throw new ApiError(403, ErrorCode.LECTURE_TIME_OVERLAP, "lecture time overlap");
     else if (err instanceof RefLectrureNotFoundError)
-      return res.status(404).json({errcode: errcode.REF_LECTURE_NOT_FOUND, message:"ref lecture not found"});
+      throw new ApiError(404, ErrorCode.REF_LECTURE_NOT_FOUND, "ref lecture not found");
     else if (err instanceof WrongRefLectureSemesterError)
-      return res.status(403).json({errcode: errcode.WRONG_SEMESTER, message:"wrong semester"});
+      throw new ApiError(403, ErrorCode.WRONG_SEMESTER, "wrong semester");
 
-    logger.error(err);
-    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"insert lecture failed"});
+    throw err;
   }
 });
 
@@ -135,35 +118,35 @@ router.post('/:timetable_id/lecture/:lecture_id', async function(req, res, next)
  * param ===================================
  * json object of lecture to add
  */
-router.post('/:id/lecture', async function(req, res, next) {
-  let context: RequestContext = req['context'];
+restPost(router, '/:id/lecture')(async function(context, req) {
   let user:User = context.user;
   try {
     let table = await TimetableService.getByMongooseId(user._id, req.params.id);
-    if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+    if (!table) {
+      throw new ApiError(404, ErrorCode.TIMETABLE_NOT_FOUND, "timetable not found");
+    }
     await TimetableLectureService.addCustomLecture(table, req.body);
-    res.json(await TimetableService.getByMongooseId(user._id, req.params.id));
+    return await TimetableService.getByMongooseId(user._id, req.params.id);
   } catch (err) {
     if (err instanceof InvalidLectureTimemaskError)
-      return res.status(403).json({errcode: errcode.INVALID_TIMEMASK, message:"invalid timemask"});
+      throw new ApiError(400, ErrorCode.INVALID_TIMEMASK, "invalid timemask");
     if (err instanceof InvalidLectureTimeJsonError)
-      return res.status(400).json({errcode: errcode.INVALID_TIMEJSON, message:"invalid timejson"});
+      throw new ApiError(400, ErrorCode.INVALID_TIMEJSON, "invalid timejson");
     if (err instanceof DuplicateLectureError)
-      return res.status(403).json({errcode: errcode.DUPLICATE_LECTURE, message:"duplicate lecture"});
+      throw new ApiError(403, ErrorCode.DUPLICATE_LECTURE, "duplicate lecture");
     if (err instanceof LectureTimeOverlapError)
-      return res.status(403).json({errcode: errcode.LECTURE_TIME_OVERLAP, message:"lecture time overlap"});
+      throw new ApiError(403, ErrorCode.LECTURE_TIME_OVERLAP, "lecture time overlap");
     if (err instanceof InvalidLectureColorError)
-      return res.status(400).json({errcode: errcode.INVALID_COLOR, message:"invalid color"});
+      throw new ApiError(400, ErrorCode.INVALID_COLOR, "invalid color");
     if (err instanceof InvalidLectureColorIndexError)
-      return res.status(400).json({errcode: errcode.INVALID_COLOR, message:"invalid color"});
+      throw new ApiError(400, ErrorCode.INVALID_COLOR, "invalid color");
     if (err instanceof InvalidLectureUpdateRequestError)
-      return res.status(400).json({errcode: errcode.NO_LECTURE_TITLE, message:"no lecture title"});
+      throw new ApiError(400, ErrorCode.NO_LECTURE_TITLE, "no lecture title");
     if (err instanceof NotCustomLectureError)
-      return res.status(403).json({errcode: errcode.NOT_CUSTOM_LECTURE, message:"only custom lectures allowed"});
+      throw new ApiError(403, ErrorCode.NOT_CUSTOM_LECTURE, "only custon lectures allowed");
     if (err instanceof WrongRefLectureSemesterError)
-      return res.status(403).json({errcode: errcode.WRONG_SEMESTER, message:"wrong semester"});
-    logger.error(err)
-    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"insert lecture failed"});
+      throw new ApiError(403, ErrorCode.WRONG_SEMESTER, "wrong semester");
+    throw err;
   }
 });
 
@@ -178,35 +161,35 @@ router.put('/:table_id/lecture/:lecture_id', async function(req, res, next) {
   let context: RequestContext = req['context'];
   let user:User = context.user;
   var rawLecture = req.body;
-  if(!rawLecture) return res.status(400).json({errcode: errcode.NO_LECTURE_INPUT, message:"empty body"});
+  if(!rawLecture) return res.status(400).json({errcode: ErrorCode.NO_LECTURE_INPUT, message:"empty body"});
 
   if (!req.params.lecture_id)
-    return res.status(400).json({errcode: errcode.NO_LECTURE_ID, message:"need lecture_id"});
+    return res.status(400).json({errcode: ErrorCode.NO_LECTURE_ID, message:"need lecture_id"});
 
   try {
     let table = await TimetableService.getByMongooseId(user._id, req.params.table_id);
-    if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+    if (!table) return res.status(404).json({errcode: ErrorCode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
 
     rawLecture._id = req.params.lecture_id;
     await TimetableLectureService.partialModifyUserLecture(user._id, table._id, rawLecture);
     res.json(await TimetableService.getByMongooseId(user._id, req.params.table_id));
   } catch (err) {
     if (err instanceof InvalidLectureTimemaskError)
-      return res.status(400).json({errcode: errcode.INVALID_TIMEMASK, message:"invalid timemask"});
+      return res.status(400).json({errcode: ErrorCode.INVALID_TIMEMASK, message:"invalid timemask"});
     if (err instanceof InvalidLectureTimeJsonError)
-      return res.status(400).json({errcode: errcode.INVALID_TIMEJSON, message:"invalid timejson"});
+      return res.status(400).json({errcode: ErrorCode.INVALID_TIMEJSON, message:"invalid timejson"});
     if (err instanceof LectureTimeOverlapError)
-      return res.status(403).json({errcode: errcode.LECTURE_TIME_OVERLAP, message:"lecture time overlapped"});
+      return res.status(403).json({errcode: ErrorCode.LECTURE_TIME_OVERLAP, message:"lecture time overlapped"});
     if (err instanceof InvalidLectureUpdateRequestError)
-      return res.status(403).json({errcode: errcode.ATTEMPT_TO_MODIFY_IDENTITY, message:"modifying identities forbidden"})
+      return res.status(403).json({errcode: ErrorCode.ATTEMPT_TO_MODIFY_IDENTITY, message:"modifying identities forbidden"})
     if (err instanceof InvalidLectureColorError)
-      return res.status(400).json({errcode: errcode.INVALID_COLOR, message:"invalid color"})
+      return res.status(400).json({errcode: ErrorCode.INVALID_COLOR, message:"invalid color"})
     if (err instanceof InvalidLectureColorIndexError)
-      return res.status(400).json({errcode: errcode.INVALID_COLOR, message:"invalid color"})
+      return res.status(400).json({errcode: ErrorCode.INVALID_COLOR, message:"invalid color"})
     if (err instanceof UserLectureNotFoundError)
-      return res.status(404).json({errcode: errcode.LECTURE_NOT_FOUND, message:"lecture not found"});
+      return res.status(404).json({errcode: ErrorCode.LECTURE_NOT_FOUND, message:"lecture not found"});
     logger.error(err);
-    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"server fault"});
+    return res.status(500).json({errcode: ErrorCode.SERVER_FAULT, message:"server fault"});
   }
 });
 
@@ -215,25 +198,25 @@ router.put('/:table_id/lecture/:lecture_id/reset', async function(req, res, next
   let user:User = context.user;
 
   if (!req.params.lecture_id)
-    return res.status(400).json({errcode: errcode.NO_LECTURE_ID, message:"need lecture_id"});
+    return res.status(400).json({errcode: ErrorCode.NO_LECTURE_ID, message:"need lecture_id"});
 
   try {
     let table = await TimetableService.getByMongooseId(user._id, req.params.table_id);
-    if (!table) return res.status(404).json({errcode:errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+    if (!table) return res.status(404).json({errcode:ErrorCode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
     await TimetableLectureService.resetLecture(user._id, table._id, req.params.lecture_id);
     res.json(await TimetableService.getByMongooseId(user._id, req.params.table_id));
   } catch (err) {
     if (err instanceof CustomLectureResetError) {
-      return res.status(403).json({errcode: errcode.IS_CUSTOM_LECTURE, message:"cannot reset custom lectures"});
+      return res.status(403).json({errcode: ErrorCode.IS_CUSTOM_LECTURE, message:"cannot reset custom lectures"});
     } else if (err instanceof RefLectrureNotFoundError) {
-      return res.status(404).json({errcode: errcode.REF_LECTURE_NOT_FOUND, message:"ref lecture not found"});
+      return res.status(404).json({errcode: ErrorCode.REF_LECTURE_NOT_FOUND, message:"ref lecture not found"});
     } else if (err instanceof UserLectureNotFoundError) {
-      return res.status(404).json({errcode: errcode.LECTURE_NOT_FOUND, message:"lecture not found"});
+      return res.status(404).json({errcode: ErrorCode.LECTURE_NOT_FOUND, message:"lecture not found"});
     } else if (err instanceof LectureTimeOverlapError) {
-      return res.status(403).json({errcode: errcode.LECTURE_TIME_OVERLAP, message:"lecture time overlap"});
+      return res.status(403).json({errcode: ErrorCode.LECTURE_TIME_OVERLAP, message:"lecture time overlap"});
     } else {
       logger.error(err);
-      return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"reset lecture failed"});
+      return res.status(500).json({errcode: ErrorCode.SERVER_FAULT, message:"reset lecture failed"});
     }
   }
 });
@@ -251,9 +234,9 @@ router.delete('/:table_id/lecture/:lecture_id', async function(req, res, next) {
     res.json(table);
   } catch (err) {
     if (err instanceof TimetableNotFoundError) 
-      return res.status(404).json({errcode:errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+      return res.status(404).json({errcode:ErrorCode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
     logger.error(err);
-    return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"delete lecture failed"});
+    return res.status(500).json({errcode:ErrorCode.SERVER_FAULT, message:"delete lecture failed"});
   }
 });
 
@@ -270,9 +253,9 @@ router.delete('/:id', async function(req, res, next) { // delete
     res.json(tableList);
   } catch (err) {
     if (err instanceof TimetableNotFoundError) 
-      return res.status(404).json({errcode:errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+      return res.status(404).json({errcode:ErrorCode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
     logger.error(err);
-    return res.status(500).json({errcode:errcode.SERVER_FAULT, message:"delete timetable failed"});
+    return res.status(500).json({errcode:ErrorCode.SERVER_FAULT, message:"delete timetable failed"});
   }
 });
 
@@ -285,20 +268,20 @@ router.post('/:id/copy', async function(req, res, next) {
   let user:User = context.user;
   try {
     let table = await TimetableService.getByMongooseId(user._id, req.params.id);
-    if (!table) return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+    if (!table) return res.status(404).json({errcode: ErrorCode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
     await TimetableService.copy(table);
     let tableList = await TimetableService.getAbstractListByUserId(user._id);
     res.json(tableList);
   } catch (err) {
     logger.error("/:id/copy ", err);
-    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"copy table failed"});
+    return res.status(500).json({errcode: ErrorCode.SERVER_FAULT, message:"copy table failed"});
   }
 });
 
 router.put('/:id', async function(req, res, next) {
   let context: RequestContext = req['context'];
   let user:User = context.user;
-  if (!req.body.title) return res.status(400).json({errcode: errcode.NO_TIMETABLE_TITLE, message:"should provide title"});
+  if (!req.body.title) return res.status(400).json({errcode: ErrorCode.NO_TIMETABLE_TITLE, message:"should provide title"});
   
   try {
     await TimetableService.modifyTitle(req.params.id, user._id, req.body.title);
@@ -306,11 +289,11 @@ router.put('/:id', async function(req, res, next) {
     res.json(tableList);
   } catch (err) {
     if (err instanceof DuplicateTimetableTitleError)
-      return res.status(403).json({errcode: errcode.DUPLICATE_TIMETABLE_TITLE, message:"duplicate title"});
+      return res.status(403).json({errcode: ErrorCode.DUPLICATE_TIMETABLE_TITLE, message:"duplicate title"});
     if (err instanceof TimetableNotFoundError)
-      return res.status(404).json({errcode: errcode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+      return res.status(404).json({errcode: ErrorCode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
     logger.error(err);
-    return res.status(500).json({errcode: errcode.SERVER_FAULT, message:"update timetable title failed"});
+    return res.status(500).json({errcode: ErrorCode.SERVER_FAULT, message:"update timetable title failed"});
   }
 });
 
