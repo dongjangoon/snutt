@@ -16,6 +16,7 @@ var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, '..', 'views'));
+app.use('/asset', express.static(path.join(__dirname, '..', 'asset')));
 //app.set('view engine', 'jade');
 app.engine('.html', require('ejs').renderFile);
 
@@ -32,7 +33,6 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use('/asset', express.static(__dirname + '/asset'));
 app.use('/', RootRouter);
 
 app.use(ApiErrorHandler);
