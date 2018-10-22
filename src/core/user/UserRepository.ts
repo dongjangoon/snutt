@@ -65,22 +65,22 @@ export async function findActiveByCredentialHash(hash: string): Promise<User> {
   return fromMongoose(mongooseDocument);
 }
 
-export async function findActiveByMongooseId(mid: string): Promise<User> {
+export function findActiveByMongooseId(mid: string): Promise<User> {
   return MongooseUserModel.findOne({ '_id': mid, 'active': true })
     .exec().then(function (userDocument) {
       return fromMongoose(userDocument);
     });
 }
 
-export async function findActiveByLocalId(id: string): Promise<User> {
+export function findActiveByLocalId(id: string): Promise<User> {
   return MongooseUserModel.findOne({ 'credential.localId': id, 'active': true })
     .exec().then(function (userDocument) {
       return fromMongoose(userDocument);
     });
 }
 
-export async function update(user: User): Promise<void> {
-  MongooseUserModel.findOne({ '_id': user._id })
+export function update(user: User): Promise<void> {
+  return MongooseUserModel.findOne({ '_id': user._id })
     .exec().then(function (userDocument: any) {
       userDocument.credential = user.credential;
       userDocument.credentialHash = user.credentialHash;
