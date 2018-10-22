@@ -1,9 +1,9 @@
 import ExpressPromiseRouter from 'express-promise-router';
 var router = ExpressPromiseRouter();
 
+import NightmareService = require('@app/core/nightmare/NightmareService');
 import TimetableService = require('@app/core/timetable/TimetableService');
 import TimetableLectureService = require('@app/core/timetable/TimetableLectureService');
-import TimetableImageRenderService = require('@app/core/timetable/TimetableImageRenderService');
 import User from '@app/core/user/model/User';
 import * as log4js from 'log4js';
 import DuplicateTimetableTitleError from '@app/core/timetable/error/DuplicateTimetableTitleError';
@@ -60,7 +60,17 @@ router.get('/:id/image', async function(req, res, next) {
   if (!table) {
     throw new ApiError(404, ErrorCode.TIMETABLE_NOT_FOUND, "timetable not found");
   }
-  let imageBuffer = await TimetableImageRenderService.renderTimetableAsPng(table, 1920, 1080);
+
+  let html = await new Promise<string>(function (resolve, reject) {
+    res.render('member.html', function(err, html: string) {
+      if (err) {
+        reject(err);
+      } else {
+        resolve(html);
+      }
+    });
+  });
+  let imageBuffer = await NightmareService.renderHtmlAsPng(html, 1920, 1080);
   res.contentType('image/png');
   res.send(imageBuffer);
 });
