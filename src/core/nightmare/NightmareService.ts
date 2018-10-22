@@ -19,11 +19,8 @@ function execute<T>(f: (Nightmare) => Promise<T>): Promise<T> {
 export function renderHtmlAsPng(html: string, width: number, height: number): Promise<Buffer> {
     return execute(async function(nm) {
         nm.viewport(width, height);
-        nm.goto("about:blank");
-        await nm.wait(function (html: string){
-            document.body.innerHTML = html;
-            return true;
-        }, html);
+        nm.goto("data:text/html;charset=utf-8," + html);
+        await nm.wait(function(){ return true; }); // HTML 전체 로딩까지 대기
         let buffer: Buffer = await nm.screenshot();
         return buffer;
     });
