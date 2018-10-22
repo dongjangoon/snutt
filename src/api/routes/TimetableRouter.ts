@@ -3,6 +3,7 @@ var router = ExpressPromiseRouter();
 
 import TimetableService = require('@app/core/timetable/TimetableService');
 import TimetableLectureService = require('@app/core/timetable/TimetableLectureService');
+import TimetableImageRenderService = require('@app/core/timetable/TimetableImageRenderService');
 import User from '@app/core/user/model/User';
 import * as log4js from 'log4js';
 import DuplicateTimetableTitleError from '@app/core/timetable/error/DuplicateTimetableTitleError';
@@ -49,6 +50,19 @@ restGet(router, '/:id')(async function(context, req) {
     throw new ApiError(404, ErrorCode.TIMETABLE_NOT_FOUND, "timetable not found");
   }
   return result;
+});
+
+router.get('/:id/image', async function(req, res, next) {
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
+  
+  let table = await TimetableService.getByMongooseId(user._id, req.params.id);
+  if (!table) {
+    throw new ApiError(404, ErrorCode.TIMETABLE_NOT_FOUND, "timetable not found");
+  }
+  let imageBuffer = await TimetableImageRenderService.renderTimetableAsPng(table, 1920, 1080);
+  res.contentType('image/png');
+  res.send(imageBuffer);
 });
 
 restGet(router, '/:year/:semester')(async function(context, req) {
