@@ -52,6 +52,18 @@ restGet(router, '/:id')(async function(context, req) {
   return result;
 });
 
+router.get('/:id/html', async function(req, res, next) {
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
+  
+  let table = await TimetableService.getByMongooseId(user._id, req.params.id);
+  if (!table) {
+    throw new ApiError(404, ErrorCode.TIMETABLE_NOT_FOUND, "timetable not found");
+  }
+
+  res.render('FullscreenTimetable.jsx', { timetable: table });
+});
+
 router.get('/:id/image', async function(req, res, next) {
   let context: RequestContext = req['context'];
   let user:User = context.user;

@@ -10,6 +10,9 @@ let nm = Nightmare({
 let nmLock = new AsyncLock({maxPending : 100, timeout: 5000});
 const NM_LOCK_KEY = "NightmareServiceLock";
 
+/**
+ * 하나의 Nightmare 객체를 공유하므로 lock을 사용해야 한다.
+ */
 function execute<T>(f: (Nightmare) => Promise<T>): Promise<T> {
     return nmLock.acquire(NM_LOCK_KEY, function() {
         return f(nm);

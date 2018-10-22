@@ -16,7 +16,9 @@ var app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, '..', 'views'));
-//app.set('view engine', 'jade');
+
+app.set('view engine', 'jsx')
+app.engine('.jsx', require('express-react-views').createEngine());
 app.engine('.html', require('ejs').renderFile);
 
 // X-Forwarded-For 헤더를 신뢰할 주소. 앞단에 nginx 프록시를 둘 경우 필요함. localhost만을 활성화한다
