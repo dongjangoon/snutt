@@ -15,14 +15,14 @@ api:
   log4js:
     path: './snutt-api.log'
     pattern: '.yyyy-MM-dd'
-    daysToKeep: 30,
+    daysToKeep: 30
     logLevel: debug
 
 batch:
   log4js:
     path: './snutt-batch.log'
     pattern: '.yyyy-MM-dd'
-    daysToKeep: 30,
+    daysToKeep: 30
     logLevel: debug
   feedback2github:
     token: testapikey

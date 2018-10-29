@@ -1,10 +1,10 @@
 import log4js = require('log4js');
 import property = require('@app/core/config/property');
 
-let logPath = property.get("log4js.path");
-let logPattern = property.get("log4js.pattern");
-let logLevel = property.get("log4js.logLevel");
-let daysToKeep = property.get("log4js.daysToKeep");
+let logPath = property.get("batch.log4js.path");
+let logPattern = property.get("batch.log4js.pattern");
+let logLevel = property.get("batch.log4js.logLevel");
+let daysToKeep = property.get("batch.log4js.daysToKeep");
 
 if (process.env.NODE_ENV !== 'mocha') {
     log4js.configure({
