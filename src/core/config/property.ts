@@ -5,15 +5,36 @@ import fs = require("fs");
 import yaml = require("js-yaml");
 
 try {
-    this.yamlString = fs.readFileSync(__dirname + '/../../../../snutt.yml', 'utf8');
-    var config:any = yaml.safeLoad(this.yamlString);
+    let yamlString = fs.readFileSync(__dirname + '/../../../../snutt.yml', 'utf8');
+    var config:any = yaml.safeLoad(yamlString);
 } catch (e) {
     console.error(e.message);
     console.error("Could not find config file.");
     process.exit(1);
 }
 
-// Singleton
+export function get(key: string) {
+    let resolved = resolve(config, key);
+    if (resolved === undefined) {
+        console.error("Could not find config '" + key + "'");
+        process.exit(1);
+    }
+    return resolved;
+}
+
+function resolve(obj, path: string){
+    let splitted = path.split('.');
+    let current = obj;
+    while(splitted.length > 0) {
+        if (typeof current !== 'object') {
+            return undefined;
+        }
+        current = current[splitted.shift()];
+    }
+    return current;
+}
+
+/*
 export = {
     secretKey: config.secretKey,
     host: config.host,
@@ -26,3 +47,4 @@ export = {
     mongoUri: config.mongo,
     redisPort: config.redis.port
 };
+*/

@@ -2,13 +2,15 @@ secretKey: test
 host: localhost
 port: 3000
 email: snutt@wafflestudio.com
-mongo: mongodb://localhost/snutt
-fcm:
-  api_key: testapikey
-  project_id: testprojectid
-feedback2github:
-  token: testapikey
-  repo_owner: wafflestudio
-  repo_name: snutt-feedbacks
+mongo:
+  uri: mongodb://localhost/snutt
 redis:
   port: 6379
+fcm:
+  apiKey: testapikey
+  projectId: testprojectid
+feedback2github:
+  token: testapikey
+  repo:
+    owner: wafflestudio
+    name: snutt-feedbacks

@@ -7,7 +7,7 @@ var logger = log4js.getLogger();
 // nodejs Promise를 사용
 mongoose.Promise = global.Promise;
 
-mongoose.connect(property.mongoUri, function(err) {
+mongoose.connect(property.get('mongo.uri'), function(err) {
   if(err) {
     logger.error(err);
     return;

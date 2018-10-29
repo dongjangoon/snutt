@@ -19,7 +19,7 @@ import RefLectureService = require('@app/core/lecture/RefLectureService');
 let request = supertest(app);
 describe('Integration Test', function() {
   before('valid snutt.yml', function(done) {
-    if (property.secretKey && property.host && property.port)
+    if (property.get('secretKey') && property.get('host') && property.get('port'))
       return done();
     else
       return done(new Error("Invalid config. Please set conf.yml"));

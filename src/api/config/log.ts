@@ -1,4 +1,5 @@
 import log4js = require('log4js');
+import property = require('@app/core/config/property');
 
 if (process.env.NODE_ENV !== 'mocha') {
     log4js.configure({

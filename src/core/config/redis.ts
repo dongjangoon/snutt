@@ -5,7 +5,7 @@ import RedisUtil = require('@app/core/redis/RedisUtil');
 let logger = log4js.getLogger();
 
 let client = redis.createClient({
-    port: property.redisPort
+    port: property.get('redis.port')
 });
 
 client.on('connect', async function() {

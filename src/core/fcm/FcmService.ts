@@ -11,10 +11,13 @@ import property = require('@app/core/config/property');
 import FcmError from './error/FcmError';
 import FcmLogServie = require('@app/core/fcm/FcmLogService');
 
+let apiKey = property.get('fcm.apiKey');
+let projectId = property.get('fcm.projectId');
+
 const device_api_header = {
   "Content-Type":"application/json",
-  "Authorization":"key="+property.fcm_api_key,
-  "project_id":property.fcm_project_id
+  "Authorization":"key="+apiKey,
+  "project_id":projectId
 };
 
 export function createNotiKey(key_name:string, registration_ids:[string]): Promise<string> {
@@ -95,7 +98,7 @@ export function addTopic(registration_id:string): Promise<any> {
       uri: 'https://iid.googleapis.com/iid/v1/'+registration_id+'/rel/topics/global',
       headers: {
         "Content-Type":"application/json",
-        "Authorization":"key="+property.fcm_api_key
+        "Authorization":"key="+apiKey
         // no need for project_id
       }
     }).catch(function(err){
@@ -109,7 +112,7 @@ export function removeTopicBatch(registration_tokens:[string]): Promise<any> {
       uri: 'https://iid.googleapis.com/iid/v1:batchRemove',
       headers: {
         "Content-Type":"application/json",
-        "Authorization":"key="+property.fcm_api_key
+        "Authorization":"key="+apiKey
         // no need for project_id
       },
       body: {
@@ -128,7 +131,7 @@ export async function sendMsg(to:string, title:string, body:string, author: stri
     uri: 'https://fcm.googleapis.com/fcm/send',
     headers: {
       "Content-Type":"application/json",
-      "Authorization":"key="+property.fcm_api_key
+      "Authorization":"key="+apiKey
     },
     body: {
           "to": to,

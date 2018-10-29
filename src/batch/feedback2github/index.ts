@@ -18,8 +18,8 @@ import Issue from './model/Issue';
 import property = require('@app/core/config/property');
 import GithubService = require('./GithubService');
 
-let repoOwner = property.feedback2github_repo_owner;
-let repoName = property.feedback2github_repo_name;
+let repoOwner = property.get('feedback2github.repo.owner');
+let repoName = property.get('feedback2github.repo.name');
 
 var logger = log4js.getLogger();
 

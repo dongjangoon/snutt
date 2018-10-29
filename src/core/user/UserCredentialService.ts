@@ -13,6 +13,8 @@ import AlreadyRegisteredFbIdError from '@app/core/user/error/AlreadyRegisteredFb
 import InvalidFbIdOrTokenError from '@app/core/facebook/error/InvalidFbIdOrTokenError';
 import NotLocalAccountError from './error/NotLocalAccountError';
 
+let secretKey = property.get('secretKey');
+
 export async function isRightPassword(user: User, password: string): Promise<boolean> {
     let originalHash = user.credential.localPw;
     if (!password || !originalHash) return false;
@@ -34,7 +36,7 @@ export function compareCredentialHash(user: User, hash: string): boolean {
 }
 
 export function makeCredentialHmac(userCredential: UserCredential): string {
-    var hmac = crypto.createHmac('sha256', property.secretKey);
+    var hmac = crypto.createHmac('sha256', secretKey);
     hmac.update(JSON.stringify(userCredential));
     return hmac.digest('hex');
 }
