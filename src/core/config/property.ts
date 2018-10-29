@@ -8,16 +8,13 @@ try {
     let yamlString = fs.readFileSync(__dirname + '/../../../../snutt.yml', 'utf8');
     var config:any = yaml.safeLoad(yamlString);
 } catch (e) {
-    console.error(e.message);
-    console.error("Could not find config file.");
-    process.exit(1);
+    throw new Error("Could not find config file.");
 }
 
 export function get(key: string) {
     let resolved = resolve(config, key);
     if (resolved === undefined) {
-        console.error("Could not find config '" + key + "'");
-        process.exit(1);
+        throw new Error("Could not find config '" + key + "'");
     }
     return resolved;
 }

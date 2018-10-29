@@ -1,13 +1,26 @@
 import log4js = require('log4js');
 import property = require('@app/core/config/property');
 
+let logPath = property.get("api.log4js.path");
+let logPattern = property.get("api.log4js.pattern");
+let logLevel = property.get("api.log4js.logLevel");
+let daysToKeep = property.get("api.log4js.daysToKeep");
+
 if (process.env.NODE_ENV !== 'mocha') {
     log4js.configure({
         appenders: { 
-            'stderr': { type : 'stderr', layout: { type: "basic" } }
+            'stderr': { type : 'stderr', layout: { type: "basic" } },
+            'file': {
+                type: 'dateFile',
+                filename: logPath,
+                pattern: logPattern,
+                daysToKeep: daysToKeep,
+                compress: true,
+                alwaysIncludePattern: true
+            }
         },
         categories: {
-            default: { appenders: [ 'stderr' ], level: 'error' }
+            default: { appenders: [ 'stderr', 'file' ], level: logLevel }
         }
     });
 } else {

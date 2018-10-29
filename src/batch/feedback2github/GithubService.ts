@@ -2,7 +2,7 @@ import request = require('request-promise-native');
 import property = require('@app/core/config/property');
 import Issue from './model/Issue';
 
-let githubToken = property.get('feedback2github.token');
+let githubToken = property.get('batch.feedback2github.token');
 let apiHeader = {
     Accept: "application/vnd.github.v3+json",
     Authorization: "token " + githubToken,

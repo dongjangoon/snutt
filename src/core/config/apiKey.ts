@@ -12,7 +12,7 @@
 import jwt = require('jsonwebtoken');
 import property = require('@app/core/config/property');
 
-let secretKey = property.get('secretKey');
+let secretKey = property.get('core.secretKey');
 
 /**
  * api key를 발급할 때 암호화에 사용되는 json입니다.

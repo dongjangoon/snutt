@@ -13,7 +13,7 @@ import AlreadyRegisteredFbIdError from '@app/core/user/error/AlreadyRegisteredFb
 import InvalidFbIdOrTokenError from '@app/core/facebook/error/InvalidFbIdOrTokenError';
 import NotLocalAccountError from './error/NotLocalAccountError';
 
-let secretKey = property.get('secretKey');
+let secretKey = property.get('core.secretKey');
 
 export async function isRightPassword(user: User, password: string): Promise<boolean> {
     let originalHash = user.credential.localPw;

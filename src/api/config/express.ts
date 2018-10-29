@@ -40,8 +40,8 @@ app.use(ApiErrorHandler);
  * Get port from environment and store in Express.
  */
 
-var port = property.get('port') || '3000';
-var host = property.get('host') || 'localhost';
+var port = property.get('api.port') || '3000';
+var host = property.get('api.host') || 'localhost';
 app.set('port', port);
 app.set('host', host);
 

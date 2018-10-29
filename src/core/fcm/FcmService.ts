@@ -11,8 +11,8 @@ import property = require('@app/core/config/property');
 import FcmError from './error/FcmError';
 import FcmLogServie = require('@app/core/fcm/FcmLogService');
 
-let apiKey = property.get('fcm.apiKey');
-let projectId = property.get('fcm.projectId');
+let apiKey = property.get('core.fcm.apiKey');
+let projectId = property.get('core.fcm.projectId');
 
 const device_api_header = {
   "Content-Type":"application/json",
