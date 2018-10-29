@@ -6,4 +6,6 @@ let logger = log4js.getLogger();
 RedisUtil.pollRedisClient().then(function() {
   logger.info('Flushing all redis data');
   RedisUtil.flushall();
+}).catch(function(err) {
+  logger.error("Failed to flush redis");
 });

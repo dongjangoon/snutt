@@ -20,7 +20,7 @@ export async function pollRedisClient(): Promise<redis.RedisClient> {
 
     function checkRedisClientTimeoutWithoutReject(timeout: number) {
         return new Promise<redis.RedisClient>(function(resolve, reject) {
-            setTimeout(async function() {
+            setTimeout(function() {
                 try {
                     checkRedisClient();
                     resolve(redisClient);
@@ -32,7 +32,7 @@ export async function pollRedisClient(): Promise<redis.RedisClient> {
 
     function checkRedisClientTimeout(timeout: number) {
         return new Promise<redis.RedisClient>(function(resolve, reject) {
-            setTimeout(async function() {
+            setTimeout(function() {
                 try {
                     checkRedisClient();
                     resolve(redisClient);
