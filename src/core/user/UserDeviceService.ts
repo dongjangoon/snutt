@@ -1,5 +1,5 @@
-
 import FcmService = require('@app/core/fcm/FcmService');
+import FcmKeyUtil = require('@app/core/fcm/FcmKeyUtil');
 import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');
 
@@ -11,7 +11,7 @@ import UserService = require('@app/core/user/UserService');
 export async function attachDevice(user: User, registrationId: string): Promise<void> {
   if (!user.fcmKey) await refreshFcmKey(user, registrationId);
 
-  let keyName = "user-" + user._id;
+  let keyName = FcmKeyUtil.getUserFcmKeyName(user);
   try {
     await FcmService.addDevice(keyName, user.fcmKey, [registrationId]);
   } catch (err) {
@@ -25,7 +25,7 @@ export async function attachDevice(user: User, registrationId: string): Promise<
 export async function detachDevice(user: User, registrationId: string): Promise<void> {
   if (!user.fcmKey) await refreshFcmKey(user, registrationId);
 
-  let keyName = "user-" + user._id;
+  let keyName = FcmKeyUtil.getUserFcmKeyName(user);
   try {
     await FcmService.removeDevice(keyName, user.fcmKey, [registrationId]);
   } catch (err) {
@@ -37,7 +37,7 @@ export async function detachDevice(user: User, registrationId: string): Promise<
 }
 
 async function refreshFcmKey(user: User, registrationId: string): Promise<void> {
-  var keyName = "user-" + user._id;
+  let keyName = FcmKeyUtil.getUserFcmKeyName(user);
   var keyValue: string;
 
   try {
