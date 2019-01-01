@@ -8,7 +8,7 @@ import TagList from './model/TagList';
 var TagListSchema = new mongoose.Schema({
   year: {type: Number, required: true},
   semester: {type: Number, required: true},
-  updated_at: Date,
+  updated_at: mongoose.Schema.Types.Mixed, // Issue #92. After all data converted to nubmer, modify this to Number
   tags: {
     classification: {type: [String]},
     department: {type: [String]},
@@ -32,8 +32,7 @@ export async function findBySemester(year: number, semester: number): Promise<Ta
 export async function findUpdateTimeBySemester(year: number, semester: number): Promise<number> {
   let mongooseDocument = await mongooseModel.findOne({'year' : year, 'semester' : semester},'updated_at').exec();
   if (!mongooseDocument) throw new TagListNotFoundError();
-  let updateDate: number = mongooseDocument['updated_at'];
-  return updateDate;
+  return getUpdateTimeFromMongooseDocument(mongooseDocument);
 }
 
 export async function upsert(tagList: TagList): Promise<void> {
@@ -49,7 +48,19 @@ function fromMongooseDocument(doc: mongoose.Document): TagList {
   return {
     year: doc['year'],
     semester: doc['semester'],
-    updated_at: doc['updated_at'],
+    updated_at: getUpdateTimeFromMongooseDocument(doc),
     tags: doc['tags']
   };
+}
+
+// Issue #92. After all data converted to nubmer, remove this function
+function getUpdateTimeFromMongooseDocument(doc: mongoose.Document): number {
+  let updateTime = doc['updated_at'];
+  if (updateTime instanceof Date) {
+    return updateTime.getTime();
+  } else if (typeof updateTime === 'number') {
+    return updateTime;
+  } else {
+    throw new Error("Tag update time is neither Date or number");
+  }
 }
