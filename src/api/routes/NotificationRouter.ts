@@ -24,9 +24,10 @@ restGet(router, '/')(async function(context, req){
   return notification;
 });
 
-restGet(router, '/count')(function(context, req){
+restGet(router, '/count')(async function(context, req){
   var user:User = context.user;
-  return NotificationService.countUnreadByUser(user);
+  let count = await NotificationService.countUnreadByUser(user);
+  return { count: count };
 });
 
 export = router;
