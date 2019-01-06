@@ -45,7 +45,7 @@ export async function querySortedByWhetherFirstCharMatches(
           $cond: {
             if: {
               $eq: [
-                { $substrCp: ["$course_title", 0, 1] },
+                { $substrCP: ["$course_title", 0, 1] },
                 firstChar
               ]
             },
