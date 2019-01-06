@@ -1,6 +1,6 @@
 {
   "name": "snutt",
-  "version": "2.1.12",
+  "version": "2.2.0",
   "private": true,
   "scripts": {
     "test": "tsc -p . && cp -R resources/* build/ && mocha -r module-alias/register --exit \"build/test/**/*.js\"",

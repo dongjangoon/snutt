@@ -1,8 +1,8 @@
 import request = require('request-promise-native');
 import property = require('@app/core/config/property');
-import Issue from './model/Issue';
+import GithubIssue from './model/GithubIssue';
 
-let githubToken = property.get('batch.feedback2github.token');
+let githubToken = property.get('core.feedback2github.token');
 let apiHeader = {
     Accept: "application/vnd.github.v3+json",
     Authorization: "token " + githubToken,
@@ -20,7 +20,7 @@ export async function getUserName(): Promise<string> {
     return result.login;
 }
 
-export async function addIssue(repoOwner: string, repoName: string, issue: Issue): Promise<string> {
+export async function addIssue(repoOwner: string, repoName: string, issue: GithubIssue): Promise<string> {
     let apiIssuesUrl = "https://api.github.com/repos/" + repoOwner + "/" + repoName + "/issues";
     let response = await request({
         method: 'POST',

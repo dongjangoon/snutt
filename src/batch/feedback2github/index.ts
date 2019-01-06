@@ -1,8 +1,5 @@
 /**
- * DB 상의 피드백을 깃헙 이슈로 전송합니다.
- * $ npm run feedback2github
- * 
- * @author Jang Ryeol, ryeolj5911@gmail.com
+ * Deprecated since 2.2.0
  */
 
 require('module-alias/register');
@@ -14,17 +11,17 @@ import LambdaJobBuilder from '@app/batch/common/LambdaJobBuilder';
 import FeedbackService = require('@app/core/feedback/FeedbackService');
 import Feedback from '@app/core/feedback/model/Feedback';
 import * as log4js from 'log4js';
-import Issue from './model/Issue';
+import GithubIssue from '@app/core/github/model/GithubIssue';
 import property = require('@app/core/config/property');
-import GithubService = require('./GithubService');
+import GithubService = require('@app/core/github/GithubService');
 
-let repoOwner = property.get('batch.feedback2github.repo.owner');
-let repoName = property.get('batch.feedback2github.repo.name');
+let repoOwner = property.get('core.feedback2github.repo.owner');
+let repoName = property.get('core.feedback2github.repo.name');
 
 var logger = log4js.getLogger();
 
 interface StepItem {
-    issue: Issue,
+    issue: GithubIssue,
     feedbackId: string
 }
 
@@ -66,7 +63,7 @@ async function processor(feedback: Feedback): Promise<StepItem> {
         labels = [feedback.platform];
     }
 
-    let issue: Issue = {
+    let issue: GithubIssue = {
         title: title,
         body: body,
         labels: labels

@@ -1,5 +1,5 @@
 /**
- * 유저로부터 피드백을 입력 받아 DB에 삽입
+ * Deprecated Since 2.2.0
  */
 
 import mongoose = require('mongoose');
@@ -16,6 +16,7 @@ FeedbackSchema.index({timestamp: -1});
 
 let FeedbackModel = mongoose.model('Feedback', FeedbackSchema, 'feedbacks');
 
+// deprecated
 export async function insert(feedback: Feedback): Promise<void> {
   var feedbackDocument = new FeedbackModel(feedback);
   await feedbackDocument.save();
