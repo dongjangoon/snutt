@@ -5,6 +5,11 @@ export function query(query: any, limit: number, offset: number): Promise<RefLec
     return RefLectureRepository.query(query, limit, offset);
 }
 
+export function querySortedByWhetherFirstCharMatches(query: any, courseTitle: string, limit: number, offset: number): Promise<RefLecture[]> {
+    let firstChar = courseTitle.slice(0, 1);
+    return RefLectureRepository.querySortedByWhetherFirstCharMatches(query, firstChar, limit, offset);
+}
+
 export function getByMongooseId(mongooseId: string): Promise<RefLecture> {
     return RefLectureRepository.findByMongooseId(mongooseId);
 }

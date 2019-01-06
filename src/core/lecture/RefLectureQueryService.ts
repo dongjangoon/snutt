@@ -155,7 +155,11 @@ export async function getLectureListByQueryWithCache(lquery: LectureQuery): Prom
 
 function getLectureListByQuery(lquery: LectureQuery, limit: number, offset: number): Promise<RefLecture[]> {
   var mquery = toMongoQuery(lquery);
-  return RefLectureService.query(mquery, limit, offset);
+  if (lquery.title) {
+    return RefLectureService.querySortedByWhetherFirstCharMatches(mquery, lquery.title, limit, offset);
+  } else {
+    return RefLectureService.query(mquery, limit, offset);
+  }
 }
 
 async function getCachedLectureListByLimitAndOffset(lquery: LectureQuery, limit: number, offset: number): Promise<RefLecture[]> {
