@@ -8,6 +8,11 @@ core:
   fcm:
     apiKey: testapikey
     projectId: testprojectid
+  feedback2github:
+    token: testapikey
+    repo:
+      owner: wafflestudio
+      name: snutt-feedbacks
 
 api:
   host: localhost
@@ -28,8 +33,3 @@ batch:
     datePattern: '.yyyy-MM-dd'
     daysToKeep: 30
     logLevel: debug
-  feedback2github:
-    token: testapikey
-    repo:
-      owner: wafflestudio
-      name: snutt-feedbacks

@@ -34,7 +34,7 @@ refLectureSchema.index({ course_number: 1, lecture_number: 1 })
 
 let mongooseModel = mongoose.model('Lecture', refLectureSchema, 'lectures');
 
-export async function query(query, limit, offset): Promise<RefLecture[]> {
+export async function querySortedByWhetherFirstCharMatches(query, limit, offset): Promise<RefLecture[]> {
   let docs = await mongooseModel.find(query).sort('course_title')
     .skip(offset)
     .limit(limit)
@@ -42,8 +42,10 @@ export async function query(query, limit, offset): Promise<RefLecture[]> {
   return docs.map(fromMongoose);
 }
 
-export async function queryAll(query): Promise<RefLecture[]> {
+export async function query(query, limit, offset): Promise<RefLecture[]> {
   let docs = await mongooseModel.find(query).sort('course_title')
+    .skip(offset)
+    .limit(limit)
     .exec();
   return docs.map(fromMongoose);
 }
