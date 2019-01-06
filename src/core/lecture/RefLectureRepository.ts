@@ -34,11 +34,36 @@ refLectureSchema.index({ course_number: 1, lecture_number: 1 })
 
 let mongooseModel = mongoose.model('Lecture', refLectureSchema, 'lectures');
 
-export async function querySortedByWhetherFirstCharMatches(query, limit, offset): Promise<RefLecture[]> {
-  let docs = await mongooseModel.find(query).sort('course_title')
-    .skip(offset)
-    .limit(limit)
-    .exec();
+export async function querySortedByWhetherFirstCharMatches(
+  query, firstChar: string, limit: number, offset: number): Promise<RefLecture[]> {
+
+  let docs = await mongooseModel.aggregate([
+    { $match: query },
+    {
+      $addFields: {
+        _order : {
+          $cond: {
+            if: {
+              $eq: [
+                { $substrCp: ["$course_title", 0, 1] },
+                firstChar
+              ]
+            },
+            then: 0,
+            else: 1
+          }
+        }
+      }
+    },
+    {
+      $sort: {
+        _order: 1,
+        course_title: 1
+      }
+    },
+    { $skip: offset },
+    { $limit: limit }
+  ]).exec();
   return docs.map(fromMongoose);
 }
 
