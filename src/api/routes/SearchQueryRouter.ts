@@ -16,7 +16,7 @@ restPost(router, '/')(async function(context, req) {
   var query: any = req.body;
   try {
     RefLectureQueryService.addQueryLogAsync(query);
-    return await RefLectureQueryService.getLectureListByQueryWithCache(query);
+    return await RefLectureQueryService.getLectureListByLectureQuery(query);
   } catch (err) {
     if (err instanceof InvalidLectureTimemaskError) {
       throw new ApiError(400, ErrorCode.INVALID_TIMEMASK, "invalid timemask");

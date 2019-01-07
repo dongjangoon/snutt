@@ -1,3 +1,3 @@
-export function getLectureQueryKey(year: number, semester: number, queryString: string, page: number) {
-    return "lq-" + year + "-" + semester + "-" + page + "-" + queryString;
+export function getLectureQueryKey(queryHash: string, page: number) {
+    return "lq-" + queryHash + "-" + page;
 }
