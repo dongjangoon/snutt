@@ -117,7 +117,7 @@ function makeMongoQueryFromLectureQuery(lquery:LectureQuery): LectureMongoQuery 
       });
       lectureTimemaskMatchList.push({
         ["class_time_mask."+i]: {
-          $bitsAllClear: lquery.time_mask[i]
+          $bitsAllClear: (~(lquery.time_mask[i])<<1>>>1)
         } 
       });
     }
