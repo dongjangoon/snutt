@@ -106,21 +106,13 @@ function makeMongoQueryFromLectureQuery(lquery:LectureQuery): LectureMongoQuery 
     }
     /**
      * 시간이 아예 입력되지 않은 강의는 제외
-     * 시간 검색의 의미에 잘 맞지 않는다고 판단, 제외했음
      */ 
-    mquery["$where"] = "(";
     for (let i=0; i< 7; i++) {
-      if (i > 0) mquery["$where"] += " || ";
-      mquery["$where"] += "this.class_time_mask[" + i + "] != 0";
+      mquery["class_time_mask."+i] = {
+        $ne: 0,
+        $bitsAllClear: lquery.time_mask[i]
+      }
     }
-    mquery["$where"] += ")";
-
-    /**
-     * 타임마스크와 비트 연산
-     */
-    lquery.time_mask.forEach(function(bit, idx) {
-      mquery["$where"] += " && ((this.class_time_mask["+idx+"] & "+(~bit<<1>>>1)+") == 0)";
-    });
   }
 
   if (lquery.title) {
