@@ -6,8 +6,7 @@ export function query(query: any, limit: number, offset: number): Promise<RefLec
 }
 
 export function querySortedByWhetherFirstCharMatches(query: any, courseTitle: string, limit: number, offset: number): Promise<RefLecture[]> {
-    let firstChar = courseTitle.slice(0, 1);
-    return RefLectureRepository.querySortedByWhetherFirstCharMatches(query, firstChar, limit, offset);
+    return RefLectureRepository.queryWithCourseTitle(query, courseTitle, limit, offset);
 }
 
 export function getByMongooseId(mongooseId: string): Promise<RefLecture> {
