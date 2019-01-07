@@ -75,10 +75,12 @@ export type LectureQuery = {
   limit:number;
 }
 
+type LectureMongoQuery = any;
+
 /**
  * 라우터에서 전송받은 Body를 mongo query로 변환
  */
-function toMongoQuery(lquery:LectureQuery): Object {
+function makeMongoQueryFromLectureQuery(lquery:LectureQuery): LectureMongoQuery {
   var mquery = {}; // m for Mongo
   mquery["year"] = lquery.year;
   mquery["semester"] = lquery.semester;
@@ -143,26 +145,14 @@ function toMongoQuery(lquery:LectureQuery): Object {
   return mquery;
 }
 
-export async function getLectureListByQueryWithCache(lquery: LectureQuery): Promise<RefLecture[]> {
+export async function getLectureListByLectureQuery(lquery: LectureQuery): Promise<RefLecture[]> {
   if (!lquery.limit) lquery.limit = 20;
   if (!lquery.offset) lquery.offset = 0;
-  if (isTitleOnlyQuery(lquery) && lquery.title) {
-    return await getCachedLectureListByLimitAndOffset(lquery, lquery.limit, lquery.offset);
-  } else {
-    return await getLectureListByQuery(lquery, lquery.limit, lquery.offset);
-  }
+  let mquery = makeMongoQueryFromLectureQuery(lquery);
+  return await getLectureListByLimitAndOffset(mquery, lquery.title, lquery.limit, lquery.offset);
 }
 
-function getLectureListByQuery(lquery: LectureQuery, limit: number, offset: number): Promise<RefLecture[]> {
-  var mquery = toMongoQuery(lquery);
-  if (lquery.title) {
-    return RefLectureService.querySortedByWhetherFirstCharMatches(mquery, lquery.title, limit, offset);
-  } else {
-    return RefLectureService.query(mquery, limit, offset);
-  }
-}
-
-async function getCachedLectureListByLimitAndOffset(lquery: LectureQuery, limit: number, offset: number): Promise<RefLecture[]> {
+async function getLectureListByLimitAndOffset(mquery: LectureMongoQuery, lectureTitle: string, limit: number, offset: number): Promise<RefLecture[]> {
   if (limit === 0) {
     return [];
   }
@@ -171,19 +161,19 @@ async function getCachedLectureListByLimitAndOffset(lquery: LectureQuery, limit:
   let pageLimit = lastPage - firstPage + 1;
   let pageOffset = firstPage;
 
-  let lectureList = await getCachedLectureList(lquery, pageLimit, pageOffset);
+  let lectureList = await getLectureListByPage(mquery, lectureTitle, pageLimit, pageOffset);
   let sliceStart = offset % 20;
   let sliceEnd = sliceStart + limit;
   return lectureList.slice(sliceStart, sliceEnd);
 }
 
-async function getCachedLectureList(lquery: LectureQuery, pageLimit: number, pageOffset: number): Promise<RefLecture[]> {
+async function getLectureListByPage(mquery: LectureMongoQuery, lectureTitle: string, pageLimit: number, pageOffset: number): Promise<RefLecture[]> {
   let ret: RefLecture[] = [];
   let pageList = makeIntegerSequence(pageOffset, pageLimit);
-  let cachedList = await RefLectureQueryCacheRepository.getListOfLectureListCacheFromPageList(lquery.year, lquery.semester, lquery.title, pageList);
+  let cachedList = await RefLectureQueryCacheRepository.getListOfLectureListCacheFromPageList(mquery, pageList);
   for (let i = 0; i < pageLimit; i++) {
     if (cachedList[i] === null) {
-      ret.push.apply(ret, await setCachedLectureList(lquery, pageLimit - i, pageOffset + i));
+      ret.push.apply(ret, await setCachedLectureList(mquery, lectureTitle, pageLimit - i, pageOffset + i));
       break;
     }
 
@@ -201,17 +191,16 @@ function makeIntegerSequence(start: number, n: number): number[] {
   return Array.from(new Array(n), (_, index) => start + index);
 }
 
-async function setCachedLectureList(lquery: LectureQuery, pageLimit: number, pageOffset: number): Promise<RefLecture[]> {
+async function setCachedLectureList(mquery: LectureMongoQuery, lectureTitle: string, pageLimit: number, pageOffset: number): Promise<RefLecture[]> {
   const pageLimitWithPrefetch = pageLimit + CACHE_PREFETCH_NUM_PAGE;
   const limit = pageLimitWithPrefetch * CACHE_PAGE_SIZE;
   const offset = pageOffset * CACHE_PAGE_SIZE;
-  let lectureList = await getLectureListByQuery(lquery, limit, offset);
+  let lectureList = await getLectureListByQuery(mquery, lectureTitle, limit, offset);
 
-  // Cache 없이 검색한 결과를 미리 반환한다
   for (let i=0; i < pageLimitWithPrefetch; i++) {
     let lectureSlice = lectureList.slice(CACHE_PAGE_SIZE * i, CACHE_PAGE_SIZE * (i+1));
-    RefLectureQueryCacheRepository.setLectureListCache(
-      lquery.year, lquery.semester, lquery.title, pageOffset + i, lectureSlice)
+    await RefLectureQueryCacheRepository.setLectureListCache(
+      mquery, pageOffset + i, lectureSlice)
       .catch(function(err) {
         logger.error(err);
       });
@@ -220,23 +209,12 @@ async function setCachedLectureList(lquery: LectureQuery, pageLimit: number, pag
   return lectureList.slice(0, pageLimit * CACHE_PAGE_SIZE);
 }
 
-function isTitleOnlyQuery(lquery: LectureQuery): boolean {
-  for (let key in lquery) {
-    if (lquery.hasOwnProperty(key)) {
-      if (key === 'year' || key === 'semester' || key === 'title' || key === 'offset' || key === 'limit') {
-        continue;
-      } else {
-        if (!isEmptyArray(lquery[key])) {
-          return false;
-        }
-      }
-    }
+function getLectureListByQuery(mquery: LectureMongoQuery, lectureTitle: string, limit: number, offset: number): Promise<RefLecture[]> {
+  if (lectureTitle) {
+    return RefLectureService.querySortedByWhetherFirstCharMatches(mquery, lectureTitle, limit, offset);
+  } else {
+    return RefLectureService.query(mquery, limit, offset);
   }
-  return true;
-}
-
-function isEmptyArray(array: any[]): boolean {
-  return array === null || array === undefined || (typeof array.length === 'number' && array.length === 0);
 }
 
 /**
