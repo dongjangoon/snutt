@@ -34,19 +34,55 @@ refLectureSchema.index({ course_number: 1, lecture_number: 1 })
 
 let mongooseModel = mongoose.model('Lecture', refLectureSchema, 'lectures');
 
-export async function querySortedByWhetherFirstCharMatches(
-  query, firstChar: string, limit: number, offset: number): Promise<RefLecture[]> {
-
+export async function queryWithCourseTitle(
+  query, courseTitle: string, limit: number, offset: number): Promise<RefLecture[]> {
+  let firstChar = courseTitle.slice(0, 1);
   let docs = await mongooseModel.aggregate([
     { $match: query },
     {
       $addFields: {
-        _order : {
+        _firstChar: { $substrCP: ["$course_title", 0, 1] },
+        _lastChar: { $substrCP: ["$course_title", { $subtract: [{ $strLenCP: "$course_title" }, 1] }, 1] },
+        _courseTitleLengthExceptWhiteSpace : {
+          $reduce: {
+            input: {
+              $split: ["$course_title", " "]
+            },
+            initialValue: 0,
+            in: { $add: [
+              "$$value",
+              {
+                $strLenCP: "$$this"
+              }
+            ]}
+          }
+        },
+      }
+    },
+    {
+      $addFields: {
+        _firstCharMatches : {
           $cond: {
             if: {
               $eq: [
-                { $substrCP: ["$course_title", 0, 1] },
+                "$_firstChar",
                 firstChar
+              ]
+            },
+            then: 0,
+            else: 1
+          }
+        },
+        _endsWithNumber : {
+          $cond: {
+            if: {
+              $and: [
+                {
+                  $gte: [ { $strcasecmp: ["$_lastChar", "0"] }, 0 ]
+                },
+                {
+                  $lte: [ { $strcasecmp: ["$_lastChar", "9"] }, 0 ]
+                }
               ]
             },
             then: 0,
@@ -57,7 +93,9 @@ export async function querySortedByWhetherFirstCharMatches(
     },
     {
       $sort: {
-        _order: 1,
+        _firstCharMatches: 1,
+        _courseTitleLengthExceptWhiteSpace: 1,
+        _endsWithNumber: 1,
         course_title: 1
       }
     },
