@@ -41,11 +41,13 @@ export async function queryWithCourseTitle(
     { $match: query },
     {
       $addFields: {
+        _firstChar: { $substrCP: ["$course_title", 0, 1] },
+        _lastChar: { $substrCP: ["$course_title", { $subtract: [{$strLenCP: "$course_title" }, 1] }, 1] },
         _firstCharMatches : {
           $cond: {
             if: {
               $eq: [
-                { $substrCP: ["$course_title", 0, 1] },
+                "$_firstChar",
                 firstChar
               ]
             },
@@ -66,6 +68,22 @@ export async function queryWithCourseTitle(
               }
             ]}
           }
+        },
+        _endsWithNumber : {
+          $cond: {
+            if: {
+              $and: [
+                {
+                  $gte: [ "$_lastChar", "0"]
+                },
+                {
+                  $lte: [ "$_lastChar", "9"]
+                }
+              ]
+            },
+            then: 0,
+            else: 1
+          }
         }
       }
     },
@@ -73,6 +91,7 @@ export async function queryWithCourseTitle(
       $sort: {
         _firstCharMatches: 1,
         _courseTitleLength: 1,
+        _endsWithNumber: 1,
         course_title: 1
       }
     },
