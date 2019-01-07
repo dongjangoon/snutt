@@ -13,9 +13,9 @@ PR is welcome!
 
 ## Requirements
 * Linux (CentOS, Ubuntu, Arch, etc.)
-* Node.js 4.2+ and corresponding npm
-* MongoDB 2.6+
-* Redis 4.0+
+* Node.js 8.15.0
+* MongoDB 3.6.9
+* Redis 4.0.12
 
 ## Documentation
 [깃헙 위키](https://github.com/wafflestudio/snutt/wiki/Deploying-2.0.0)
