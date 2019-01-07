@@ -211,7 +211,7 @@ async function setCachedLectureList(mquery: LectureMongoQuery, lectureTitle: str
 
 function getLectureListByQuery(mquery: LectureMongoQuery, lectureTitle: string, limit: number, offset: number): Promise<RefLecture[]> {
   if (lectureTitle) {
-    return RefLectureService.querySortedByWhetherFirstCharMatches(mquery, lectureTitle, limit, offset);
+    return RefLectureService.queryWithCourseTitle(mquery, lectureTitle, limit, offset);
   } else {
     return RefLectureService.query(mquery, limit, offset);
   }

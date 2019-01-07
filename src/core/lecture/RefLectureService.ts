@@ -5,7 +5,7 @@ export function query(query: any, limit: number, offset: number): Promise<RefLec
     return RefLectureRepository.query(query, limit, offset);
 }
 
-export function querySortedByWhetherFirstCharMatches(query: any, courseTitle: string, limit: number, offset: number): Promise<RefLecture[]> {
+export function queryWithCourseTitle(query: any, courseTitle: string, limit: number, offset: number): Promise<RefLecture[]> {
     return RefLectureRepository.queryWithCourseTitle(query, courseTitle, limit, offset);
 }
 

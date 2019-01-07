@@ -53,7 +53,20 @@ export async function queryWithCourseTitle(
             else: 1
           }
         },
-        _courseTitleLength : { $strLenCP: "$course_title" }
+        _courseTitleLength : {
+          $reduce: {
+            input: {
+              $split: ["$course_title", " "]
+            },
+            initialValue: 0,
+            in: { $add: [
+              "$$value",
+              {
+                $strLenCP: "$$this"
+              }
+            ]}
+          }
+        }
       }
     },
     {
