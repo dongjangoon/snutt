@@ -15,7 +15,8 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
   let userIdNumUpdatedMap: Map<string, number> = new Map();
   let userIdNumRemovedMap: Map<string, number> = new Map();
 
-  function incrementUpdated(userId: string) {
+  function incrementUpdated(userId: any) {
+    userId = (typeof userId == 'string') ? userId : String(userId); 
     let oldValue = userIdNumUpdatedMap.get(userId);
     if (oldValue) {
       userIdNumUpdatedMap.set(userId, oldValue + 1);
@@ -24,7 +25,8 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
     }
   }
 
-  function incrementRemoved(userId: string) {
+  function incrementRemoved(userId: any) {
+    userId = (typeof userId == 'string') ? userId : String(userId); 
     let oldValue = userIdNumRemovedMap.get(userId);
     if (oldValue) {
       userIdNumRemovedMap.set(userId, oldValue + 1);
