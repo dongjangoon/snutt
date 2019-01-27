@@ -18,6 +18,7 @@ export = function(app, db, request) {
     let tagList = await TagListService.getBySemester(2015, 1);
     assert.equal(tagList.tags.classification[0], '교양');
     assert.equal(tagList.tags.instructor[0], '장병탁');
+    assert.equal(typeof tagList.updated_at, "number");
   });
 
   it ('Update tag lists', async function() {

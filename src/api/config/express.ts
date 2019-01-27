@@ -6,6 +6,7 @@ import path = require("path");
 import cors = require("cors");
 import http = require('http');
 import log4js = require('log4js');
+import streamroller = require('streamroller');
 
 import RootRouter = require('@app/api/routes/RootRouter');
 import property = require('@app/core/config/property');
@@ -24,10 +25,24 @@ app.engine('.html', require('ejs').renderFile);
 // X-Forwarded-For 헤더를 신뢰할 주소. 앞단에 nginx 프록시를 둘 경우 필요함. localhost만을 활성화한다
 app.set('trust proxy', 'loopback')
 
+let logPath = property.get("api.morgan.path");
+let logDatePattern = property.get("api.morgan.datePattern");
+let daysToKeep = property.get("api.morgan.daysToKeep");
+
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-if (app.get('env') !== 'mocha')
-  app.use(morgan(':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" :response-time ms'));
+if (app.get('env') !== 'mocha') {
+  let morganPattern = ':remote-addr - :remote-user [:date[clf]] ":method :url HTTP/:http-version" :status :res[content-length] ":referrer" ":user-agent" :response-time ms';
+  let dateRollingStream = new streamroller.DateRollingFileStream(logPath, logDatePattern, {
+    compress: true,
+    alwaysIncludePattern: true,
+    daysToKeep: daysToKeep
+  });
+  // both stdout and file
+  app.use(morgan(morganPattern));
+  app.use(morgan(morganPattern, { stream: dateRollingStream }));
+}
+
 // Only for development
 app.use(cors());
 app.use(bodyParser.json());
@@ -56,7 +71,6 @@ if (process.env.NODE_ENV != 'mocha') {
  * Create server.
  */
 function createServer(): http.Server {
-  var protocol = "http";
   var server = http.createServer(app);
   server.listen(port, host, function() {
     logger.info("Server listening on http://" + host + ":" + port);

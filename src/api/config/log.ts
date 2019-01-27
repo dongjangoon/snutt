@@ -2,7 +2,7 @@ import log4js = require('log4js');
 import property = require('@app/core/config/property');
 
 let logPath = property.get("api.log4js.path");
-let logPattern = property.get("api.log4js.pattern");
+let logDatePattern = property.get("api.log4js.datePattern");
 let logLevel = property.get("api.log4js.logLevel");
 let daysToKeep = property.get("api.log4js.daysToKeep");
 
@@ -13,7 +13,7 @@ if (process.env.NODE_ENV !== 'mocha') {
             'file': {
                 type: 'dateFile',
                 filename: logPath,
-                pattern: logPattern,
+                pattern: logDatePattern,
                 daysToKeep: daysToKeep,
                 compress: true,
                 alwaysIncludePattern: true

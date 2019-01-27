@@ -9,6 +9,7 @@
  * 
  * @author Jang Ryeol, ryeolj5911@gmail.com
  */
+require('module-alias/register');
 import jwt = require('jsonwebtoken');
 import property = require('@app/core/config/property');
 

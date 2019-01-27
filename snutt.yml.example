@@ -8,24 +8,28 @@ core:
   fcm:
     apiKey: testapikey
     projectId: testprojectid
+  feedback2github:
+    token: testapikey
+    repo:
+      owner: wafflestudio
+      name: snutt-feedbacks
 
 api:
   host: localhost
   port: 3000
   log4js:
     path: './snutt-api.log'
-    pattern: '.yyyy-MM-dd'
+    datePattern: '.yyyy-MM-dd'
     daysToKeep: 30
     logLevel: debug
+  morgan:
+    path: './snutt-api-access.log'
+    datePattern: '.yyyy-MM-dd'
+    daysToKeep: 30
 
 batch:
   log4js:
     path: './snutt-batch.log'
-    pattern: '.yyyy-MM-dd'
+    datePattern: '.yyyy-MM-dd'
     daysToKeep: 30
     logLevel: debug
-  feedback2github:
-    token: testapikey
-    repo:
-      owner: wafflestudio
-      name: snutt-feedbacks
