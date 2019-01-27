@@ -1,5 +1,5 @@
 import ExpressPromiseRouter from 'express-promise-router';
-import log4js = require('log4js');
+import winston = require('winston');
 
 import User from '@app/core/user/model/User';
 import InvalidLocalPasswordError from '@app/core/user/error/InvalidLocalPasswordError';
@@ -13,7 +13,7 @@ import RequestContext from '../model/RequestContext';
 import ErrorCode from '../enum/ErrorCode';
 import { restGet, restPut } from '../decorator/RestDecorator';
 import UserAuthorizeMiddleware from '../middleware/UserAuthorizeMiddleware';
-var logger = log4js.getLogger();
+var logger = winston.loggers.get('default');
 var router = ExpressPromiseRouter();
 
 router.use(UserAuthorizeMiddleware);

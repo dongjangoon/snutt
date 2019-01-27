@@ -1,7 +1,8 @@
 import assert = require('assert');
+import supertest = require('supertest');
 import TagListService = require('@app/core/taglist/TagListService');
 
-export = function(app, db, request) {
+export = function(request: supertest.SuperTest<supertest.Test>) {
   it ('Insert tag lists', async function() {
     await TagListService.merge({year: 2015, semester: 1, tags: {
         classification: ['교양'],

@@ -1,10 +1,10 @@
-import * as log4js from 'log4js';
+import winston = require('winston');
 
 import TimePlace from '@app/core/timetable/model/TimePlace';
 import LectureTimeOverlapError from '../error/LectureTimeOverlapError';
 import InvalidLectureTimeJsonError from '../../lecture/error/InvalidLectureTimeJsonError';
 
-var logger = log4js.getLogger();
+var logger = winston.loggers.get('default');
 
 export function timeAndPlaceToJson(timesString: string, locationsString: string): TimePlace[] {
     if (timesString === '')

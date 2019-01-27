@@ -27,6 +27,7 @@
     "@types/request-promise-native": "~1.0.6",
     "@types/rewire": "^2.5.28",
     "@types/sinon": "^5.0.1",
+    "@types/supertest": "^2.0.7",
     "assert-rejects": "^0.1.1",
     "async": "~2.0.1",
     "bcrypt": "~2.0.1",
@@ -53,9 +54,11 @@
     "supertest": "~3.1.0",
     "typescript": "2.9.1",
     "winston": "^3.2.0",
+    "winston-daily-rotate-file": "^3.6.0",
     "xlsx": "~0.13.0"
   },
   "_moduleAliases": {
-    "@app": "build/src"
+    "@app": "build/src",
+    "@test": "build/test"
   }
 }

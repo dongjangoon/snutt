@@ -1,6 +1,6 @@
 import EtcTagEnum from "@app/core/taglist/model/EtcTagEnum";
-import log4js = require('log4js');
-let logger = log4js.getLogger();
+import winston = require('winston');
+let logger = winston.loggers.get('default');
 
 export function getMQueryFromEtcTagList(etcTags: string[]): any {
     let andQueryList = etcTags.map(getMQueryFromEtcTag).filter(x => x !== null);

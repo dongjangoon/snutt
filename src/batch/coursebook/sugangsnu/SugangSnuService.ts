@@ -1,10 +1,10 @@
 import http = require('http');
-import log4js = require('log4js');
+import winston = require('winston');
 import ExcelUtil = require('@app/batch/coursebook/excel/ExcelUtil');
 import RefLecture from '@app/core/lecture/model/RefLecture';
 import SugangSnuLectureService = require('@app/batch/coursebook/sugangsnu/SugangSnuLectureService');
 import SugangSnuLectureCategoryService = require('@app/batch/coursebook/sugangsnu/SugangSnuLectureCategoryService');
-var logger = log4js.getLogger();
+let logger = winston.loggers.get('default');
 
 const SEMESTER_1 = 1;
 const SEMESTER_S = 2;

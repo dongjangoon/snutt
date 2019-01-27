@@ -4,7 +4,7 @@ var router = ExpressPromiseRouter();
 import TimetableService = require('@app/core/timetable/TimetableService');
 import TimetableLectureService = require('@app/core/timetable/TimetableLectureService');
 import User from '@app/core/user/model/User';
-import * as log4js from 'log4js';
+import winston = require('winston');
 import DuplicateTimetableTitleError from '@app/core/timetable/error/DuplicateTimetableTitleError';
 import DuplicateLectureError from '@app/core/timetable/error/DuplicateLectureError';
 import LectureTimeOverlapError from '@app/core/timetable/error/LectureTimeOverlapError';
@@ -24,7 +24,7 @@ import { restGet, restPost } from '../decorator/RestDecorator';
 import ApiError from '../error/ApiError';
 import ErrorCode from '../enum/ErrorCode';
 import UserAuthorizeMiddleware from '../middleware/UserAuthorizeMiddleware';
-var logger = log4js.getLogger();
+let logger = winston.loggers.get('default');
 
 router.use(UserAuthorizeMiddleware);
 

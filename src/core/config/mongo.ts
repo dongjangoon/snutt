@@ -1,8 +1,8 @@
 import mongoose = require('mongoose');
 import property = require('@app/core/config/property');
-import log4js = require('log4js');
+import winston = require('winston');
 
-var logger = log4js.getLogger();
+var logger = winston.loggers.get('default');
 
 // nodejs Promise를 사용
 mongoose.Promise = global.Promise;

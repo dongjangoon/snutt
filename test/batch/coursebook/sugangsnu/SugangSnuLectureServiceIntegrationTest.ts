@@ -1,9 +1,7 @@
 import fs = require('fs');
 import assert = require('assert');
-import log4js = require('log4js');
 import ExcelUtil = require('@app/batch/coursebook/excel/ExcelUtil');
 import SugangSnuLectureService = require('@app/batch/coursebook/sugangsnu/SugangSnuLectureService');
-let logger = log4js.getLogger();
 
 describe("SugangSnuLectureServiceIntegrationTest", function() {
     it("getRefLectureListFromExcelSheet__integration__success", async function() {

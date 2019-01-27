@@ -1,8 +1,8 @@
 import redis = require('redis');
-import log4js = require('log4js');
+import winston = require('winston');
 import property = require('@app/core/config/property');
 import RedisUtil = require('@app/core/redis/RedisUtil');
-let logger = log4js.getLogger();
+let logger = winston.loggers.get('default');
 
 let client = redis.createClient({
     port: property.get('core.redis.port')

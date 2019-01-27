@@ -1,12 +1,6 @@
-/**
- * test/api/etc.ts
- * various tests
- * supertest: https://github.com/visionmedia/supertest
- * mocha: http://mochajs.org/#usage
- */
-import assert = require('assert');
+import supertest = require('supertest');
 
-export = function(app, db, request) {
+export = function(request: supertest.SuperTest<supertest.Test>) {
   it('Color lists', function(done) {
     request.get('/colors')
       .expect(200)

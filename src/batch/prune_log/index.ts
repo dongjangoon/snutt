@@ -6,14 +6,12 @@
  */
 
 require('module-alias/register');
-require('@app/core/config/mongo');
 require('@app/batch/config/log');
+require('@app/core/config/mongo');
 
 import FcmLogService = require('@app/core/fcm/FcmLogService');
 import RefLectureQueryService = require('@app/core/lecture/RefLectureQueryService');
-import * as log4js from 'log4js';
 import SimpleJob from '../common/SimpleJob';
-var logger = log4js.getLogger();
 
 async function run() {
   let currentTimestamp = Date.now();
@@ -23,14 +21,7 @@ async function run() {
 }
 
 async function main() {
-  try {
-    await new SimpleJob("prune_log", run).run();
-  } catch (err) {
-    logger.error(err);
-  }
-  
-  // Wait for log4js to flush its logs
-  log4js.shutdown(function() { process.exit(0); });
+  await new SimpleJob("prune_log", run).run();
 }
 
 if (!module.parent) {

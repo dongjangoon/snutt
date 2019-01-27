@@ -6,12 +6,13 @@
  */
 import sinon = require('sinon');
 import assert = require('assert');
+import supertest = require('supertest');
 
 import FacebookService = require('@app/core/facebook/FacebookService');
 import InvalidFbIdOrTokenError from '@app/core/facebook/error/InvalidFbIdOrTokenError';
 import ErrorCode from '@app/api/enum/ErrorCode';
 
-export = function(app, db, request) {
+export = function(request: supertest.SuperTest<supertest.Test>) {
   var token;
   var token2;
   var token_temp;

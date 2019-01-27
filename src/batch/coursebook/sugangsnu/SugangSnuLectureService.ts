@@ -1,10 +1,10 @@
-import log4js = require('log4js');
+import winston = require('winston');
 import ExcelSheetWrapper from '@app/batch/coursebook/excel/model/ExcelSheetWrapper';
 import SugangSnuLecture from './model/SugangSnuLecture';
 import SugangSnuLectureCategoryService = require('@app/batch/coursebook/sugangsnu/SugangSnuLectureCategoryService');
 import TimePlaceUtil = require('@app/core/timetable/util/TimePlaceUtil');
 import RefLecture from '@app/core/lecture/model/RefLecture';
-var logger = log4js.getLogger();
+let logger = winston.loggers.get('default');
 
 export function getRefLectureListFromExcelSheet(sheet: ExcelSheetWrapper, year: number, semester: number, lectureCategory: number): RefLecture[] {
     let ret: RefLecture[] = [];
