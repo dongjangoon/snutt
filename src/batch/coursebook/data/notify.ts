@@ -1,5 +1,6 @@
-import { LectureDiff } from '@app/batch/coursebook/data/compare';
+import { LectureDiff, LectureIdent, LectureIdentUpdated } from '@app/batch/coursebook/data/compare';
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
+import Timetable from '@app/core/timetable/model/Timetable';
 import TimetableService = require('@app/core/timetable/TimetableService');
 import TimetableLectureService = require('@app/core/timetable/TimetableLectureService');
 import UserService = require('@app/core/user/UserService');
@@ -35,7 +36,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
     }
   }
 
-  async function processUpdated(updated_lecture) {
+  async function processUpdated(updated_lecture: LectureIdentUpdated) {
     let timetables = await TimetableService.getHavingLecture(
       year, semesterIndex, updated_lecture.course_number, updated_lecture.lecture_number);
 
@@ -56,7 +57,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
         incrementUpdated(timetable.user_id);
         await NotificationService.add({
           user_id: timetable.user_id,
-          message: "'"+timetable.title+"' 시간표의 '"+updated_lecture.course_title+"' 강의가 업데이트 되었습니다.",
+          message: getUpdatedLectureNotificationMessage(timetable, updated_lecture),
           type: NotificationTypeEnum.LECTURE_UPDATE,
           detail: noti_detail,
           created_at: new Date()
@@ -83,7 +84,7 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
     await processUpdated(diff.updated[i]);
   }
 
-  async function processRemoved(removed_lecture) {
+  async function processRemoved(removed_lecture: LectureIdent) {
     let timetables = await TimetableService.getHavingLecture(
       year, semesterIndex, removed_lecture.course_number, removed_lecture.lecture_number);
 
@@ -163,5 +164,45 @@ export async function notifyUpdated(year:number, semesterIndex:number, diff:Lect
 
   if (fcm_enabled) {
     await sendFcm();
+  }
+}
+
+function getUpdatedLectureNotificationMessage(timetable: Timetable, updatedLecture: LectureIdentUpdated): string {
+  return "'"+timetable.title+"' 시간표의 '"
+      + updatedLecture.course_title+"' 강의가 업데이트 되었습니다. "
+      + "(항목: " + getLectureIdentUpdatedDescription(updatedLecture) + ")";
+}
+
+function getLectureIdentUpdatedDescription(updatedLecture: LectureIdentUpdated): string {
+  let updatedKeys = Object.keys(updatedLecture.after);
+  let updatedKeyDescriptions = updatedKeys.map(getUpdatedKeyDescription);
+  return updatedKeyDescriptions.join(", ");
+}
+
+function getUpdatedKeyDescription(updatedKey: string): string {
+  switch (updatedKey) {
+    case 'classification':
+      return "교과 구분";
+    case 'department':
+      return "학부";
+    case 'academic_year':
+      return "학년";
+    case 'course_title':
+      return "강좌명";
+    case 'credit':
+      return "학점";
+    case 'instructor':
+      return "교수";
+    case 'quota':
+      return "정원";
+    case 'remark':
+      return "비고";
+    case 'category':
+      return "교양 구분";
+    case 'class_time_json':
+      return "강의 시간/장소"
+    default:
+      logger.error("Unknown updated key description: " + updatedKey);
+      return "기타";
   }
 }
