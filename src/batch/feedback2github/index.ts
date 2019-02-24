@@ -85,6 +85,7 @@ async function main() {
             .processor(processor)
             .writer(writer);
     await job.run();
+    setTimeout(() => process.exit(0), 1000);
 }
   
 if (!module.parent) {

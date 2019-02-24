@@ -22,6 +22,7 @@ async function run() {
 
 async function main() {
   await new SimpleJob("prune_log", run).run();
+  setTimeout(() => process.exit(0), 1000);
 }
 
 if (!module.parent) {
