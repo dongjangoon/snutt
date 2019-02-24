@@ -4,13 +4,13 @@ import TimePlaceUtil = require('@app/core/timetable/util/TimePlaceUtil');
 import winston = require('winston');
 var logger = winston.loggers.get('default');
 
-type LectureIdent = {
+export type LectureIdent = {
   course_number: string,
   lecture_number: string,
   course_title: string
 }
 
-type LectureIdentUpdated = {
+export type LectureIdentUpdated = {
   course_number: string,
   lecture_number: string,
   course_title: string,
