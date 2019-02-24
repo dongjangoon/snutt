@@ -4,7 +4,6 @@ import UserService = require('@app/core/user/UserService');
 import NotificationService = require('@app/core/notification/NotificationService');
 import CourseBookService = require('@app/core/coursebook/CourseBookService');
 import FcmLogService = require('@app/core/fcm/FcmLogService');
-import FeedbackService = require('@app/core/feedback/FeedbackService');
 import AdminService = require('@app/core/admin/AdminService');
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
 import winston = require('winston');
@@ -14,7 +13,6 @@ import RequestContext from '../model/RequestContext';
 import { restPost, restGet } from '../decorator/RestDecorator';
 import ApiError from '../error/ApiError';
 import ApiServerFaultError from '../error/ApiServerFaultError';
-import Feedback from '@app/core/feedback/model/Feedback';
 import ErrorCode from '../enum/ErrorCode';
 import UserAuthorizeMiddleware from '../middleware/UserAuthorizeMiddleware';
 var logger = winston.loggers.get('default');
@@ -88,14 +86,6 @@ restPost(router, '/insert_noti')(async function (context, req) {
 restGet(router, '/recent_fcm_log')(FcmLogService.getRecentFcmLog)
 
 restGet(router, '/coursebooks')(CourseBookService.getAll)
-
-restGet(router, '/feedbacks')(function(context, req): Promise<Feedback[]> {
-    let limit = 10;
-    let offset = 0;
-    if (req.body.limit) limit = req.body.limit;
-    if (req.body.offset) offset = req.body.offset;
-    return FeedbackService.get(limit, offset);
-});
 
 restGet(router, '/statistics')(AdminService.getStatistics);
 

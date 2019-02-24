@@ -1,4 +1,3 @@
-import FeedbackRepository = require('./FeedbackRepository');
 import Feedback from './model/Feedback';
 import GithubIssue from '@app/core/github/model/GithubIssue';
 import GithubService = require('@app/core/github/GithubService');
@@ -51,16 +50,4 @@ function feedbackToGithubIssue(feedback: Feedback): GithubIssue {
   }
 
   return issue;
-}
-
-export function get(offset: number, limit: number): Promise<Feedback[]> {
-  return FeedbackRepository.findByPaging(offset, limit);
-}
-
-export function remove(id: string): Promise<void> {
-  return FeedbackRepository.deleteOne(id);
-}
-
-export function removeAll(ids: string[]): Promise<void> {
-  return FeedbackRepository.deleteAllByMongoIds(ids);
 }
