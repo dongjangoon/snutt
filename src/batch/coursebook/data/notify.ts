@@ -188,7 +188,7 @@ function getUpdatedKeyDescription(updatedKey: string): string {
     case 'academic_year':
       return "학년";
     case 'course_title':
-      return "강좌명";
+      return "강의명";
     case 'credit':
       return "학점";
     case 'instructor':
