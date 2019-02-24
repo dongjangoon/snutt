@@ -7,11 +7,10 @@
 "use strict";
 
 import assert = require('assert');
+import supertest = require('supertest');
 import ErrorCode from '@app/api/enum/ErrorCode';
-import log4js = require('log4js');
-let logger = log4js.getLogger();
 
-export = function(app, db, request) {
+export = function(request: supertest.SuperTest<supertest.Test>) {
   var token;
   var table_id;
   var table2_id;

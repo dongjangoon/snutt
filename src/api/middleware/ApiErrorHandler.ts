@@ -1,9 +1,9 @@
-import log4js = require('log4js');
+import winston = require('winston');
 import RequestContext from '@app/api/model/RequestContext';
 import ApiError from '../error/ApiError';
 import ApiServerFaultError from '../error/ApiServerFaultError';
 
-let logger = log4js.getLogger();
+let logger = winston.loggers.get('default');
 
 export default function(err, req, res, next) {
     let context: RequestContext = req["context"];

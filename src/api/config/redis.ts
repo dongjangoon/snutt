@@ -1,7 +1,7 @@
-import log4js = require('log4js');
+import winston = require('winston');
 import RedisUtil = require('@app/core/redis/RedisUtil');
 
-let logger = log4js.getLogger();
+let logger = winston.loggers.get('default');
 
 RedisUtil.pollRedisClient().then(function() {
   logger.info('Flushing all redis data');

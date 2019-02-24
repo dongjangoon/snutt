@@ -1,9 +1,7 @@
 import crypto = require('crypto');
 import RedisKeyUtil = require('@app/core/redis/RedisKeyUtil');
 import RedisUtil = require('@app/core/redis/RedisUtil');
-import log4js = require('log4js');
 import RefLecture from './model/RefLecture';
-let logger = log4js.getLogger();
 
 export async function getListOfLectureListCacheFromPageList(query: any, pageList: number[]): Promise<RefLecture[][] | null> {
     let queryHash = makeMd5HashFromObject(query);

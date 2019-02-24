@@ -6,9 +6,9 @@ import UserService = require('@app/core/user/UserService');
 import NotificationService = require('@app/core/notification/NotificationService');
 import ObjectUtil = require('@app/core/common/util/ObjectUtil');
 
-import log4js = require('log4js');
+import winston = require('winston');
 import LectureTimeOverlapError from '@app/core/timetable/error/LectureTimeOverlapError';
-let logger = log4js.getLogger();
+let logger = winston.loggers.get('default');
 
 export async function notifyUpdated(year:number, semesterIndex:number, diff:LectureDiff,
     fcm_enabled:boolean):Promise<void> {

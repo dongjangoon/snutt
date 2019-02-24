@@ -1,12 +1,10 @@
 import ExpressPromiseRouter from 'express-promise-router';
 var router = ExpressPromiseRouter();
 import RefLectureQueryService = require('@app/core/lecture/RefLectureQueryService');
-import * as log4js from 'log4js';
 import InvalidLectureTimemaskError from '@app/core/lecture/error/InvalidLectureTimemaskError';
 import { restPost } from '../decorator/RestDecorator';
 import ApiError from '../error/ApiError';
 import ErrorCode from '../enum/ErrorCode';
-var logger = log4js.getLogger();
 
 restPost(router, '/')(async function(context, req) {
   if (!req.body.year || !req.body.semester) {

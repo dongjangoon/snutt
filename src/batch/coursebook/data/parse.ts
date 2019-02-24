@@ -1,7 +1,7 @@
 import RefLecture from '@app/core/lecture/model/RefLecture';
 import TagListEtcTagService = require('@app/core/taglist/TagListEtcTagService');
-import * as log4js from 'log4js';
-var logger = log4js.getLogger();
+import winston = require('winston');
+var logger = winston.loggers.get('default');
 
 export type TagStruct = {
   classification : string[],

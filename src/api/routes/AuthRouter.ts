@@ -6,14 +6,14 @@ import UserService = require('@app/core/user/UserService');
 import UserCredentialService = require('@app/core/user/UserCredentialService');
 import UserDeviceService = require('@app/core/user/UserDeviceService');
 import InvalidLocalIdError from '@app/core/user/error/InvalidLocalIdError';
-import * as log4js from 'log4js';
+import winston = require('winston');
 import InvalidLocalPasswordError from '@app/core/user/error/InvalidLocalPasswordError';
 import DuplicateLocalIdError from '@app/core/user/error/DuplicateLocalIdError';
 import InvalidFbIdOrTokenError from '@app/core/facebook/error/InvalidFbIdOrTokenError';
 import { restPost } from '../decorator/RestDecorator';
 import ApiError from '../error/ApiError';
 import ErrorCode from '../enum/ErrorCode';
-var logger = log4js.getLogger();
+var logger = winston.loggers.get('default');
 
 restPost(router, '/request_temp')(async function(context, req) {
     let credential = await UserCredentialService.makeTempCredential();

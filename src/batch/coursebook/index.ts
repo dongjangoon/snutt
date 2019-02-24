@@ -13,9 +13,10 @@ import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeE
 import TagListService = require('@app/core/taglist/TagListService');
 import SugangSnuService = require('./sugangsnu/SugangSnuService');
 import RedisUtil = require('@app/core/redis/RedisUtil');
-import * as log4js from 'log4js';
+import winston = require('winston');
 import SimpleJob from '../common/SimpleJob';
-var logger = log4js.getLogger();
+import { SSL_OP_EPHEMERAL_RSA } from 'constants';
+let logger = winston.loggers.get('default');
 
 /**
  * 현재 수강편람과 다음 수강편람
@@ -150,14 +151,8 @@ async function run() {
 }
 
 async function main() {
-  try {
-    await new SimpleJob("coursebook", run).run();
-  } catch (err) {
-    logger.error(err);
-  }
-  
-  // Wait for log4js to flush its logs
-  log4js.shutdown(function() { process.exit(0); });
+  await new SimpleJob("coursebook", run).run();
+  setTimeout(() => process.exit(0), 1000);
 }
 
 if (!module.parent) {

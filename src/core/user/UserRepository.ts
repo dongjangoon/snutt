@@ -1,9 +1,9 @@
 import mongoose = require('mongoose');
-import log4js = require('log4js');
+import winston = require('winston');
 
 import User from '@app/core/user/model/User';
 
-var logger = log4js.getLogger();
+var logger = winston.loggers.get('default');
 
 let UserSchema = new mongoose.Schema({
   credential : {

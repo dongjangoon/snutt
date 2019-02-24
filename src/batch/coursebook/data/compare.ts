@@ -1,8 +1,8 @@
 import RefLecture from '@app/core/lecture/model/RefLecture';
 import RefLectureService = require('@app/core/lecture/RefLectureService');
 import TimePlaceUtil = require('@app/core/timetable/util/TimePlaceUtil');
-import * as log4js from 'log4js';
-var logger = log4js.getLogger();
+import winston = require('winston');
+var logger = winston.loggers.get('default');
 
 type LectureIdent = {
   course_number: string,

@@ -5,18 +5,20 @@
  */
 process.env.NODE_ENV = 'mocha';
 
-import mocha = require("mocha");
- 
+require('@test/config/log');
+import request = require('@test/config/supertest');
+
+import winston = require('winston');
 import assert = require('assert');
-import supertest = require('supertest');
 import property = require('@app/core/config/property');
 import mongoose = require('mongoose');
-import app = require('@app/api/app');
 
 import CourseBookService = require('@app/core/coursebook/CourseBookService');
 import RefLectureService = require('@app/core/lecture/RefLectureService');
 
-let request = supertest(app);
+let logger = winston.loggers.get('default');
+logger.info("Loaded");
+
 describe('Integration Test', function() {
   before('valid snutt.yml', function(done) {
     if (property.get('core.secretKey') && property.get('api.host') && property.get('api.port'))
@@ -134,18 +136,18 @@ describe('Integration Test', function() {
   });
 
   describe('etc', function () {
-    require('./etc')(app, mongoose, request);
+    require('./etc')(request);
   });
 
   describe('User', function () {
-    require('./user_test')(app, mongoose, request);
+    require('./user_test')(request);
   });
 
   describe('Timetable', function () {
-    require('./timetable_test')(app, mongoose, request);
+    require('./timetable_test')(request);
   });
 
   describe('TagList', function () {
-    require('./tag_list_test')(app, mongoose, request);
+    require('./tag_list_test')(request);
   });
 });

@@ -5,14 +5,14 @@ import bodyParser = require("body-parser");
 import path = require("path");
 import cors = require("cors");
 import http = require('http');
-import log4js = require('log4js');
+import winston = require('winston');
 import streamroller = require('streamroller');
 
 import RootRouter = require('@app/api/routes/RootRouter');
 import property = require('@app/core/config/property');
 import ApiErrorHandler from "../middleware/ApiErrorHandler";
 
-var logger = log4js.getLogger();
+var logger = winston.loggers.get('default');
 var app = express();
 
 // view engine setup

@@ -1,11 +1,8 @@
 process.env.NODE_ENV = 'mocha';
 import assert = require('assert');
-import log4js = require('log4js');
-import supertest = require('supertest');
-import app = require('@app/api/app');
 
-let logger = log4js.getLogger();
-let request = supertest(app);
+require('@test/config/log');
+import request = require('@test/config/supertest');
 
 describe("StaticPageRouterIntegrationTest", function() {
     it("terms_of_service__success", function(done) {

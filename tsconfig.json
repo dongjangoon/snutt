@@ -5,9 +5,10 @@
         "noImplicitAny": false,
         "sourceMap": true,
         "outDir": "./build",
-        "baseUrl": "./src",
+        "baseUrl": "./",
         "paths": {
-            "@app/*": [ "*" ]
+            "@app/*": [ "src/*" ],
+            "@test/*": [ "test/*" ]
         }
     },
     "exclude": [

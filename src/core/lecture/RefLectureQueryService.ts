@@ -1,4 +1,4 @@
-import * as log4js from 'log4js';
+import winston = require('winston');
 import RefLectureQueryCacheRepository = require('@app/core/lecture/RefLectureQueryCacheRepository');
 
 import RefLectureService = require('./RefLectureService');
@@ -7,7 +7,7 @@ import RefLectureQueryLogRepository = require('./RefLectureQueryLogRepository');
 import RefLecture from './model/RefLecture';
 import InvalidLectureTimemaskError from './error/InvalidLectureTimemaskError';
 import EtcTagEnum from "@app/core/taglist/model/EtcTagEnum";
-var logger = log4js.getLogger();
+let logger = winston.loggers.get('default');
 
 const CACHE_PAGE_SIZE = 20;
 const CACHE_PREFETCH_NUM_PAGE = 5;

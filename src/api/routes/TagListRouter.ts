@@ -4,12 +4,10 @@
 import ExpressPromiseRouter from 'express-promise-router';
 var router = ExpressPromiseRouter();
 import TagListService = require('@app/core/taglist/TagListService');
-import * as log4js from 'log4js';
 import TagListNotFoundError from '@app/core/taglist/error/TagListNotFoundError';
 import { restGet } from '../decorator/RestDecorator';
 import ApiError from '../error/ApiError';
 import ErrorCode from '../enum/ErrorCode';
-var logger = log4js.getLogger();
 
 restGet(router, '/:year/:semester/update_time')(async function(context, req) {
   try {

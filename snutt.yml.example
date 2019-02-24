@@ -17,9 +17,9 @@ core:
 api:
   host: localhost
   port: 3000
-  log4js:
+  winston:
     path: './snutt-api.log'
-    datePattern: '.yyyy-MM-dd'
+    datePattern: 'YYYY-MM-DD'
     daysToKeep: 30
     logLevel: debug
   morgan:
@@ -28,8 +28,8 @@ api:
     daysToKeep: 30
 
 batch:
-  log4js:
+  winston:
     path: './snutt-batch.log'
-    datePattern: '.yyyy-MM-dd'
+    datePattern: 'YYYY-MM-DD'
     daysToKeep: 30
     logLevel: debug

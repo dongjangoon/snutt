@@ -1,7 +1,7 @@
 import redis = require('redis');
-import log4js = require('log4js');
+import winston = require('winston');
 import RedisClientError from './error/RedisClientError';
-let logger = log4js.getLogger();
+let logger = winston.loggers.get('default');
 
 let redisClient: redis.RedisClient = global['redisClient'];
 

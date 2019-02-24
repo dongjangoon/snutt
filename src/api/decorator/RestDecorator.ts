@@ -1,5 +1,4 @@
 import express = require('express');
-import log4js = require('log4js');
 import RequestContext from '@app/api/model/RequestContext';
 
 export function restController(router: express.Router, method:string, url: string) {

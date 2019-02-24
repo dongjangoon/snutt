@@ -7,7 +7,7 @@ import FcmLogService = require('@app/core/fcm/FcmLogService');
 import FeedbackService = require('@app/core/feedback/FeedbackService');
 import AdminService = require('@app/core/admin/AdminService');
 import NotificationTypeEnum from '@app/core/notification/model/NotificationTypeEnum';
-import * as log4js from 'log4js';
+import winston = require('winston');
 import NoFcmKeyError from '@app/core/notification/error/NoFcmKeyError';
 import InvalidNotificationDetailError from '@app/core/notification/error/InvalidNotificationDetailError';
 import RequestContext from '../model/RequestContext';
@@ -17,7 +17,7 @@ import ApiServerFaultError from '../error/ApiServerFaultError';
 import Feedback from '@app/core/feedback/model/Feedback';
 import ErrorCode from '../enum/ErrorCode';
 import UserAuthorizeMiddleware from '../middleware/UserAuthorizeMiddleware';
-var logger = log4js.getLogger();
+var logger = winston.loggers.get('default');
 
 var router = ExpressPromiseRouter();
 

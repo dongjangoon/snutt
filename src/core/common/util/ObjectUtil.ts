@@ -1,7 +1,7 @@
 import { List } from 'immutable';
 
-import log4js = require('log4js');
-var logger = log4js.getLogger();
+import winston = require('winston');
+var logger = winston.loggers.get('default');
 
 export function deepCopy<T>(src: T): T {
   return JSON.parse(JSON.stringify(src));

@@ -10,7 +10,7 @@ import LambdaJobBuilder from '@app/batch/common/LambdaJobBuilder';
 
 import FeedbackService = require('@app/core/feedback/FeedbackService');
 import Feedback from '@app/core/feedback/model/Feedback';
-import * as log4js from 'log4js';
+import winston = require('winston');
 import GithubIssue from '@app/core/github/model/GithubIssue';
 import property = require('@app/core/config/property');
 import GithubService = require('@app/core/github/GithubService');
@@ -18,7 +18,7 @@ import GithubService = require('@app/core/github/GithubService');
 let repoOwner = property.get('core.feedback2github.repo.owner');
 let repoName = property.get('core.feedback2github.repo.name');
 
-var logger = log4js.getLogger();
+var logger = winston.loggers.get('default');
 
 interface StepItem {
     issue: GithubIssue,
@@ -81,17 +81,12 @@ async function writer(item: StepItem): Promise<void> {
 }
 
 async function main() {
-    try {
-        let job = new LambdaJobBuilder("feedback2github").reader(reader)
-                .processor(processor)
-                .writer(writer);
-        await job.run();
-    } catch (err) {
-        logger.error(err);
-    }
-    // Wait for log4js to flush its logs
-    log4js.shutdown(function() { process.exit(0); });
-  }
+    let job = new LambdaJobBuilder("feedback2github").reader(reader)
+            .processor(processor)
+            .writer(writer);
+    await job.run();
+    setTimeout(() => process.exit(0), 1000);
+}
   
 if (!module.parent) {
     main();
