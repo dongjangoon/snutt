@@ -20,6 +20,8 @@ import TimetableService = require('./TimetableService');
 import Timetable from './model/Timetable';
 import TimePlace from './model/TimePlace';
 import InvalidLectureTimeJsonError from '../lecture/error/InvalidLectureTimeJsonError';
+import winston = require('winston');
+let logger = winston.loggers.get('default');
 
 export async function addRefLecture(timetable: Timetable, lectureId: string): Promise<void> {
   let lecture = await RefLectureService.getByMongooseId(lectureId);
@@ -137,9 +139,10 @@ function isOverlappingLecture(table: Timetable, lecture: UserLecture): boolean {
   let overlappingLectureIds = getOverlappingLectureIds(table, lecture);
   if (overlappingLectureIds.length == 0) {
     return false;
-  } else if (overlappingLectureIds.length == 1 && overlappingLectureIds[0] == lecture._id) {
+  } else if (overlappingLectureIds.length == 1 && String(overlappingLectureIds[0]) == String(lecture._id)) {
     return false;
   } else {
+    logger.error("Lecture overlap: " + JSON.stringify(lecture._id) + " with " + JSON.stringify(overlappingLectureIds));
     return true;
   }
 }
