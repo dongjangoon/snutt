@@ -4,7 +4,7 @@ import TagListService = require('@app/core/taglist/TagListService');
 
 export = function(request: supertest.SuperTest<supertest.Test>) {
   it ('Insert tag lists', async function() {
-    await TagListService.merge({year: 2015, semester: 1, tags: {
+    await TagListService.upsert({year: 2015, semester: 1, tags: {
         classification: ['교양'],
         department: ["컴퓨터공학부"],
         academic_year: ["1학년"],
@@ -23,7 +23,7 @@ export = function(request: supertest.SuperTest<supertest.Test>) {
   });
 
   it ('Update tag lists', async function() {
-    await TagListService.merge({year: 2015, semester: 1, tags: {
+    await TagListService.upsert({year: 2015, semester: 1, tags: {
         classification: ['교양'],
         department: ["컴퓨터공학부"],
         academic_year: ["1학년"],
