@@ -13,12 +13,12 @@ export default function(err, req, res, next) {
             message: err.message
         });
     } else {
-        logger.error(JSON.stringify({
+        logger.error({
             method: context.method,
             url: context.url,
             platform: context.platform,
             cause: err
-        }));
+        });
         let serverFaultError = new ApiServerFaultError();
         res.status(serverFaultError.statusCode).json({
             errcode: serverFaultError.errorCode,

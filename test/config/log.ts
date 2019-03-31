@@ -10,6 +10,6 @@ winston.loggers.add('default', {
       winston.format.timestamp({
         format: 'YYYY-MM-DD HH:mm:ss.SSS'
       }),
-      winston.format.printf(info => `[${info.timestamp}] [${info.level}] ${info.message}`)
+      winston.format.printf(info => `[${info.timestamp}] [${info.level}] ${(typeof info.message === 'string') ? info.message : JSON.stringify(info.message)}`)
     )
 });

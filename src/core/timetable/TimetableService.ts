@@ -24,14 +24,14 @@ export async function copyWithTitle(src: Timetable, newTitle: string): Promise<v
     if (newTitle === src.title) {
         throw new DuplicateTimetableTitleError(src.user_id, src.year, src.semester, newTitle);
     }
-    if (await TimetableRepository.findByUserIdAndSemesterAndTitle(src.user_id, src.year, src.semester, newTitle)) {
-        throw new DuplicateTimetableTitleError(src.user_id, src.year, src.semester, newTitle);
-    }
     
     let copied = ObjectUtil.deepCopy(src);
     ObjectUtil.deleteObjectId(copied);
     copied.title = newTitle;
     copied.updated_at = Date.now();
+
+    await validateTimetable(copied);
+
     await TimetableRepository.insert(copied);
 }
 
@@ -68,15 +68,6 @@ export async function modifyTitle(tableId, userId, newTitle): Promise<void> {
 
 
 export async function addFromParam(params): Promise<Timetable> {
-  if (!params || !params.user_id || !params.year || !params.semester || !params.title) {
-    throw new TimetableNotEnoughParamError(params);
-  }
-
-  let duplicate = await TimetableRepository.findByUserIdAndSemesterAndTitle(params.user_id, params.year, params.semester, params.title);
-  if (duplicate !== null) {
-    throw new DuplicateTimetableTitleError(params.user_id, params.year, params.semester, params.title);
-  }
-
   let newTimetable: Timetable = {
     user_id : params.user_id,
     year : params.year,
@@ -86,8 +77,21 @@ export async function addFromParam(params): Promise<Timetable> {
     updated_at: Date.now()
   };
 
+  await validateTimetable(newTimetable);
+
   return await TimetableRepository.insert(newTimetable);
 };
+
+async function validateTimetable(timetable: Timetable) {
+  if (!timetable.user_id || !timetable.year || !timetable.semester || !timetable.title) {
+    throw new TimetableNotEnoughParamError(timetable);
+  }
+
+  let duplicate = await TimetableRepository.findByUserIdAndSemesterAndTitle(timetable.user_id, timetable.year, timetable.semester, timetable.title);
+  if (duplicate !== null) {
+    throw new DuplicateTimetableTitleError(timetable.user_id, timetable.year, timetable.semester, timetable.title);
+  }
+}
 
 export function getAbstractListByUserId(userId: string): Promise<AbstractTimetable[]> {
   return TimetableRepository.findAbstractListByUserId(userId);

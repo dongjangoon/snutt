@@ -15,7 +15,6 @@ import SugangSnuService = require('./sugangsnu/SugangSnuService');
 import RedisUtil = require('@app/core/redis/RedisUtil');
 import winston = require('winston');
 import SimpleJob from '../common/SimpleJob';
-import { SSL_OP_EPHEMERAL_RSA } from 'constants';
 let logger = winston.loggers.get('default');
 
 /**
