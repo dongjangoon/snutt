@@ -138,6 +138,14 @@ export async function deleteLecture(tableId: string, lectureId: string): Promise
   if (!document) throw new TimetableNotFoundError();
 }
 
+export async function deleteLectureByCourseNumber(tableId: string, courseNumber: string, lectureNumber: string): Promise<void> {
+  let document = await mongooseModel.findOneAndUpdate(
+    {'_id' : tableId},
+    { $pull: {lecture_list : {course_number: courseNumber, lecture_number: lectureNumber} } }, {new: true})
+    .exec();
+  if (!document) throw new TimetableNotFoundError();
+}
+
 export async function deleteByUserIdAndMongooseId(userId: string, tableId: string): Promise<void> {
   let document = await mongooseModel.findOneAndRemove({'user_id': userId, '_id' : tableId}).lean().exec();
   if (!document) throw new TimetableNotFoundError();

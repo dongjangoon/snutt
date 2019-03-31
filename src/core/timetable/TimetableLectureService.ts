@@ -203,6 +203,10 @@ export async function removeLecture(userId: string, tableId: string, lectureId: 
   await TimetableRepository.updateUpdatedAt(tableId, Date.now());
 }
 
+export async function removeLectureByCourseNumber(tableId: string, courseNumber: string, lectureNumber: string): Promise<void> {
+  await TimetableRepository.deleteLectureByCourseNumber(tableId, courseNumber, lectureNumber);
+}
+
 export function getUserLectureFromTimetableByCourseNumber(table: Timetable, courseNumber: string, lectureNumber:string): UserLecture {
   for (let i=0; i<table.lecture_list.length; i++) {
     let lecture = table.lecture_list[i];

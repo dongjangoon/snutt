@@ -9,6 +9,6 @@ export function getUpdateTimeBySemester(year: number, semester: number): Promise
     return TagListRepository.findUpdateTimeBySemester(year, semester);
 }
 
-export function merge(tagList: TagList): Promise<void> {
+export function upsert(tagList: TagList): Promise<void> {
     return TagListRepository.upsert(tagList);
 }

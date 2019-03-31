@@ -37,18 +37,8 @@ export function parseTagFromLectureList(lines:RefLecture[]): TagStruct {
 
     for (let key in new_tag) {
       if (tags.hasOwnProperty(key)){
-        var existing_tag = null;
-        for (let j=0; j<tags[key].length; j++) {
-          if (tags[key][j] == new_tag[key]){
-            existing_tag = new_tag[key];
-            break;
-          }
-        }
-        if (existing_tag === null) {
-          if (new_tag[key] === undefined) {
-            logger.error(key);
-            logger.error(line);
-          }
+        if (!tags[key].includes(new_tag[key])) {
+          // 한글자인 태그는 버린다.
           if (new_tag[key].length < 2) continue;
           tags[key].push(new_tag[key]);
         }
@@ -56,5 +46,10 @@ export function parseTagFromLectureList(lines:RefLecture[]): TagStruct {
     }
   }
 
+  for (var key in tags) {
+    if (tags.hasOwnProperty(key)) {
+      tags[key].sort();
+    }
+  }
   return tags;
 }
