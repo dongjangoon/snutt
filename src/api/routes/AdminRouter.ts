@@ -1,6 +1,7 @@
 import ExpressPromiseRouter from 'express-promise-router';
 import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');
+import UserCredentialService = require('@app/core/user/UserCredentialService');
 import NotificationService = require('@app/core/notification/NotificationService');
 import CourseBookService = require('@app/core/coursebook/CourseBookService');
 import FcmLogService = require('@app/core/fcm/FcmLogService');
@@ -15,6 +16,7 @@ import ApiError from '../error/ApiError';
 import ApiServerFaultError from '../error/ApiServerFaultError';
 import ErrorCode from '../enum/ErrorCode';
 import UserAuthorizeMiddleware from '../middleware/UserAuthorizeMiddleware';
+import InvalidLocalPasswordError from '@app/core/user/error/InvalidLocalPasswordError';
 var logger = winston.loggers.get('default');
 
 var router = ExpressPromiseRouter();
@@ -76,6 +78,34 @@ restPost(router, '/insert_noti')(async function (context, req) {
     if (err instanceof InvalidNotificationDetailError)
       throw new ApiError(404, ErrorCode.INVALID_NOTIFICATION_DETAIL, "invalid notification detail");
     if (err instanceof ApiError) {
+      throw err;
+    } 
+    logger.error(err);
+    throw new ApiServerFaultError();
+  }
+})
+
+restPost(router, '/change_pw')(async function (context, req) {
+  let userId: string = req.body.userId;
+  let toPassword: string = req.body.toPassword;
+
+  try {
+    let user: User = await UserService.getByMongooseId(userId);
+    if (user === null) {
+      throw new ApiError(404, ErrorCode.USER_NOT_FOUND, "user not found");
+    }
+    if (!UserCredentialService.hasLocal(user)) {
+      throw new ApiError(403, ErrorCode.NOT_LOCAL_ACCOUNT, "not local account");
+    }
+    UserCredentialService.changeLocalPassword(user, toPassword);
+    
+    return {
+      message: "ok"
+    }
+  } catch (err) {
+    if (err instanceof InvalidLocalPasswordError) {
+      throw new ApiError(403, ErrorCode.INVALID_PASSWORD, "invalid password");
+    } else if (err instanceof ApiError) {
       throw err;
     } 
     logger.error(err);

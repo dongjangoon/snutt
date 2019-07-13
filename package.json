@@ -1,6 +1,6 @@
 {
   "name": "snutt",
-  "version": "2.2.7",
+  "version": "2.2.8",
   "private": true,
   "scripts": {
     "test": "tsc -p . && cp -R resources/* build/ && mocha -r module-alias/register --exit \"build/test/**/*.js\"",
@@ -38,7 +38,7 @@
     "express": "~4.16.3",
     "express-promise-router": "^3.0.3",
     "immutable": "~3.8.2",
-    "js-yaml": "~3.11.0",
+    "js-yaml": "^3.13.1",
     "jsonwebtoken": "~5.5.0",
     "mocha": "~5.2.0",
     "module-alias": "^2.0.6",
