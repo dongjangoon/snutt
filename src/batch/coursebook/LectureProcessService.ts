@@ -1,4 +1,5 @@
 import TimetableService = require('@app/core/timetable/TimetableService');
+import RefLectureService = require('@app/core/lecture/RefLectureService');
 import TimetableLectureService = require('@app/core/timetable/TimetableLectureService');
 import ObjectUtil = require('@app/core/common/util/ObjectUtil');
 import RefLecture from '@app/core/lecture/model/RefLecture';
@@ -35,8 +36,12 @@ export async function processUpdatedAndRemoved(year:number, semesterIndex:number
   }
 
   async function processUpdated(lectureDifference: LectureDifference) {
+    let refLectureId = lectureDifference.oldLecture._id;
     let course_number = lectureDifference.oldLecture.course_number;
     let lecture_number = lectureDifference.oldLecture.lecture_number;
+
+    await RefLectureService.partialModifiy(refLectureId, lectureDifference.difference);
+
     let timetables = await TimetableService.getHavingLecture(
       year, semesterIndex, course_number, lecture_number);
 
@@ -44,10 +49,10 @@ export async function processUpdatedAndRemoved(year:number, semesterIndex:number
       let timetable = timetables[i];
 
       try {
-        let lectureId = TimetableLectureService.getUserLectureFromTimetableByCourseNumber(
+        let userLectureId = TimetableLectureService.getUserLectureFromTimetableByCourseNumber(
           timetable, course_number, lecture_number)._id;
         let userLecture = ObjectUtil.deepCopy(lectureDifference.difference);
-        userLecture._id = lectureId;
+        userLecture._id = userLectureId;
         await TimetableLectureService.partialModifyUserLecture(timetable.user_id, timetable._id, userLecture);
         incrementUpdated(timetable.user_id);
         await CoursebookUpdateNotificationService.addLectureUpdateNotification(timetable, lectureDifference);
@@ -62,6 +67,8 @@ export async function processUpdatedAndRemoved(year:number, semesterIndex:number
   }
 
   async function processRemoved(removed: RefLecture) {
+    await RefLectureService.remove(removed._id);
+
     let timetables = await TimetableService.getHavingLecture(
       year, semesterIndex, removed.course_number, removed.lecture_number);
 

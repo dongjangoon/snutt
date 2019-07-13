@@ -76,9 +76,10 @@ export async function fetchAndInsert(year: number, semester: number, isFcmEnable
     removedList.length + " removed.");
 
   logger.info("Sending notifications...");
+  await RefLectureService.addAll(createdList);
   await processUpdatedAndRemoved(year, semester, updatedList, removedList, isFcmEnabled);
 
-  await upsertRefLectureList(year, semester, fetched);
+  await validateRefLecture(year, semester, fetched);
 
   await upsertTagList(year, semester, fetched);
   
@@ -89,10 +90,19 @@ export async function fetchAndInsert(year: number, semester: number, isFcmEnable
   return;
 }
 
+async function validateRefLecture(year: number, semester: number, fetched: RefLecture[]) {
+  let { updatedList, removedList, createdList } = await compareLectures(year, semester, fetched);
+  if (updatedList.length === 0 &&
+    createdList.length === 0 &&
+    removedList.length === 0) {
+    return;
+  }
+
+  logger.error("validateRefLecture failed, upsert all lectures");
+  upsertRefLectureList(year, semester, fetched);
+}
+
 async function upsertRefLectureList(year: number, semester: number, fetched: RefLecture[]) {
-  // TODO: 현재 모든 강의를 지우고 다시 삽입하는 형식으로는
-  // 순단이 생길 수밖에 없음
-  // 하나하나씩 지우고 삽입 필요
   await RefLectureService.removeBySemester(year, semester);
   logger.info("Removed existing lecture for this semester");
 

@@ -65,7 +65,7 @@ export async function addLectureRemovedNotification(timetable: Timetable, remove
   };
   await NotificationService.add({
     user_id: timetable.user_id,
-    message: "'"+timetable.title+"' 시간표의 '"+removed.course_title+"' 강의가 폐강되어 삭제되었습니다.",
+    message: makeSemesterString(timetable.year, timetable.semester) + " '"+timetable.title+"' 시간표의 '"+removed.course_title+"' 강의가 폐강되어 삭제되었습니다.",
     type: NotificationTypeEnum.LECTURE_REMOVE,
     detail: noti_detail,
     created_at: new Date()
@@ -103,7 +103,7 @@ export async function addTimeOverlappedLectureRemovedNotification(timetable: Tim
   };
   await NotificationService.add({
     user_id: timetable.user_id,
-    message: "'"+timetable.title+"' 시간표의 '"+lectureDifference.oldLecture.course_title+
+    message: makeSemesterString(timetable.year, timetable.semester) + " '"+timetable.title+"' 시간표의 '"+lectureDifference.oldLecture.course_title+
       "' 강의가 업데이트되었으나, 시간표가 겹쳐 삭제되었습니다.",
     type: NotificationTypeEnum.LECTURE_REMOVE,
     detail: detail,
@@ -112,9 +112,14 @@ export async function addTimeOverlappedLectureRemovedNotification(timetable: Tim
 }
 
 function getUpdatedLectureNotificationMessage(timetable: Timetable, lectureDifference: LectureDifference): string {
-  return "'"+timetable.title+"' 시간표의 '"
+  return makeSemesterString(timetable.year, timetable.semester) + " '"+timetable.title+"' 시간표의 '"
       + lectureDifference.oldLecture.course_title+"' 강의가 업데이트 되었습니다. "
       + "(항목: " + getLectureIdentUpdatedDescription(lectureDifference) + ")";
+}
+
+function makeSemesterString(year: number, semesterIndex: number) {
+  var semesterString = (['1', 'S', '2', 'W'])[semesterIndex - 1];
+  return year + "-" + semesterString;
 }
 
 function getLectureIdentUpdatedDescription(lectureDifference: LectureDifference): string {

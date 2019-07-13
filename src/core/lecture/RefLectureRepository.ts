@@ -5,7 +5,9 @@
  */
 import mongoose = require('mongoose');
 
+import ObjectUtil = require('@app/core/common/util/ObjectUtil');
 import RefLecture from './model/RefLecture';
+import RefLectrureNotFoundError from './error/RefLectureNotFoundError';
 
 let refLectureSchema = new mongoose.Schema({
   classification: String,                           // 교과 구분
@@ -135,9 +137,35 @@ export async function deleteBySemester(year: number, semester: number): Promise<
   await mongooseModel.remove({ year: year, semester: semester}).exec();
 }
 
+export async function deleteByLectureId(lectureId: string): Promise<void> {
+  await mongooseModel.remove({ _id: lectureId }).exec();
+}
+
 export async function insertAll(lectures: RefLecture[]): Promise<number> {
   let docs = await mongooseModel.insertMany(lectures);
   return docs.length;
+}
+
+export async function partialUpdateRefLecture(lectureId: string, lecture: any): Promise<RefLecture> {
+  let updateQuery = makeRefLecturePartialUpdateQuery(lecture);
+  let newMongooseDocument: any = await mongooseModel.findOneAndUpdate(
+    { "_id" : lectureId },
+    updateQuery,
+    {new: true}).exec();
+
+  if (!newMongooseDocument) {
+    throw new RefLectrureNotFoundError();
+  }
+
+  return fromMongoose(newMongooseDocument);
+}
+
+function makeRefLecturePartialUpdateQuery(lecture: any) {
+  let lectureCopy = ObjectUtil.deepCopy(lecture);
+  ObjectUtil.deleteObjectId(lectureCopy);
+  return {
+    $set: lectureCopy
+  };
 }
 
 function fromMongoose(mongooseDoc): RefLecture {

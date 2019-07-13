@@ -56,7 +56,7 @@ export async function compareLectures(year:number, semester: number, newLectureL
     if (oldLecture) {
       let difference = compareLecture(oldLecture, newLecture);
       if (difference) {
-        updatedList.push();
+        updatedList.push(difference);
       }
     } else {
       createdList.push(newLecture);

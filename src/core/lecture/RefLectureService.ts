@@ -28,3 +28,11 @@ export function addAll(lectures: RefLecture[]): Promise<number> {
 export function removeBySemester(year: number, semester: number): Promise<void> {
     return RefLectureRepository.deleteBySemester(year, semester);
 }
+
+export function remove(lectureId: string): Promise<void> {
+    return RefLectureRepository.deleteByLectureId(lectureId);
+}
+
+export function partialModifiy(lectureId: string, lecture: any): Promise<RefLecture> {
+    return RefLectureRepository.partialUpdateRefLecture(lectureId, lecture);
+}
