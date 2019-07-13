@@ -1,4 +1,4 @@
-import http = require('http');
+import request = require('request-promise-native');
 import winston = require('winston');
 import ExcelUtil = require('@app/batch/coursebook/excel/ExcelUtil');
 import RefLecture from '@app/core/lecture/model/RefLecture';
@@ -46,29 +46,24 @@ async function getRefLectureListForCategory(year: number, semester: number, lect
 }
 
 function getCoursebookExcelFileForCategory(year: number, semester: number, lectureCategory: number): Promise<Buffer> {
-    return new Promise<Buffer>(function (resolve, reject) {
-        http.get(getCoursebookExcelFileUrl(year, semester, lectureCategory),
-            function (res) {
-                if (res.statusCode != 200) {
-                    logger.warn("status code " + res.statusCode);
-                    return resolve(new Buffer(0));
-                }
-
-                var data = [];
-                res.on('data', function (chunk) {
-                    data.push(chunk);
-                }).on('end', function () {
-                    var buffer = Buffer.concat(data);
-                    resolve(buffer);
-                })
-            }).on("error", function (err) {
-                reject(err);
-            });
-    })
+    return request.get(makeCoursebookExcelFileUrl(year, semester, lectureCategory), {
+        encoding: null, // return as binary
+        resolveWithFullResponse: true
+    }).then(function(response: request.FullResponse) {
+        if (response.statusCode >= 400) {
+            logger.warn("status code " + response.statusCode);
+            return Promise.resolve(new Buffer(0));
+        }
+        if (!response.headers["content-disposition"]) {
+            logger.warn("No content-disposition found");
+            return Promise.resolve(new Buffer(0));
+        }
+        return response.body;
+    });
 }
 
 const SUGANG_SNU_BASEPATH = "http://sugang.snu.ac.kr/sugang/cc/cc100excel.action?";
-function getCoursebookExcelFileUrl(year: number, semester: number, lectureCategory: number): string {
+function makeCoursebookExcelFileUrl(year: number, semester: number, lectureCategory: number): string {
     let queryStrings: string[] = [
         "srchCond=1",
         "pageNo=1",

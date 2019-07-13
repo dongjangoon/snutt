@@ -1,0 +1,14 @@
+{
+    "keep": {
+        "days": false,
+        "amount": 30
+    },
+    "auditLog": ".70c4e3527073a4bf21da6abf446029804998118e-audit.json",
+    "files": [
+        {
+            "date": 1562998696412,
+            "name": "snutt-batch.log.2019-07-13",
+            "hash": "ad1a2a817f13c5f34beb2860686b0de6"
+        }
+    ]
+}

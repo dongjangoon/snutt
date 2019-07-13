@@ -14,10 +14,12 @@ var transport = new (DailyRotateFile)({
     maxFiles: daysToKeep
 });
 
+var consoleTransport = new winston.transports.Console();
+
 if (process.env.NODE_ENV !== 'mocha') {
   winston.loggers.add('default', {
     level: logLevel,
-    transports: [transport],
+    transports: [transport, consoleTransport],
     format: winston.format.combine(
       winston.format.timestamp({
         format: 'YYYY-MM-DD HH:mm:ss.SSS'
