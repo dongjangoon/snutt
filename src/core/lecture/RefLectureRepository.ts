@@ -5,7 +5,6 @@
  */
 import mongoose = require('mongoose');
 
-import ObjectUtil = require('@app/core/common/util/ObjectUtil');
 import RefLecture from './model/RefLecture';
 import RefLectrureNotFoundError from './error/RefLectureNotFoundError';
 
@@ -147,10 +146,9 @@ export async function insertAll(lectures: RefLecture[]): Promise<number> {
 }
 
 export async function partialUpdateRefLecture(lectureId: string, lecture: any): Promise<RefLecture> {
-  let updateQuery = makeRefLecturePartialUpdateQuery(lecture);
   let newMongooseDocument: any = await mongooseModel.findOneAndUpdate(
-    { "_id" : lectureId },
-    updateQuery,
+    { "_id": lectureId },
+    { $set: lecture },
     {new: true}).exec();
 
   if (!newMongooseDocument) {
@@ -158,14 +156,6 @@ export async function partialUpdateRefLecture(lectureId: string, lecture: any): 
   }
 
   return fromMongoose(newMongooseDocument);
-}
-
-function makeRefLecturePartialUpdateQuery(lecture: any) {
-  let lectureCopy = ObjectUtil.deepCopy(lecture);
-  ObjectUtil.deleteObjectId(lectureCopy);
-  return {
-    $set: lectureCopy
-  };
 }
 
 function fromMongoose(mongooseDoc): RefLecture {

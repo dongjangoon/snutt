@@ -10,7 +10,6 @@ import RefLectureService = require('@app/core/lecture/RefLectureService');
 import TagListService = require('@app/core/taglist/TagListService');
 import SugangSnuService = require('./sugangsnu/SugangSnuService');
 import TagParseService = require('./TagParseService');
-import RedisUtil = require('@app/core/redis/RedisUtil');
 import winston = require('winston');
 import SimpleJob from '../common/SimpleJob';
 import RefLecture from '@app/core/lecture/model/RefLecture';
@@ -85,8 +84,6 @@ export async function fetchAndInsert(year: number, semester: number, isFcmEnable
   
   await upsertCoursebook(year, semester, isFcmEnabled);
 
-  logger.info('Flushing all redis data');
-  await RedisUtil.flushall();
   return;
 }
 

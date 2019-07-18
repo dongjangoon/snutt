@@ -2,6 +2,7 @@ import TimetableService = require('@app/core/timetable/TimetableService');
 import RefLectureService = require('@app/core/lecture/RefLectureService');
 import TimetableLectureService = require('@app/core/timetable/TimetableLectureService');
 import ObjectUtil = require('@app/core/common/util/ObjectUtil');
+import RedisUtil = require('@app/core/redis/RedisUtil');
 import RefLecture from '@app/core/lecture/model/RefLecture';
 import LectureDifference from './model/LectureDifference';
 import winston = require('winston');
@@ -88,6 +89,9 @@ export async function processUpdatedAndRemoved(year:number, semesterIndex:number
     await processRemoved(removedList[i]);
     logger.info((i + 1) + "th removed");
   }
+
+  logger.info('Flushing all redis data');
+  await RedisUtil.flushall();
 
   if (isFcmEnabled) {
     let users: Set<string> = new Set();

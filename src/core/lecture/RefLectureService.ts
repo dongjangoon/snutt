@@ -1,5 +1,7 @@
 import RefLectureRepository = require('./RefLectureRepository');
 import RefLecture from './model/RefLecture';
+import ObjectUtil = require('@app/core/common/util/ObjectUtil');
+import LectureService = require('@app/core/lecture/LectureService');
 
 export function query(query: any, limit: number, offset: number): Promise<RefLecture[]> {
     return RefLectureRepository.query(query, limit, offset);
@@ -34,5 +36,8 @@ export function remove(lectureId: string): Promise<void> {
 }
 
 export function partialModifiy(lectureId: string, lecture: any): Promise<RefLecture> {
-    return RefLectureRepository.partialUpdateRefLecture(lectureId, lecture);
+    let lectureCopy = ObjectUtil.deepCopy(lecture);
+    ObjectUtil.deleteObjectId(lectureCopy);
+    LectureService.setTimemask(lectureCopy);
+    return RefLectureRepository.partialUpdateRefLecture(lectureId, lectureCopy);
 }
