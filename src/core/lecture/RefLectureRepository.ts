@@ -128,7 +128,7 @@ export async function findByMongooseId(id: any): Promise<RefLecture> {
 }
 
 export async function findBySemester(year: number, semester: number): Promise<RefLecture[]> {
-  let docs = await mongooseModel.find({year : year, semester : semester}).exec();
+  let docs: any = await mongooseModel.find({year : year, semester : semester}).lean().exec();
   return docs.map(fromMongoose);
 }
 

@@ -53,7 +53,7 @@ restGet(router, '/:id')(async function(context, req) {
 
 restGet(router, '/:year/:semester')(async function(context, req) {
   let user:User = context.user;
-  let result = await TimetableService.getBySemester(user._id, req.params.year, req.params.semester);
+  let result = await TimetableService.getByUserIdAndSemester(user._id, req.params.year, req.params.semester);
   if (!result) {
     throw new ApiError(404, ErrorCode.TIMETABLE_NOT_FOUND, "No timetable for given semester");
   }

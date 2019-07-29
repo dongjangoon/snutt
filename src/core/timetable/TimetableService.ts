@@ -101,6 +101,10 @@ export function getRecentByUserId(userId: string): Promise<Timetable> {
   return TimetableRepository.findRecentByUserId(userId);
 }
 
-export function getBySemester(userId: string, year: number, semester: number): Promise<Timetable[]> {
-  return TimetableRepository.findBySemester(userId, year, semester);
+export function getBySemester(year: number, semester: number): Promise<Timetable[]> {
+  return TimetableRepository.findBySemester(year, semester);
+}
+
+export function getByUserIdAndSemester(userId: string, year: number, semester: number): Promise<Timetable[]> {
+  return TimetableRepository.findByUserIdAndSemester(userId, year, semester);
 }
