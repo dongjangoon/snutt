@@ -15,3 +15,5 @@ snutt.yml
 # Output files
 build/
 
+# winston-daily-rotate-file
+*audit.json
