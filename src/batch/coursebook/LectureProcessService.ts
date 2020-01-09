@@ -81,13 +81,25 @@ export async function processUpdatedAndRemoved(year:number, semesterIndex:number
   }
 
   for (let i=0; i<updatedList.length; i++) {
-    await processUpdated(updatedList[i]);
-    logger.info((i + 1) + "th updated");
+    try {
+      await processUpdated(updatedList[i]);
+      logger.info((i + 1) + "th updated");
+    } catch (err) {
+      let newLecture = updatedList[i].newLecture;
+      logger.error("Failed to process " + (i + 1) + "th updated " +
+        newLecture.course_number + " " + newLecture.lecture_number + " " + newLecture.course_title + "\nCaused by : " + err);
+    }
   }
 
   for (let i=0; i<removedList.length; i++) {
-    await processRemoved(removedList[i]);
-    logger.info((i + 1) + "th removed");
+    try {
+      await processRemoved(removedList[i]);
+      logger.info((i + 1) + "th removed");
+    } catch (err) {
+      let removedLecture = removedList[i];
+      logger.error("Failed to process " + (i + 1) + "th removed " +
+        removedLecture.course_number + " " + removedLecture.lecture_number + " " + removedLecture.course_title + "\nCaused by : " + err);
+    }
   }
 
   logger.info('Flushing all redis data');
