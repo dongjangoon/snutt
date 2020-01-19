@@ -13,6 +13,24 @@ describe('TimePlaceUtilUnitTest', function() {
                 TimePlaceUtil.timeAndPlaceToJson('화(1-2)/목(1-2)', '220-317/220-317'));
     })
 
+    it("timeAndPlaceToJson__success__onlyOneLocation", async function() {
+        assert.deepEqual([{day: 1, start:1, len:2, place: '220-317'},
+                {day:3, start:1, len:2, place: '220-317'}],
+                TimePlaceUtil.timeAndPlaceToJson('화(1-2)/목(1-2)', '220-317'));
+    })
+
+    it("timeAndPlaceToJson__success__emptyLocation", async function() {
+        assert.deepEqual([{day: 1, start:1, len:2, place: ''},
+                {day:3, start:1, len:2, place: ''}],
+                TimePlaceUtil.timeAndPlaceToJson('화(1-2)/목(1-2)', '/'));
+    })
+
+    it("timeAndPlaceToJson__success__noLocation", async function() {
+        assert.deepEqual([{day: 1, start:1, len:2, place: ''},
+                {day:3, start:1, len:2, place: ''}],
+                TimePlaceUtil.timeAndPlaceToJson('화(1-2)/목(1-2)', ''));
+    })
+
     it("timeAndPlaceToJson__success__floatingPointTime", async function() {
         assert.deepEqual([{day: 1, start:1.5, len:2, place: '220-317'},
         {day:3, start:1.5, len:2, place: '220-317'}],
@@ -31,6 +49,14 @@ describe('TimePlaceUtilUnitTest', function() {
               TimePlaceUtil.timeAndPlaceToJson('목(9-2)/목(11-2)', '220-317/220-317'));
     })
 
+    it("timeAndPlaceToJson__success__doNotMergeContinuousCourseButDiffLocation", async function() {
+        assert.deepEqual([
+                {day: 3, start: 9, len: 2, place: '220-317'},
+                {day: 3, start: 11, len: 2, place: '220-316'}
+              ],
+              TimePlaceUtil.timeAndPlaceToJson('목(9-2)/목(11-2)', '220-317/220-316'));
+    })
+
     it("timeAndPlaceToJson__success__mergeMultipleClassroom", async function() {
         assert.deepEqual([
             {day: 0, start: 3, len: 1.5, place: '500-L302'},
@@ -38,6 +64,14 @@ describe('TimePlaceUtilUnitTest', function() {
             {day: 4, start: 3, len: 2, place: '020-103/020-104'}
           ],
           TimePlaceUtil.timeAndPlaceToJson('월(3-1.5)/수(3-1.5)/금(3-2)/금(3-2)', '500-L302/500-L302/020-103/020-104'));
+    })
+
+    it("timeAndPlaceToJson__success__mergeMultipleClassroom2", async function() {
+        assert.deepEqual([
+            {day: 2, start: 7, len: 1, place: '014-B101'},
+            {day: 2, start: 10, len: 1, place: '008-301/008-304/014-102/014-202/014-204/014-207'}
+          ],
+          TimePlaceUtil.timeAndPlaceToJson('수(10-1)/수(10-1)/수(7-1)/수(10-1)/수(10-1)/수(10-1)/수(10-1)', '008-301/008-304/014-B101/014-102/014-202/014-204/014-207'));
     })
 
     it("timeJsonToMask__success__emptyJson", async function() {
