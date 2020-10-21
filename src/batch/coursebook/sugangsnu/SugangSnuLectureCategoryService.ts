@@ -42,6 +42,33 @@ const lectureCategoryString = {
     [LectureCategory.GENERAL_KOREAN]: "한국의 이해"
 };
 
+const lectureUpperCategory = {
+    // 학문의 기초
+    [LectureCategory.FOUNDATION_WRITING]: "04",
+    [LectureCategory.FOUNDATION_LANGUAGE]: "04",
+    [LectureCategory.FOUNDATION_MATH]: "04",
+    [LectureCategory.FOUNDATION_SCIENCE]: "04",
+    [LectureCategory.FOUNDATION_COMPUTER]: "04",
+    // 학문의 세계
+    [LectureCategory.KNOWLEDGE_LITERATURE]: "05",
+    [LectureCategory.KNOWLEDGE_ART]: "05",
+    [LectureCategory.KNOWLEDGE_HISTORY]: "05",
+    [LectureCategory.KNOWLEDGE_POLITICS]: "05",
+    [LectureCategory.KNOWLEDGE_HUMAN]: "05",
+    [LectureCategory.KNOWLEDGE_NATURE]: "05",
+    [LectureCategory.KNOWLEDGE_LIFE]: "05",
+    // 선택 교양
+    [LectureCategory.GENERAL_PHYSICAL]: "06",
+    [LectureCategory.GENERAL_ART]: "06",
+    [LectureCategory.GENERAL_COLLEGE]: "06",
+    [LectureCategory.GENERAL_CREATIVITY]: "06",
+    [LectureCategory.GENERAL_KOREAN]: "06"
+};
+
 export function getLectureCategoryString(lectureCategory: number) {
     return lectureCategoryString[lectureCategory];
+}
+
+export function getLectureUpperCategory(lectureCategory: number) {
+    return lectureUpperCategory[lectureCategory];
 }

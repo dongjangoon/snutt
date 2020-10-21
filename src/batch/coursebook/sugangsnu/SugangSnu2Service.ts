@@ -119,6 +119,7 @@ function makeCoursebookExcelFileUrl(year: number, semester: number, lectureCateg
         params["srchOpenSbjtFldCd"] = "";
         logger.info("Fetching " + year + "-" + semesterString[semester]);
     } else {
+        params["srchOpenUpSbjtFldCd"] = SugangSnuLectureCategoryService.getLectureUpperCategory(lectureCategory);
         params["srchOpenSbjtFldCd"] = lectureCategory;
         logger.info("Fetching " + SugangSnuLectureCategoryService.getLectureCategoryString(lectureCategory));
     }
