@@ -74,6 +74,7 @@ export async function fetchAndInsert(year: number, semester: number, isFcmEnable
     createdList.length + " created, " +
     removedList.length + " removed.");
 
+  console.log(updatedList);
     return;
 
   logger.info("Sending notifications...");
