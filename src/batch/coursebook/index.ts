@@ -8,7 +8,7 @@ import { processUpdatedAndRemoved } from './LectureProcessService';
 import CourseBookService = require('@app/core/coursebook/CourseBookService');
 import RefLectureService = require('@app/core/lecture/RefLectureService');
 import TagListService = require('@app/core/taglist/TagListService');
-import SugangSnuService = require('./sugangsnu/SugangSnuService');
+import SugangSnu2Service = require('./sugangsnu/SugangSnu2Service');
 import TagParseService = require('./TagParseService');
 import winston = require('winston');
 import SimpleJob from '../common/SimpleJob';
@@ -56,7 +56,7 @@ async function getUpdateCandidate(): Promise<Array<[number, number]>> {
 
 export async function fetchAndInsert(year: number, semester: number, isFcmEnabled: boolean): Promise<void> {
   logger.info("Fetching from sugang.snu.ac.kr...");
-  let fetched = await SugangSnuService.getRefLectureList(year, semester);
+  let fetched = await SugangSnu2Service.getRefLectureList(year, semester);
   if (fetched.length == 0) {
     logger.warn("No lecture found.");
     return;
@@ -73,6 +73,8 @@ export async function fetchAndInsert(year: number, semester: number, isFcmEnable
   logger.info(updatedList.length + " updated, " +
     createdList.length + " created, " +
     removedList.length + " removed.");
+
+    return;
 
   logger.info("Sending notifications...");
   await RefLectureService.addAll(createdList);
