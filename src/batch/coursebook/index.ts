@@ -74,9 +74,6 @@ export async function fetchAndInsert(year: number, semester: number, isFcmEnable
     createdList.length + " created, " +
     removedList.length + " removed.");
 
-  console.log(updatedList);
-    return;
-
   logger.info("Sending notifications...");
   await RefLectureService.addAll(createdList);
   await processUpdatedAndRemoved(year, semester, updatedList, removedList, isFcmEnabled);
