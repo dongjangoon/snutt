@@ -1,4 +1,5 @@
 import request = require('request-promise-native');
+import retry = require('async-retry');
 import winston = require('winston');
 import ExcelUtil = require('@app/batch/coursebook/excel/ExcelUtil');
 import RefLecture from '@app/core/lecture/model/RefLecture';
@@ -47,24 +48,29 @@ async function getRefLectureListForCategory(year: number, semester: number, lect
 }
 
 function getCoursebookExcelFileForCategory(year: number, semester: number, lectureCategory: number): Promise<Buffer> {
-    return request.post(makeCoursebookExcelFileUrl(year, semester, lectureCategory), {
-        encoding: null, // return as binary
-        resolveWithFullResponse: true,
-        timeout: 60000,
-        headers: {
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36",
-            "Referrer": "https://sugang.snu.ac.kr/sugang/cc/cc100InterfaceExcel.action"
-        }
-    }).then(function(response: request.FullResponse) {
-        if (response.statusCode >= 400) {
-            logger.warn("status code " + response.statusCode);
-            return Promise.resolve(new Buffer(0));
-        }
-        if (!response.headers["content-disposition"]) {
-            logger.warn("No content-disposition found");
-            return Promise.resolve(new Buffer(0));
-        }
-        return response.body;
+    return retry(bail => {
+        return request.post(makeCoursebookExcelFileUrl(year, semester, lectureCategory), {
+            encoding: null, // return as binary
+            resolveWithFullResponse: true,
+            timeout: 10000,
+            headers: {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36",
+                "Referrer": "https://sugang.snu.ac.kr/sugang/cc/cc100InterfaceExcel.action"
+            }
+        }).then(function(response: request.FullResponse) {
+            if (response.statusCode >= 400) {
+                logger.warn("status code " + response.statusCode);
+                return Promise.resolve(new Buffer(0));
+            }
+            if (!response.headers["content-disposition"]) {
+                logger.warn("No content-disposition found");
+                return Promise.resolve(new Buffer(0));
+            }
+            return response.body;
+        });
+    }, {
+        retries: 5,
+        maxTimeout: 60000
     });
 }
 
