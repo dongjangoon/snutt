@@ -28,12 +28,87 @@ const semesterQueryString = {
 
 export async function getRefLectureList(year: number, semester: number): Promise<RefLecture[]> {
     let ret: RefLecture[] = [];
+
+    if (!(await isCoursebookOpened(year, semester))) {
+        return ret;
+    }
+
     // apply의 경우 두번째 인자의 개수가 너무 많을 경우 fail할 수 있음
     // lectureCategory = null일 경우 getRefLectureListForCategory 안에서 교양 영역 강좌는 필터링
     ret.push.apply(ret, await getRefLectureListForCategory(year, semester, null));
     for (let category of SugangSnuLectureCategoryService.lectureCategoryList) {
         ret.push.apply(ret, await getRefLectureListForCategory(year, semester, category));
     }
+    return ret;
+}
+
+/**
+ * 수강스누 2.0부터는 없는 학기의 편람 엑셀 URL을 호출해도
+ * 결과가 응답되고, 강좌 데이터가 들어 있다
+ * 
+ * 따라서 수강 편람 존재 여부를 확인하기 위해
+ * 검색 조건 API를 호출하여, 현재 수강 학기와 비교한다.
+ */
+async function isCoursebookOpened(year: number, semester: number): Promise<boolean> {
+    return retry(bail => {
+        return request.post(makeIsCoursebookOpenedUrl(year, semester), {
+            resolveWithFullResponse: true,
+            timeout: 1000,
+            headers: {
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36",
+                "Referrer": "https://sugang.snu.ac.kr/sugang/cc/cc100InterfaceExcel.action"
+            },
+            json: true
+        }).then(function(response: request.FullResponse) {
+            if (response.statusCode >= 400) {
+                logger.warn("status code " + response.statusCode);
+                return Promise.resolve(false);
+            }
+            let latestYear = parseInt(response.body.currSchyy);
+            let currShtmFg = response.body.currShtmFg;
+            let currDetaShtmFg = response.body.currDetaShtmFg;
+            let latestSemesterQueryString = currShtmFg + currDetaShtmFg;
+            let latestSemester = -1;
+            for (let semester in semesterQueryString) {
+                if (semesterQueryString[semester] === latestSemesterQueryString) {
+                    latestSemester = parseInt(semester);
+                    break;
+                }
+            }
+
+            if (latestSemester < 0) {
+                return Promise.reject("Semester not found for " + currShtmFg + " " + currDetaShtmFg);
+            }
+
+            return Promise.resolve(
+                (year < latestYear) ||
+                (year == latestYear && semester <= latestSemester)
+            );
+        });
+    }, {
+        retries: 2,
+        maxTimeout: 60000,
+        onRetry: function(err) {
+            logger.error("Retry triggered by: " + err)
+        }
+    });
+}
+
+const SUGANG_SNU_SEARCH_CONDITION_BASEPATH = 'https://sugang.snu.ac.kr/sugang/cc/cc100ajax.action?';
+function makeIsCoursebookOpenedUrl(year: number, semester: number): string {
+    let params = {
+        openUpDeptCd: "",
+        openDeptCd: "",
+        srchOpenSchyy: year,
+        srchOpenShtm: semesterQueryString[semester]
+    };
+
+    let retarr = [];
+    for (let key in params) {
+        retarr.push(encodeURIComponent(key) + '=' + encodeURIComponent(params[key]));
+    }
+    let ret = SUGANG_SNU_SEARCH_CONDITION_BASEPATH + retarr.join('&');
+    logger.debug(ret);
     return ret;
 }
 
