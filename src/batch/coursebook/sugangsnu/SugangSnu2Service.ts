@@ -153,7 +153,7 @@ const SUGANG_SNU_BASEPATH = "https://sugang.snu.ac.kr/sugang/cc/cc100InterfaceEx
 function makeCoursebookExcelFileUrl(year: number, semester: number, lectureCategory: number): string {
     let params = {
         workType: "EX",
-        srchOpenSchyy: 2020,
+        srchOpenSchyy: year,
         srchOpenShtm: semesterQueryString[semester],
         srchSbjtNm: "",
         srchSbjtCd: "",
