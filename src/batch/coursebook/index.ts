@@ -14,6 +14,7 @@ import winston = require('winston');
 import SimpleJob from '../common/SimpleJob';
 import RefLecture from '@app/core/lecture/model/RefLecture';
 import CoursebookUpdateNotificationService = require('./CoursebookUpdateNotificationService');
+import RedisUtil = require('@app/core/redis/RedisUtil');
 let logger = winston.loggers.get('default');
 
 /**
@@ -96,7 +97,7 @@ async function validateRefLecture(year: number, semester: number, fetched: RefLe
   }
 
   logger.error("validateRefLecture failed, upsert all lectures");
-  upsertRefLectureList(year, semester, fetched);
+  await upsertRefLectureList(year, semester, fetched);
 }
 
 async function upsertRefLectureList(year: number, semester: number, fetched: RefLecture[]) {
@@ -106,6 +107,9 @@ async function upsertRefLectureList(year: number, semester: number, fetched: Ref
   logger.info("Inserting new lectures...");
   var inserted = await RefLectureService.addAll(fetched);
   logger.info("Insert complete with " + inserted + " success and " + (fetched.length - inserted) + " errors");
+  
+  logger.info('Flushing all redis data');
+  await RedisUtil.flushall();
 }
 
 async function upsertTagList(year: number, semester: number, fetched: RefLecture[]) {
