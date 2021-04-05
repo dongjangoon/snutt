@@ -4,7 +4,7 @@ core:
   mongo:
     uri: mongodb://localhost/snutt
   redis:
-    port: 6379
+    url: redis://localhost
   fcm:
     apiKey: testapikey
     projectId: testprojectid
