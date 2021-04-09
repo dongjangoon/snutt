@@ -13,5 +13,6 @@ router.use(function(req, res) {
 })
 router.use('/', StaticPageRouter);
 router.use('/', ApiRouter);
+router.use('/v1', ApiRouter);
 
 export = router;
