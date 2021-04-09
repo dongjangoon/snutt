@@ -25,4 +25,5 @@ export default function(err, req, res, next) {
             message: serverFaultError.message
         });
     }
+    logger.error(err.stack);
 }
