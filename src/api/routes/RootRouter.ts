@@ -12,6 +12,7 @@ router.use(function(req, res) {
   return Promise.resolve('next');
 })
 router.use('/', StaticPageRouter);
+router.use('/v1', StaticPageRouter);
 router.use('/', ApiRouter);
 router.use('/v1', ApiRouter);
 
