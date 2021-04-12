@@ -59,7 +59,7 @@ jobs:
           --source-bundle S3Bucket=$S3_BUCKET_NAME,S3Key='deploy-dev.zip'
         aws elasticbeanstalk update-environment \
           --environment-name snutt-server-development \
-          --version-label $BUILD_NUMBER
+          --version-label dev-$BUILD_NUMBER
 
     - name: Slack Notify
       uses: rtCamp/action-slack-notify@v2.1.2
