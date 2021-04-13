@@ -157,10 +157,15 @@ async function run() {
 
 async function main() {
   await new SimpleJob("coursebook", run).run();
+  setTimeout(() => process.exit(0), 1000);
 }
 
 exports.handler = async function(event, context) {
-  await main();
-  context.done();
-  setTimeout(() => process.exit(), 1000);
+  console.log('Remaining time: ', context.getRemainingTimeInMillis())
+  console.log('Function name: ', context.functionName)
+  return context.logStreamName
+}
+
+if (!module.parent) {
+  main();
 }
