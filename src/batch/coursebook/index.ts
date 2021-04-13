@@ -82,7 +82,7 @@ export async function fetchAndInsert(year: number, semester: number, isFcmEnable
   await validateRefLecture(year, semester, fetched);
 
   await upsertTagList(year, semester, fetched);
-  
+
   await upsertCoursebook(year, semester, isFcmEnabled);
 
   return;
@@ -107,7 +107,7 @@ async function upsertRefLectureList(year: number, semester: number, fetched: Ref
   logger.info("Inserting new lectures...");
   var inserted = await RefLectureService.addAll(fetched);
   logger.info("Insert complete with " + inserted + " success and " + (fetched.length - inserted) + " errors");
-  
+
   logger.info('Flushing all redis data');
   await RedisUtil.flushall();
 }
@@ -157,7 +157,6 @@ async function run() {
 
 async function main() {
   await new SimpleJob("coursebook", run).run();
-  setTimeout(() => process.exit(0), 1000);
 }
 
 if (!module.parent) {
