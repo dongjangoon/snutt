@@ -160,12 +160,6 @@ async function main() {
   setTimeout(() => process.exit(0), 1000);
 }
 
-exports.handler = async function(event, context) {
-  console.log('Remaining time: ', context.getRemainingTimeInMillis())
-  console.log('Function name: ', context.functionName)
-  return context.logStreamName
-}
-
 if (!module.parent) {
   main();
 }
