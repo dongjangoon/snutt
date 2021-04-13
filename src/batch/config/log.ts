@@ -2,7 +2,7 @@ import winston = require('winston');
 import DailyRotateFile = require('winston-daily-rotate-file')
 import property = require('@app/core/config/property');
 
-if (process.env.NODE_ENV !== 'lambda') {
+if (process.env.EXECUTE_ENV !== 'lambda') {
 
     let logPath = property.get("batch.winston.path");
     let logDatePattern = property.get("batch.winston.datePattern");
