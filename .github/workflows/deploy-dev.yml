@@ -58,6 +58,6 @@ jobs:
           --description dev-$BUILD_NUMBER \
           --source-bundle S3Bucket=$S3_BUCKET_NAME,S3Key='deploy-dev.zip'
         aws elasticbeanstalk update-environment \
-          --environment-name snutt-server-development \
+          --environment-name snutt-server-dev \
           --version-label dev-$BUILD_NUMBER
 
