@@ -19,6 +19,7 @@ PR is welcome!
 
 ## Documentation
 [깃헙 위키](https://github.com/wafflestudio/snutt/wiki/Deploying-2.0.0)
+[Notion](https://www.notion.so/SNUTT-f5c63e408e2c4275af4682112abd6af7)
 
 ## Front-end Clients
 * [Web Client](https://github.com/wafflestudio/snutt-webclient/)
