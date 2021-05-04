@@ -6,6 +6,7 @@ import User from '@app/core/user/model/User';
 import UserCredential from '@app/core/user/model/UserCredential';
 import UserService = require('@app/core/user/UserService');
 import FacebookService = require('@app/core/facebook/FacebookService');
+import AppleService = require('@app/core/apple/AppleService');
 import InvalidLocalPasswordError from '@app/core/user/error/InvalidLocalPasswordError';
 import InvalidLocalIdError from '@app/core/user/error/InvalidLocalIdError';
 import DuplicateLocalIdError from '@app/core/user/error/DuplicateLocalIdError';
@@ -28,6 +29,15 @@ export async function isRightFbToken(user: User, fbToken: string): Promise<boole
     try {
         let fbInfo = await FacebookService.getFbInfo(user.credential.fbId, fbToken);
         return fbInfo.fbId === user.credential.fbId;
+    } catch (err) {
+        return false;
+    }
+}
+
+export async function isRightAppleToken(user: User, appleToken: string): Promise<boolean> {
+    try {
+        let appleInfo = await AppleService.getAppleInfo(user.credential.fbId, appleToken);
+        return appleInfo.appleId === user.credential.appleId;
     } catch (err) {
         return false;
     }

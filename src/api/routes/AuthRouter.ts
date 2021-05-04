@@ -5,6 +5,7 @@ import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');
 import UserCredentialService = require('@app/core/user/UserCredentialService');
 import UserDeviceService = require('@app/core/user/UserDeviceService');
+import AppleService = require('@app/core/apple/AppleService')
 import InvalidLocalIdError from '@app/core/user/error/InvalidLocalIdError';
 import winston = require('winston');
 import InvalidLocalPasswordError from '@app/core/user/error/InvalidLocalPasswordError';
@@ -57,6 +58,21 @@ restPost(router, '/register_local')(async function (context, req) {
     if (err instanceof InvalidLocalPasswordError)
       throw new ApiError(403, ErrorCode.INVALID_PASSWORD, "invalid password");
     throw err;
+  }
+});
+
+restPost(router, '/login_apple')(async function(context,req){
+  if(!req.body.apple_token)
+    throw new ApiError(400,ErrorCode.NO_APPLE_ID_OR_TOKEN, 'both apple_id and apple_token required')
+
+  try {
+    if(user) {
+      if(await UserCredentialService.isRightAppleToken(user,req.body.apple_token)) {
+        return {token: user.credentialHash, user_id: user._id}
+      } else {
+        throw new ApiError(403,ErrorCode.WRONG_APPLE_TOKEN)
+      }
+    }
   }
 });
 

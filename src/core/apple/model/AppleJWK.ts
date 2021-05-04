@@ -1,4 +1,4 @@
-export default interface ApplePublicKey {
+export default interface AppleJWK {
     kty: string,
     kid: string,
     use: string,

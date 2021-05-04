@@ -1,20 +1,30 @@
 /**
- * 아이디 혹은 페이스북을 이용한 로그인
- * 토큰을 콜백함수로 반환
- * 
- * @author Jang Ryeol, ryeolj5911@gmail.com
+ *
+ * @author Hank Choi, zlzlqlzl1@gmail.com
  */
 
 import request = require('request');
-import InvalidFbIdOrTokenError from './error/InvalidFbIdOrTokenError';
+import AppleUserInfo from "@app/core/apple/model/AppleUserInfo";
+import * as jwt from "jsonwebtoken";
+import {getMatchedKeyBy} from "@app/core/apple/AppleVerifyUtil";
+import AppleJWK from "@app/core/apple/model/AppleJWK";
+import pj = require('pem-jwk')
+import crypto = require('crypto');
 
-export function getFbInfo(fbId, fbToken): Promise<{fbName:string, fbId:string}> {
+
+
+export function getAppleInfo(identityToken:string): Promise<{appleName:string, appleId:string}> {
+  const headerOfIdentityToken = JSON.parse(Buffer.from(identityToken.substr(0,identityToken.indexOf('.')),'base64').toString());
+  const publicKey: AppleJWK= await getMatchedKeyBy(headerOfIdentityToken.kid,headerOfIdentityToken.alg);
+  jwt.verify(identityToken,JSON.stringify(publicKey))
+
+  const userInfo: AppleUserInfo = jwt.decode(identityToken);
   return new Promise(function(resolve, reject) {
     request({
-      url: "https://graph.facebook.com/me",
+      url: "https://appleid.apple.com/auth/token",
       method: "GET",
       json: true,
-      qs: {access_token: fbToken}
+      qs: {access_token: appleToken}
     }, function (err, res, body) {
       if (err || res.statusCode != 200 || !body || !body.id || fbId !== body.id) {
         return reject(new InvalidFbIdOrTokenError(fbId, fbToken));
@@ -23,4 +33,17 @@ export function getFbInfo(fbId, fbToken): Promise<{fbName:string, fbId:string}> 
       }
     });
   });
+}
+
+export function decodeAppleIdentityToken(token): AppleUserInfo {
+  const appleUserInfo:AppleUserInfo = jwt.decode(token)
+  return new Promise(function(resolve, reject) {
+    request({
+      url: "https://appleid.apple.com/auth/token",
+      method: "GET",
+      json: true,
+      qs: {access_token: appleToken}
+    }, function (err, res, body) {
+
+    }
 }
