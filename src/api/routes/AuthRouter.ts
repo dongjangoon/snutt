@@ -15,6 +15,7 @@ import { restPost } from '../decorator/RestDecorator';
 import ApiError from '../error/ApiError';
 import ErrorCode from '../enum/ErrorCode';
 import InvalidAppleTokenError from "@app/core/apple/error/InvalidAppleTokenError";
+import UserCredential from "@app/core/user/model/UserCredential";
 var logger = winston.loggers.get('default');
 
 restPost(router, '/request_temp')(async function(context, req) {
@@ -67,21 +68,21 @@ restPost(router, '/login_apple')(async function (context, req) {
     throw new ApiError(400, ErrorCode.NO_APPLE_ID_OR_TOKEN, 'both apple_id and apple_token required')
 
   try {
-    const userInfo = await AppleService.verifyAndDecodeToken(req.body.apple_token)
+    const userInfo = await AppleService.verifyAndDecodeAppleToken(req.body.apple_token)
     const user = await UserService.getByApple(userInfo.email)
     if (user) {
       return {token: user.credentialHash, user_id: user._id}
     } else {
-      let credential = await UserCredentialService.makeAppleCredential(userInfo.email, userInfo.sub);
+      const credential: UserCredential = await UserCredentialService.makeAppleCredential(userInfo.email, userInfo.sub);
       logger.info("Made apple credential: " + JSON.stringify(credential));
-      let credentialHash = await UserCredentialService.makeCredentialHmac(credential);
-      let newUser: User = {
+      const credentialHash: string = await UserCredentialService.makeCredentialHmac(credential);
+      const newUser: User = {
         credential: credential,
         credentialHash: credentialHash,
         email: userInfo.email
       }
       logger.info("New user info: " + JSON.stringify(newUser));
-      let inserted = await UserService.add(newUser);
+      const inserted: User = await UserService.add(newUser);
       logger.info("Inserted new user: " + JSON.stringify(inserted));
       return {token: inserted.credentialHash, user_id: inserted._id};
     }
