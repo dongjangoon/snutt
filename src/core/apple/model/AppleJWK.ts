@@ -3,6 +3,6 @@ export default interface AppleJWK {
     kid: string,
     use: string,
     alg: string,
-    n:string,
-    e:string
+    n: string,
+    e: string
 }

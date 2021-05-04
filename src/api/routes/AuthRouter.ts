@@ -62,16 +62,16 @@ restPost(router, '/register_local')(async function (context, req) {
   }
 });
 
-restPost(router, '/login_apple')(async function(context,req){
-  if(!req.body.apple_token)
-    throw new ApiError(400,ErrorCode.NO_APPLE_ID_OR_TOKEN, 'both apple_id and apple_token required')
+restPost(router, '/login_apple')(async function (context, req) {
+  if (!req.body.apple_token)
+    throw new ApiError(400, ErrorCode.NO_APPLE_ID_OR_TOKEN, 'both apple_id and apple_token required')
 
   try {
-    const userInfo = await AppleService.getAppleInfo(req.body.apple_token)
+    const userInfo = await AppleService.verifyAndDecodeToken(req.body.apple_token)
     const user = await UserService.getByApple(userInfo.email)
-    if(user) {
-        return {token: user.credentialHash, user_id: user._id}
-    } else{
+    if (user) {
+      return {token: user.credentialHash, user_id: user._id}
+    } else {
       let credential = await UserCredentialService.makeAppleCredential(userInfo.email, userInfo.sub);
       logger.info("Made apple credential: " + JSON.stringify(credential));
       let credentialHash = await UserCredentialService.makeCredentialHmac(credential);
@@ -86,7 +86,7 @@ restPost(router, '/login_apple')(async function(context,req){
       return {token: inserted.credentialHash, user_id: inserted._id};
     }
   } catch (err) {
-    if (err instanceof InvalidAppleTokenError){
+    if (err instanceof InvalidAppleTokenError) {
       throw new ApiError(403, ErrorCode.WRONG_FB_TOKEN, "wrong fb token");
     }
     throw err;

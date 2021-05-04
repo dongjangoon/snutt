@@ -2,7 +2,6 @@ import mongoose = require('mongoose');
 import winston = require('winston');
 
 import User from '@app/core/user/model/User';
-import {mongo} from "mongoose";
 
 var logger = winston.loggers.get('default');
 
@@ -12,6 +11,8 @@ let UserSchema = new mongoose.Schema({
     localPw: {type: String, default: null},
     fbName: {type: String, default: null},
     fbId: {type: String, default: null},
+    appleEmail: {type: String, default: null},
+    appleSub: {type: String, default: null},
 
     // 위 항목이 없어도 unique credentialHash을 생성할 수 있도록
     tempDate: {type: Date, default: null},          // 임시 가입 날짜
@@ -62,7 +63,7 @@ export async function findActiveByFb(fbId:string) : Promise<User> {
 }
 
 export async function findActiveByApple(appleEmail:string) : Promise<User> {
-  const mongooseDocument = await MongooseUserModel.findOne({'credential.appleEmail' : appleEmail, 'active':true}).exec();
+  const mongooseDocument = await MongooseUserModel.findOne({'credential.appleEmail' : appleEmail, 'active' : true}).exec();
   return fromMongoose(mongooseDocument)
 }
 
