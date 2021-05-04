@@ -61,8 +61,8 @@ export async function findActiveByFb(fbId:string) : Promise<User> {
   return fromMongoose(mongooseDocument);
 }
 
-export async function findActiveByApple(appleId:string) : Promise<User> {
-  const mongooseDocument = await MongooseUserModel.findOne({'credential.appleId' : appleId, 'active':true}).exec();
+export async function findActiveByApple(appleEmail:string) : Promise<User> {
+  const mongooseDocument = await MongooseUserModel.findOne({'credential.appleEmail' : appleEmail, 'active':true}).exec();
   return fromMongoose(mongooseDocument)
 }
 

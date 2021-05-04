@@ -3,8 +3,8 @@ export default interface UserCredential {
   localPw?: string;
   fbName?: string;
   fbId?: string;
-  appleId?: string;
-  appleName?: string;
+  appleEmail?: string;
+  appleSub?: string;
   tempDate?: Date;
   tempSeed?: number;
 };

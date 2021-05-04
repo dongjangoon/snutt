@@ -1,12 +1,6 @@
 import AppleJWK from "@app/core/apple/model/AppleJWK";
 import request = require("request");
-import ApiError from "@app/api/error/ApiError";
 import AppleApiError from "@app/core/apple/error/AppleApiError";
-import jwksClient = require('jwks-client');
-import InvalidFbIdOrTokenError from "@app/core/facebook/error/InvalidFbIdOrTokenError";
-
-
-
 
 export async function getMatchedKeyBy(kid: string, alg: string): Promise<AppleJWK> {
     try {

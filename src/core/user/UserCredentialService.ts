@@ -141,6 +141,16 @@ export async function makeLocalCredential(id: string, password: string): Promise
     }
 }
 
+export async function makeAppleCredential(appleEmail: string, appleSub: string): Promise<UserCredential> {
+    if (await UserService.getByApple(appleEmail)) {
+        throw new AlreadyRegisteredFbIdError(appleEmail);
+    }
+    return {
+        appleEmail: appleEmail,
+        appleSub: appleSub
+    }
+}
+
 export async function makeFbCredential(fbId: string, fbToken: string): Promise<UserCredential> {
     if (await UserService.getByFb(fbId)) {
         throw new AlreadyRegisteredFbIdError(fbId);
