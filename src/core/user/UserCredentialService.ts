@@ -34,15 +34,6 @@ export async function isRightFbToken(user: User, fbToken: string): Promise<boole
     }
 }
 
-export async function isRightAppleToken(user: User, appleToken: string): Promise<boolean> {
-    try {
-        let appleInfo = await AppleService.getAppleInfo(user.credential.fbId, appleToken);
-        return appleInfo.appleId === user.credential.appleId;
-    } catch (err) {
-        return false;
-    }
-}
-
 export function compareCredentialHash(user: User, hash: string): boolean {
     return user.credentialHash === hash;
 }
