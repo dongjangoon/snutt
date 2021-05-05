@@ -13,6 +13,7 @@ import AlreadyRegisteredFbIdError from '@app/core/user/error/AlreadyRegisteredFb
 import InvalidFbIdOrTokenError from '@app/core/facebook/error/InvalidFbIdOrTokenError';
 import NotLocalAccountError from './error/NotLocalAccountError';
 import winston = require('winston');
+import AlreadyRegisteredAppleEmailError from "@app/core/user/error/AlreadyRegisteredAppleEmailError";
 var logger = winston.loggers.get('default');
 
 let secretKey = property.get('core.secretKey');
@@ -128,6 +129,16 @@ export async function makeLocalCredential(id: string, password: string): Promise
     return {
         localId: id,
         localPw: passwordHash
+    }
+}
+
+export async function makeAppleCredential(appleEmail: string, appleSub: string): Promise<UserCredential> {
+    if (await UserService.getByApple(appleEmail)) {
+        throw new AlreadyRegisteredAppleEmailError(appleEmail);
+    }
+    return {
+        appleEmail: appleEmail,
+        appleSub: appleSub
     }
 }
 

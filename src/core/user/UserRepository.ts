@@ -11,6 +11,8 @@ let UserSchema = new mongoose.Schema({
     localPw: {type: String, default: null},
     fbName: {type: String, default: null},
     fbId: {type: String, default: null},
+    appleEmail: {type: String, default: null},
+    appleSub: {type: String, default: null},
 
     // 위 항목이 없어도 unique credentialHash을 생성할 수 있도록
     tempDate: {type: Date, default: null},          // 임시 가입 날짜
@@ -23,12 +25,12 @@ let UserSchema = new mongoose.Schema({
   notificationCheckedAt: Date,                      // 새로운 알림이 있는지 확인하는 용도
   email: String,
   fcmKey: String,                                   // Firebase Message Key
-  
+
   // if the user remove its account, active status becomes false
   // Should not remove user object, because we must preserve the user data and its related objects
   active: {type: Boolean, default: true}
 });
-  
+
 UserSchema.index({ credentialHash : 1 })            // 토큰 인증 시
 UserSchema.index({ "credential.localId": 1 })       // ID로 로그인 시
 UserSchema.index({ "credential.fbId": 1 })          // 페이스북으로 로그인 시
@@ -58,6 +60,11 @@ function fromMongoose(mongooseDocument: mongoose.MongooseDocument): User {
 export async function findActiveByFb(fbId:string) : Promise<User> {
   let mongooseDocument = await MongooseUserModel.findOne({'credential.fbId' : fbId, 'active' : true }).exec();
   return fromMongoose(mongooseDocument);
+}
+
+export async function findActiveByApple(appleEmail:string) : Promise<User> {
+  const mongooseDocument = await MongooseUserModel.findOne({'credential.appleEmail' : appleEmail, 'active' : true}).exec();
+  return fromMongoose(mongooseDocument)
 }
 
 export async function findActiveByCredentialHash(hash: string): Promise<User> {

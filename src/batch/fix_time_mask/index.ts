@@ -93,7 +93,7 @@ async function main() {
 
     setTimeout(() => process.exit(0), 1000);
 }
-  
+
 if (!module.parent) {
     main();
 }

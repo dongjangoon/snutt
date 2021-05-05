@@ -16,6 +16,7 @@ enum ErrorCode {
   NO_LECTURE_TITLE = 0x100B,
   INVALID_TIMEJSON = 0x100C,
   INVALID_NOTIFICATION_DETAIL = 0x100D,
+  NO_APPLE_ID_OR_TOKEN = 0x100E,
 
   /* 401, 403 - Authorization-related */
   WRONG_API_KEY = 0x2000,
@@ -26,6 +27,7 @@ enum ErrorCode {
   WRONG_PASSWORD = 0x2005,
   WRONG_FB_TOKEN = 0x2006,
   UNKNOWN_APP = 0x2007,
+  WRONG_APPLE_TOKEN = 0x2008,
 
   /* 403 - Restrictions */
   INVALID_ID = 0x3000,
