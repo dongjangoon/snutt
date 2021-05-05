@@ -40,7 +40,7 @@ export async function verifyAndDecodeAppleToken(identityToken: string): Promise<
     jwt.verify(identityToken, publicKey, {
         algorithms: [appleJwk.alg],
         issuer: "https://appleid.apple.com",
-        audience: "com.wafflestudio.snutt9RQ8S5ZACJ"
+        audience: "com.wafflestudio.snutt"
     });
     return <AppleUserInfo>jwt.decode(identityToken)
 }
