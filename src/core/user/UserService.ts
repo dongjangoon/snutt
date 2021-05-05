@@ -18,6 +18,10 @@ export function getByFb(fbId: string): Promise<User> {
   return UserRepository.findActiveByFb(fbId)
 }
 
+export function getByApple(appleEmail: string): Promise<User> {
+  return UserRepository.findActiveByApple(appleEmail);
+}
+
 export function getByCredentialHash(credentialHash: string): Promise<User> {
   return UserRepository.findActiveByCredentialHash(credentialHash);
 }

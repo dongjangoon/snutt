@@ -5,6 +5,7 @@ import User from '@app/core/user/model/User';
 import UserService = require('@app/core/user/UserService');
 import UserCredentialService = require('@app/core/user/UserCredentialService');
 import UserDeviceService = require('@app/core/user/UserDeviceService');
+import AppleService = require('@app/core/apple/AppleService')
 import InvalidLocalIdError from '@app/core/user/error/InvalidLocalIdError';
 import winston = require('winston');
 import InvalidLocalPasswordError from '@app/core/user/error/InvalidLocalPasswordError';
@@ -13,6 +14,8 @@ import InvalidFbIdOrTokenError from '@app/core/facebook/error/InvalidFbIdOrToken
 import { restPost } from '../decorator/RestDecorator';
 import ApiError from '../error/ApiError';
 import ErrorCode from '../enum/ErrorCode';
+import InvalidAppleTokenError from "@app/core/apple/error/InvalidAppleTokenError";
+import UserCredential from "@app/core/user/model/UserCredential";
 var logger = winston.loggers.get('default');
 
 restPost(router, '/request_temp')(async function(context, req) {
@@ -56,6 +59,37 @@ restPost(router, '/register_local')(async function (context, req) {
       throw new ApiError(403, ErrorCode.DUPLICATE_ID, "duplicate id");
     if (err instanceof InvalidLocalPasswordError)
       throw new ApiError(403, ErrorCode.INVALID_PASSWORD, "invalid password");
+    throw err;
+  }
+});
+
+restPost(router, '/login_apple')(async function (context, req) {
+  if (!req.body.apple_token)
+    throw new ApiError(400, ErrorCode.NO_APPLE_ID_OR_TOKEN, 'both apple_id and apple_token required')
+
+  try {
+    const userInfo = await AppleService.verifyAndDecodeAppleToken(req.body.apple_token)
+    const user = await UserService.getByApple(userInfo.email)
+    if (user) {
+      return {token: user.credentialHash, user_id: user._id}
+    } else {
+      const credential: UserCredential = await UserCredentialService.makeAppleCredential(userInfo.email, userInfo.sub);
+      logger.info("Made apple credential: " + JSON.stringify(credential));
+      const credentialHash: string = await UserCredentialService.makeCredentialHmac(credential);
+      const newUser: User = {
+        credential: credential,
+        credentialHash: credentialHash,
+        email: userInfo.email
+      }
+      logger.info("New user info: " + JSON.stringify(newUser));
+      const inserted: User = await UserService.add(newUser);
+      logger.info("Inserted new user: " + JSON.stringify(inserted));
+      return {token: inserted.credentialHash, user_id: inserted._id};
+    }
+  } catch (err) {
+    if (err instanceof InvalidAppleTokenError) {
+      throw new ApiError(403, ErrorCode.WRONG_FB_TOKEN, "wrong fb token");
+    }
     throw err;
   }
 });
