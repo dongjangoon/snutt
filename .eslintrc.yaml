@@ -7,14 +7,10 @@ parserOptions:
 plugins:
   - '@typescript-eslint'
   - prettier
-  - sort-imports-es6-autofix
 extends:
   - eslint:recommended
   - plugin:@typescript-eslint/eslint-recommended
   - plugin:prettier/recommended
-  - plugin:import/errors
-  - plugin:import/warnings
-  - plugin:import/typescript
 rules:
   curly: error
   no-return-await: error
@@ -29,15 +25,3 @@ rules:
   no-unused-vars: off
   '@typescript-eslint/no-unused-vars':
     - error
-  import/order:
-    - error
-    - newlines-between: always
-  sort-imports-es6-autofix/sort-imports-es6:
-    - 2
-    - ignoreCase: false
-      ignoreMemberSort: false
-      memberSyntaxSortOrder:
-        - none
-        - all
-        - multiple
-        - single
