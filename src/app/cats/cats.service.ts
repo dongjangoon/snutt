@@ -13,6 +13,7 @@ export class CatsService {
     breed: string
   }): Promise<Cat> {
     const createdCat = new this.catModel(createCatDto)
+
     return createdCat.save()
   }
 

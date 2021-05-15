@@ -1,12 +1,18 @@
-import { Controller, Get } from '@nestjs/common'
+import { CACHE_MANAGER, Controller, Get, Inject } from '@nestjs/common'
 import { AppService } from './app.service'
+import { Cache } from 'cache-manager'
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
+  ) {}
 
   @Get()
-  getHello(): string {
-    return this.appService.getHello()
+  async getHello(): Promise<string | undefined> {
+    const result: string = (await this.cacheManager.get('asdf')) ?? ''
+    await this.cacheManager.set('asdf', result + '!')
+    return this.cacheManager.get('asdf')
   }
 }
