@@ -10,7 +10,10 @@ export class SNUTTExceptionFilter implements ExceptionFilter {
     const sealedException =
       exception instanceof ApiError ? exception : new ApiServerFaultError()
 
-    // TODO: log on ApiServerFaultError
+    // log on ApiServerFaultError
+    if (!exception) {
+      console.log(exception)
+    }
 
     response.status(sealedException.statusCode).json({
       errcode: sealedException.errorCode,
