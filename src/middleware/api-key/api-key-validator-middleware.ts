@@ -14,6 +14,10 @@ export class ApiKeyValidatorMiddleware implements NestMiddleware {
   }
 
   use(req: Request, res: Response, next: NextFunction): any {
+    if (!this.configService.get<string>('IS_PRODUCTION')) {
+      next()
+      return
+    }
     const apiKey = req.header('x-access-apikey')
     validateKey(apiKey, this.secretKey)
     next()

@@ -8,10 +8,19 @@ import {
   InvalidLocalIdError,
   InvalidLocalPasswordError,
 } from './auth.error'
+import { ConfigService } from '@nestjs/config'
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userService: UserService) {}
+  secretKey: string
+
+  constructor(
+    private readonly userService: UserService,
+    private readonly configService: ConfigService,
+  ) {
+    this.secretKey =
+      this.configService.get<string>('SNUTT_SECRET_API_KEY') ?? ''
+  }
 
   async isRightPassword(user: UserEntity, password: string): Promise<boolean> {
     const originalHash = user.credential.localPw
@@ -31,7 +40,7 @@ export class AuthService {
     // 라이브러리 바꿈
     return CryptoJs.HmacSHA256(
       JSON.stringify(userCredential),
-      'scretkey',
+      this.secretKey,
     ).toString(CryptoJS.enc.Hex)
   }
 
