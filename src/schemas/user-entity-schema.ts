@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
 import { Document } from 'mongoose'
 
-interface IUserCredential {
+export interface IUserCredential {
   localId?: string
   localPw?: string
   fbName?: string

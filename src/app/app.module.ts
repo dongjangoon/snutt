@@ -14,6 +14,7 @@ import { ApiKeyValidatorMiddleware } from '../middleware/api-key/api-key-validat
 import { UserAuthMiddleware } from '../middleware/auth/user-auth.middleware'
 import { UserController } from './user/user.controller'
 import { UserModule } from './user/user.module'
+import { AuthModule } from './auth/auth.module'
 
 const redisStore = require('cache-manager-redis-store')
 
@@ -40,6 +41,7 @@ const redisStore = require('cache-manager-redis-store')
     }),
     CatsModule,
     UserModule,
+    AuthModule,
   ],
   controllers: [AppController, UserController],
   providers: [AppService],
