@@ -1,5 +1,5 @@
 import { ApiError } from '../exception/api-error'
-import ErrorCode from '../../legacy/api/enum/ErrorCode'
+import ErrorCode from '../exception/error-code'
 
 export class InvalidApiKeyError extends ApiError {
   constructor() {
