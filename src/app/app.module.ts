@@ -13,7 +13,6 @@ import { MorganMiddleware } from '../middleware/logger.middleware'
 import { ApiKeyValidatorMiddleware } from '../middleware/api-key/api-key-validator-middleware'
 import { UserAuthMiddleware } from '../middleware/auth/user-auth.middleware'
 import { UserController } from './user/user.controller'
-import { UserService } from './user/user.service'
 import { UserModule } from './user/user.module'
 
 const redisStore = require('cache-manager-redis-store')
@@ -43,7 +42,7 @@ const redisStore = require('cache-manager-redis-store')
     UserModule,
   ],
   controllers: [AppController, UserController],
-  providers: [AppService, UserService],
+  providers: [AppService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

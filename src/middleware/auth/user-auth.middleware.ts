@@ -8,6 +8,13 @@ import { Response, Request, NextFunction } from 'express'
 import { WrongUserTokenError } from './user-auth.error'
 import { UserService } from '../../app/user/user.service'
 
+export const User = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext) => {
+    const request = ctx.switchToHttp().getRequest()
+    return request.user
+  },
+)
+
 @Injectable()
 export class UserAuthMiddleware implements NestMiddleware {
   constructor(private readonly userService: UserService) {}
@@ -35,10 +42,3 @@ export class UserAuthMiddleware implements NestMiddleware {
     next()
   }
 }
-
-export const User = createParamDecorator(
-  (data: unknown, ctx: ExecutionContext) => {
-    const request = ctx.switchToHttp().getRequest()
-    return request.user
-  },
-)
