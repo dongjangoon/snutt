@@ -1,4 +1,4 @@
-export interface UserInfo {
+export interface UserInfoDto {
   isAdmin: boolean
   regDate: Date
   notificationCheckedAt: Date

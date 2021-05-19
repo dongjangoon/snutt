@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { UserRepository } from './user.repository'
 import { UserEntity } from '../../schemas/user-entity-schema'
 import { UserNotFoundError } from './user.error'
-import { UserInfo } from './user.dto'
+import { UserInfoDto } from './user.dto'
 
 @Injectable()
 export class UserService {
@@ -59,7 +59,7 @@ export class UserService {
     return this.userRepository.update(user)
   }
 
-  getUserInfo(user: UserEntity): UserInfo {
+  getUserInfo(user: UserEntity): UserInfoDto {
     return {
       isAdmin: user.isAdmin,
       regDate: user.regDate,
