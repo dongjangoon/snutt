@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common'
-import { IUserCredential, UserEntity } from '../../schemas/user-entity-schema'
 import bcrypt from 'bcrypt'
 import CryptoJs from 'crypto-js'
+import { Injectable } from '@nestjs/common'
+import { IUserCredential, UserEntity } from '@snutt-schema/user-entity-schema'
 import { UserService } from '../user/user.service'
 import {
   DuplicateLocalIdError,

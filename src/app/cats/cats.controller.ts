@@ -1,6 +1,6 @@
 import { Controller, Get } from '@nestjs/common'
 import { CatsService } from './cats.service'
-import { Cat } from '../../schemas/cat.schema'
+import { Cat } from '@snutt-schema/cat.schema'
 
 @Controller('cats')
 export class CatsController {

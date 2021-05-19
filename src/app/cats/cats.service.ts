@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
-import { Cat, CatDocument } from '../../schemas/cat.schema'
+import { Cat, CatDocument } from '@snutt-schema/cat.schema'
 import { Model } from 'mongoose'
 
 @Injectable()

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { UserRepository } from './user.repository'
-import { UserEntity } from '../../schemas/user-entity-schema'
+import { UserEntity } from '@snutt-schema/user-entity-schema'
 import { UserNotFoundError } from './user.error'
 import { UserInfoDto } from './user.dto'
 

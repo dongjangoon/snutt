@@ -1,4 +1,4 @@
-import { UserEntity } from '../../schemas/user-entity-schema'
+import { UserEntity } from '@snutt-schema/user-entity-schema'
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'

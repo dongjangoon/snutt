@@ -9,6 +9,17 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@snutt-app/*": [
+        "./src/app/*"
+      ],
+      "@snutt-middleware/*": [
+        "./src/middleware/*"
+      ],
+      "@snutt-schema/*": [
+        "./src/schema/*"
+      ]
+    },
     "incremental": true,
     "esModuleInterop": true,
     "strict": true,
