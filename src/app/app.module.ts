@@ -12,7 +12,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config'
 import { MorganMiddleware } from '../middleware/logger.middleware'
 import { ApiKeyValidatorMiddleware } from '../middleware/api-key/api-key-validator-middleware'
 import { UserAuthMiddleware } from '../middleware/auth/user-auth.middleware'
-import { UserController } from './user/user.controller'
 import { UserModule } from './user/user.module'
 import { AuthModule } from './auth/auth.module'
 
@@ -43,7 +42,7 @@ const redisStore = require('cache-manager-redis-store')
     UserModule,
     AuthModule,
   ],
-  controllers: [AppController, UserController],
+  controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule implements NestModule {
