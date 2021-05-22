@@ -10,6 +10,10 @@ import { MongooseModule } from '@nestjs/mongoose'
 import { CatsModule } from './cats/cats.module'
 import { ConfigModule, ConfigService } from '@nestjs/config'
 import { MorganMiddleware } from '../middleware/logger.middleware'
+import { ApiKeyValidatorMiddleware } from '../middleware/api-key/api-key-validator-middleware'
+import { UserAuthMiddleware } from '../middleware/auth/user-auth.middleware'
+import { UserModule } from './user/user.module'
+import { AuthModule } from './auth/auth.module'
 
 const redisStore = require('cache-manager-redis-store')
 
@@ -35,12 +39,21 @@ const redisStore = require('cache-manager-redis-store')
       inject: [ConfigService],
     }),
     CatsModule,
+    UserModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(MorganMiddleware).forRoutes('*')
+    consumer
+      .apply(MorganMiddleware)
+      .forRoutes('*')
+      .apply(ApiKeyValidatorMiddleware)
+      .forRoutes('*')
+      .apply(UserAuthMiddleware)
+      .exclude('auth/*')
+      .forRoutes('*')
   }
 }
