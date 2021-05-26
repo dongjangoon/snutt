@@ -26,4 +26,5 @@
     "strictPropertyInitialization": false
   },
   "exclude": ["node_modules", "dist", "legacy"]
+  //FIXME: remove "legacy"
 }
