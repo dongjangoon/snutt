@@ -14,6 +14,7 @@ import { ApiKeyValidatorMiddleware } from '../middleware/api-key/api-key-validat
 import { UserAuthMiddleware } from '../middleware/auth/user-auth.middleware'
 import { UserModule } from './user/user.module'
 import { AuthModule } from './auth/auth.module'
+import { CoursebookModule } from './coursebook/coursebook.module'
 
 const redisStore = require('cache-manager-redis-store')
 
@@ -41,6 +42,7 @@ const redisStore = require('cache-manager-redis-store')
     CatsModule,
     UserModule,
     AuthModule,
+    CoursebookModule,
   ],
   controllers: [AppController],
   providers: [AppService],
@@ -53,7 +55,6 @@ export class AppModule implements NestModule {
       .apply(ApiKeyValidatorMiddleware)
       .forRoutes('*')
       .apply(UserAuthMiddleware)
-      .exclude('auth/*')
-      .forRoutes('*')
+      .forRoutes('tables/*', 'user/*', 'admin/*', 'notification/*')
   }
 }
