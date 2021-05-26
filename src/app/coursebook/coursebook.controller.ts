@@ -19,12 +19,12 @@ export class CoursebookController {
   @Get('official')
   async getOfficialCourseBooks(
     @Query('year') year: string,
-    @Query('semester') semester: number,
+    @Query('semester') semester: string,
     @Query('lecture_number') lectureNumber: string,
     @Query('course_number') courseNumber: string,
   ): Promise<{ url: string }> {
     return {
-      url: getSyllabusUrl(year, semester, lectureNumber, courseNumber),
+      url: getSyllabusUrl(year, Number(semester), lectureNumber, courseNumber),
     }
   }
 }
