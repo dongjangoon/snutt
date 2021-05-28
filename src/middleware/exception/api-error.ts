@@ -15,3 +15,9 @@ export class ApiServerFaultError extends ApiError {
     super(500, ErrorCode.SERVER_FAULT, 'Server error occured')
   }
 }
+
+export class ApiInvalidInputError extends ApiError {
+  constructor() {
+    super(400, ErrorCode.INVALID_INPUT, 'invalid input form')
+  }
+}

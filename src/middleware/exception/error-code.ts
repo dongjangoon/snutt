@@ -47,6 +47,7 @@ enum ErrorCode {
   USER_HAS_NO_FCM_KEY = 0x300e,
   INVALID_EMAIL = 0x300f,
   INPUT_OUT_OF_RANGE = 0x3010,
+  INVALID_INPUT = 0x3011,
 
   /* 404 - Not found */
   TAG_NOT_FOUND = 0x4000,
