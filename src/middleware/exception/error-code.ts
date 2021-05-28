@@ -56,6 +56,7 @@ enum ErrorCode {
   REF_LECTURE_NOT_FOUND = 0x4003,
   USER_NOT_FOUND = 0x4004,
   COLORLIST_NOT_FOUND = 0x4005,
+  COURSEBOOK_NOT_FOUND = 0x4006,
 }
 
 export default ErrorCode
