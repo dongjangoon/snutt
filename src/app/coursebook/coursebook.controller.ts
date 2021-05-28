@@ -1,18 +1,18 @@
 import { Controller, Get, Query } from '@nestjs/common'
 import { CoursebookService } from '@snutt-app/coursebook/coursebook.service'
-import { Coursebook } from '@snutt-app/coursebook/schema/coursebook.schema'
 import { getSyllabusUrl } from '@snutt-app/coursebook/official-coursebook.util'
+import { CoursebookInfoWithIdDto } from '@snutt-app/coursebook/dto/coursebook.dto'
 
 @Controller('course_books')
 export class CoursebookController {
   constructor(private readonly coursebookService: CoursebookService) {}
   @Get()
-  async getCoursebooks(): Promise<Coursebook[]> {
+  async getCoursebooks(): Promise<CoursebookInfoWithIdDto[]> {
     return this.coursebookService.getAll()
   }
 
   @Get('recent')
-  async getRecentCoursebook(): Promise<Coursebook | null> {
+  async getRecentCoursebook(): Promise<CoursebookInfoWithIdDto | null> {
     return this.coursebookService.getRecent()
   }
 

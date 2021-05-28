@@ -1,9 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose'
+import { Document } from 'mongoose'
 
-export type CoursebookDocument = Coursebook & Document
+export type CoursebookDocument = CoursebookEntity & Document
 
 @Schema()
-export class Coursebook {
+export class CoursebookEntity {
   @Prop({ type: Number })
   year: number
   @Prop({ type: Number })
@@ -12,4 +13,4 @@ export class Coursebook {
   updated_at?: Date
 }
 
-export const CoursebookSchema = SchemaFactory.createForClass(Coursebook)
+export const CoursebookSchema = SchemaFactory.createForClass(CoursebookEntity)
