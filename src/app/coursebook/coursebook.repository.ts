@@ -8,7 +8,7 @@ import {
 import {
   CoursebookInfoDto,
   CoursebookInfoWithIdDto,
-} from '@snutt-app/coursebook/dto/coursebook.dto'
+} from '@snutt-app/coursebook/coursebook.dto'
 
 @Injectable()
 export class CoursebookRepository {

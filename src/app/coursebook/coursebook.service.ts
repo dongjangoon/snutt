@@ -3,7 +3,7 @@ import { CoursebookRepository } from '@snutt-app/coursebook/coursebook.repositor
 import {
   CoursebookInfoDto,
   CoursebookInfoWithIdDto,
-} from '@snutt-app/coursebook/dto/coursebook.dto'
+} from '@snutt-app/coursebook/coursebook.dto'
 import { CoursebookEntity } from '@snutt-app/coursebook/schema/coursebook.schema'
 import { CoursebookNotFoundError } from '@snutt-app/coursebook/coursebook.error'
 
