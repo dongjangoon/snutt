@@ -57,16 +57,17 @@ export class UserEntity extends Document {
   // admin 항목 접근 권한
   @Prop({ default: false })
   isAdmin: boolean
+
   // 회원가입 날짜
-  @Prop({ type: Date })
+  @Prop({ type: Date, default: Date.now })
   regDate: Date
 
   // routes/api/api.ts의 토큰 인증에서 업데이트
-  @Prop()
+  @Prop({ type: Date, default: Date.now })
   lastLoginTimestamp: number
 
   // 새로운 알림이 있는지 확인하는 용도
-  @Prop()
+  @Prop({ type: Date, default: Date.now })
   notificationCheckedAt: Date
 
   @Prop()

@@ -1,4 +1,4 @@
-import { UserEntity } from '@snutt-schema/user-entity-schema'
+import { IUserCredential, UserEntity } from '@snutt-schema/user-entity-schema'
 import { Injectable } from '@nestjs/common'
 import { InjectModel } from '@nestjs/mongoose'
 import { Model } from 'mongoose'
@@ -54,7 +54,11 @@ export class UserRepository {
       })
   }
 
-  async insert(user: UserEntity): Promise<UserEntity | null> {
+  async insertCredentialUser(user: {
+    credential: IUserCredential
+    credentialHash: string
+    email?: string
+  }): Promise<UserEntity | null> {
     const mongooseUserModel = new this.userModel(user)
     return mongooseUserModel.save()
   }

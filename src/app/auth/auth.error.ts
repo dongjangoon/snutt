@@ -31,3 +31,15 @@ export class InvalidFbIdOrTokenError extends ApiError {
     super(403, ErrorCode.WRONG_FB_TOKEN, 'wrong fb token')
   }
 }
+
+export class WrongIdError extends ApiError {
+  constructor() {
+    super(403, ErrorCode.WRONG_ID, 'wrong id')
+  }
+}
+
+export class WrongPasswordError extends ApiError {
+  constructor() {
+    super(403, ErrorCode.WRONG_PASSWORD, 'wrong password')
+  }
+}

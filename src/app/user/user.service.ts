@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { UserRepository } from './user.repository'
-import { UserEntity } from '@snutt-schema/user-entity-schema'
+import { IUserCredential, UserEntity } from '@snutt-schema/user-entity-schema'
 import { UserNotFoundError } from './user.error'
 import { UserInfoDto } from './user.dto'
 
@@ -84,6 +84,16 @@ export class UserService {
     return this.userRepository.updateLastLoginTimestamp(user)
   }
 
+  async add(user: {
+    credential: IUserCredential
+    credentialHash: string
+    email?: string
+  }): Promise<UserEntity | null> {
+    const inserted = this.userRepository.insertCredentialUser(user)
+    // await createDefaultTimetable(inserted)
+    return inserted
+  }
+
   // Refactoring: need check
   // timetable 추가 후에 더하기
   // async createDefaultTimetable(user: UserEntity): Promise<Timetable> {
@@ -97,13 +107,4 @@ export class UserService {
   //   });
   // }
   //
-  // export async function add(user: UserEntity): Promise<UserEntity> {
-  //   if (user.isAdmin === undefined) user.isAdmin = false;
-  //   if (!user.regDate) user.regDate = new Date();
-  //   if (!user.lastLoginTimestamp) user.lastLoginTimestamp = Date.now();
-  //   if (!user.notificationCheckedAt) user.notificationCheckedAt = new Date();
-  //   let inserted = await this.userRepository.insert(user);
-  //   await createDefaultTimetable(inserted);
-  //   return inserted;
-  // }
 }
