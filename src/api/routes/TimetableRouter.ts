@@ -66,7 +66,7 @@ restPost(router, '/')(async function(context, req) {
     try {
       await TimetableService.addCopyFromSourceId(user, req.query.source);
 
-      return await TimetableService.getAbstractListByUserId(user._id)
+      return await TimetableService.getAbstractListByUserId(user._id);
     } catch (err) {
       throw err;
     }
