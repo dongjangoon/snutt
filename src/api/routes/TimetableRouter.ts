@@ -62,23 +62,34 @@ restGet(router, '/:year/:semester')(async function(context, req) {
 
 restPost(router, '/')(async function(context, req) {
   let user:User = context.user;
-  if (!req.body.year || !req.body.semester || !req.body.title)
-    throw new ApiError(400, ErrorCode.NOT_ENOUGH_TO_CREATE_TIMETABLE, "not enough parameters");
+  if (req.query.source) {
+    try {
+      await TimetableService.addCopyFromSourceId(user, req.query.source);
 
-  try {
-    await TimetableService.addFromParam({
-      user_id : user._id,
-      year : req.body.year,
-      semester : req.body.semester,
-      title : req.body.title
-    });
-
-    return await TimetableService.getAbstractListByUserId(user._id);
-  } catch (err) {
-    if (err instanceof DuplicateTimetableTitleError) {
-      throw new ApiError(403, ErrorCode.DUPLICATE_TIMETABLE_TITLE, "duplicate timetable title");
+      return await TimetableService.getAbstractListByUserId(user._id)
+    } catch (err) {
+      throw err;
     }
-    throw err;
+  }
+  else {
+    if (!req.body.year || !req.body.semester || !req.body.title)
+      throw new ApiError(400, ErrorCode.NOT_ENOUGH_TO_CREATE_TIMETABLE, "not enough parameters");
+
+    try {
+      await TimetableService.addFromParam({
+        user_id: user._id,
+        year: req.body.year,
+        semester: req.body.semester,
+        title: req.body.title
+      });
+
+      return await TimetableService.getAbstractListByUserId(user._id);
+    } catch (err) {
+      if (err instanceof DuplicateTimetableTitleError) {
+        throw new ApiError(403, ErrorCode.DUPLICATE_TIMETABLE_TITLE, "duplicate timetable title");
+      }
+      throw err;
+    }
   }
 });
 

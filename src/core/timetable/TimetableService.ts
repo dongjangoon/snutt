@@ -66,6 +66,20 @@ export async function modifyTitle(tableId, userId, newTitle): Promise<void> {
   await TimetableRepository.updateUpdatedAt(tableId, Date.now());
 }
 
+export async function addCopyFromSourceId(user, sourceId): Promise<Timetable> {
+  const source:Timetable = await TimetableRepository.findByUserIdAndMongooseId(user._id, sourceId)
+
+  let newTimetable: Timetable = {
+    user_id : user.user_id,
+    year : source.year,
+    semester : source.semester,
+    title : source.title + "copy",
+    lecture_list : source.lecture_list,
+    updated_at: Date.now()
+  };
+
+  return await TimetableRepository.insert(newTimetable);
+}
 
 export async function addFromParam(params): Promise<Timetable> {
   let newTimetable: Timetable = {
