@@ -24,7 +24,7 @@ export async function copyWithTitle(src: Timetable, newTitle: string): Promise<v
     if (newTitle === src.title) {
         throw new DuplicateTimetableTitleError(src.user_id, src.year, src.semester, newTitle);
     }
-    
+
     let copied = ObjectUtil.deepCopy(src);
     ObjectUtil.deleteObjectId(copied);
     copied.title = newTitle;
@@ -73,7 +73,7 @@ export async function addCopyFromSourceId(user, sourceId): Promise<Timetable> {
     user_id : user.user_id,
     year : source.year,
     semester : source.semester,
-    title : source.title + "copy",
+    title : source.title + " copy",
     lecture_list : source.lecture_list,
     updated_at: Date.now()
   };
