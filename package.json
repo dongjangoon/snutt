@@ -57,7 +57,7 @@
     "typescript": "2.9.1",
     "winston": "^3.2.0",
     "winston-daily-rotate-file": "^3.6.0",
-    "xlsx": "~0.13.0"
+    "xlsx": "~0.17.0"
   },
   "_moduleAliases": {
     "@app": "build/src",
