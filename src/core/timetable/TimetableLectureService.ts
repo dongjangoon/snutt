@@ -69,7 +69,6 @@ export async function addCustomLecture(timetable: Timetable, lecture: UserLectur
 
   if (!lecture.color && !lecture.colorIndex) {
     lecture.colorIndex = getAvailableColorIndex(timetable);
-    lecture.color = getColorList("vivid_ios").colors[lecture.colorIndex - 1]
   }
 
   await addLecture(timetable, lecture);
@@ -229,7 +228,6 @@ function isIdenticalCourseLecture(l1: UserLecture, l2: UserLecture): boolean {
 
 function fromRefLecture(refLecture: RefLecture, colorIndex: number): UserLecture {
   let creationDate = new Date();
-
   return {
     classification: refLecture.classification,                           // 교과 구분
     department: refLecture.department,                               // 학부
