@@ -76,7 +76,10 @@ export async function findBySemester(year: number, semester: number): Promise<Ti
 }
 
 export function findAbstractListByUserId(userId: string): Promise<AbstractTimetable[]> {
-  return mongooseModel.aggregate([{$match: {user_id: userId}}, {$unwind: "$lecture_list"}, {
+  return mongooseModel.aggregate([{$match: {user_id: userId}}, {
+    $unwind: "$lecture_list",
+    preserveNullAndEmptyArrays: true
+  }, {
     $group: {
       _id: "$_id",
       year: {$first: "$year"},
