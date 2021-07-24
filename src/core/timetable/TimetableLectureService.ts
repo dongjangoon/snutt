@@ -21,7 +21,6 @@ import Timetable from './model/Timetable';
 import TimePlace from './model/TimePlace';
 import InvalidLectureTimeJsonError from '../lecture/error/InvalidLectureTimeJsonError';
 import winston = require('winston');
-import {getColorList} from "@app/core/timetable/LectureColorService";
 let logger = winston.loggers.get('default');
 
 export async function addRefLecture(timetable: Timetable, lectureId: string): Promise<void> {
@@ -70,7 +69,6 @@ export async function addCustomLecture(timetable: Timetable, lecture: UserLectur
 
   if (!lecture.color && !lecture.colorIndex) {
     lecture.colorIndex = getAvailableColorIndex(timetable);
-    lecture.color = getColorList("vivid_ios").colors[lecture.colorIndex - 1]
   }
 
   await addLecture(timetable, lecture);
@@ -230,11 +228,6 @@ function isIdenticalCourseLecture(l1: UserLecture, l2: UserLecture): boolean {
 
 function fromRefLecture(refLecture: RefLecture, colorIndex: number): UserLecture {
   let creationDate = new Date();
-  let color = {};
-
-  if(refLecture.colorIndex !== 0){
-    color = getColorList("vivid_ios").colors[colorIndex - 1]
-  }
   return {
     classification: refLecture.classification,                           // 교과 구분
     department: refLecture.department,                               // 학부
@@ -252,7 +245,6 @@ function fromRefLecture(refLecture: RefLecture, colorIndex: number): UserLecture
     lecture_number: refLecture.lecture_number,  // 강좌 번호
     created_at: creationDate,
     updated_at: creationDate,
-    colorIndex: colorIndex,
-    color: color
+    colorIndex: colorIndex
   }
 }
