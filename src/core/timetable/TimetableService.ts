@@ -66,6 +66,16 @@ export async function modifyTitle(tableId, userId, newTitle): Promise<void> {
   await TimetableRepository.updateUpdatedAt(tableId, Date.now());
 }
 
+export async function modifyTheme(tableId, userId, newTheme): Promise<void> {
+  let target = await TimetableRepository.findByUserIdAndMongooseId(userId, tableId);
+  if (target.theme === newTheme) {
+    return;
+  }
+
+  await TimetableRepository.updateThemeByUserId(tableId, userId, newTheme);
+  await TimetableRepository.updateUpdatedAt(tableId, Date.now());
+}
+
 export async function addCopyFromSourceId(user, sourceId): Promise<Timetable> {
   const source:Timetable = await TimetableRepository.findByUserIdAndMongooseId(user._id, sourceId)
 

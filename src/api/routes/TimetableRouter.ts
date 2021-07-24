@@ -244,7 +244,7 @@ router.delete('/:table_id/lecture/:lecture_id', async function(req, res, next) {
     let table = await TimetableService.getByMongooseId(user._id, req.params.table_id);
     res.json(table);
   } catch (err) {
-    if (err instanceof TimetableNotFoundError) 
+    if (err instanceof TimetableNotFoundError)
       return res.status(404).json({errcode:ErrorCode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
     logger.error(err);
     return res.status(500).json({errcode:ErrorCode.SERVER_FAULT, message:"delete lecture failed"});
@@ -263,7 +263,7 @@ router.delete('/:id', async function(req, res, next) { // delete
     let tableList = await TimetableService.getAbstractListByUserId(user._id);
     res.json(tableList);
   } catch (err) {
-    if (err instanceof TimetableNotFoundError) 
+    if (err instanceof TimetableNotFoundError)
       return res.status(404).json({errcode:ErrorCode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
     logger.error(err);
     return res.status(500).json({errcode:ErrorCode.SERVER_FAULT, message:"delete timetable failed"});
@@ -293,7 +293,7 @@ router.put('/:id', async function(req, res, next) {
   let context: RequestContext = req['context'];
   let user:User = context.user;
   if (!req.body.title) return res.status(400).json({errcode: ErrorCode.NO_TIMETABLE_TITLE, message:"should provide title"});
-  
+
   try {
     await TimetableService.modifyTitle(req.params.id, user._id, req.body.title);
     let tableList = await TimetableService.getAbstractListByUserId(user._id);
@@ -305,6 +305,23 @@ router.put('/:id', async function(req, res, next) {
       return res.status(404).json({errcode: ErrorCode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
     logger.error(err);
     return res.status(500).json({errcode: ErrorCode.SERVER_FAULT, message:"update timetable title failed"});
+  }
+});
+
+router.put('/:id/theme', async function(req, res, next) {
+  let context: RequestContext = req['context'];
+  let user:User = context.user;
+  if (!req.body.theme) return res.status(400).json({errcode: ErrorCode.NO_TIMETABLE_TITLE, message:"should provide title"});
+
+  try {
+    await TimetableService.modifyTheme(req.params.id, user._id, req.body.theme);
+    let updatedTable = await TimetableService.getByMongooseId(user._id, req.params.id);
+    res.json(updatedTable);
+  } catch (err) {
+    if (err instanceof TimetableNotFoundError)
+      return res.status(404).json({errcode: ErrorCode.TIMETABLE_NOT_FOUND, message:"timetable not found"});
+    logger.error(err);
+    return res.status(500).json({errcode: ErrorCode.SERVER_FAULT, message:"update timetable theme failed"});
   }
 });
 
