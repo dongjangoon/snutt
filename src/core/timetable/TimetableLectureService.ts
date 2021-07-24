@@ -21,7 +21,6 @@ import Timetable from './model/Timetable';
 import TimePlace from './model/TimePlace';
 import InvalidLectureTimeJsonError from '../lecture/error/InvalidLectureTimeJsonError';
 import winston = require('winston');
-import {getColorList} from "@app/core/timetable/LectureColorService";
 let logger = winston.loggers.get('default');
 
 export async function addRefLecture(timetable: Timetable, lectureId: string): Promise<void> {
