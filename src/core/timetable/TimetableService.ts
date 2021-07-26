@@ -5,6 +5,7 @@ import TimetableRepository = require('./TimetableRepository');
 
 import AbstractTimetable from './model/AbstractTimetable';
 import TimetableNotEnoughParamError from './error/TimetableNotEnoughParamError';
+import ThemeTypeEnum from "@app/core/timetable/model/ThemeTypeEnum";
 
 export async function copy(timetable: Timetable): Promise<void> {
     for (let trial = 1; true; trial++) {
@@ -85,6 +86,7 @@ export async function addCopyFromSourceId(user, sourceId): Promise<Timetable> {
     semester : source.semester,
     title : source.title + " copy",
     lecture_list : source.lecture_list,
+    theme : source.theme,
     updated_at: Date.now()
   };
 
@@ -97,6 +99,7 @@ export async function addFromParam(params): Promise<Timetable> {
     year : params.year,
     semester : params.semester,
     title : params.title,
+    theme : ThemeTypeEnum.SNUTT,
     lecture_list : [],
     updated_at: Date.now()
   };

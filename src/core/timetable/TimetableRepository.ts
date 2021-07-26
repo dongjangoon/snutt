@@ -75,10 +75,14 @@ export async function findBySemester(year: number, semester: number): Promise<Ti
   return docs.map(fromMongoose);
 }
 
-export function findAbstractListByUserId(userId: string): Promise<AbstractTimetable[]> {
-  return mongooseModel.aggregate([{$match: {user_id: userId}}, {
-    $unwind: "$lecture_list",
-    preserveNullAndEmptyArrays: true
+export async function findAbstractListByUserId(userId: string): Promise<AbstractTimetable[]> {
+  const docs = await mongooseModel.aggregate([{
+    $match: {user_id: userId}
+  }, {
+    $unwind: {
+      path: "$lecture_list",
+      preserveNullAndEmptyArrays: true
+    }
   }, {
     $group: {
       _id: "$_id",
@@ -86,9 +90,20 @@ export function findAbstractListByUserId(userId: string): Promise<AbstractTimeta
       semester: {$first: "$semester"},
       title: {$first: "$title"},
       updated_at: {$first: "$updated_at"},
-      total_credit: {$sum: "$lecture_list.credit"}
+      total_credit: {
+        $sum: {
+          $cond: [{
+            $and: [{$not: "$lecture_list"},
+              {$not: "$lecture_list.credit"}
+            ]
+          }, "$lecture_list.credit", 0]
+        }
+      }
     }
-  }]).exec()
+  },
+    {$sort: {_id:1}}
+  ]).exec()
+  return docs
 }
 
 export async function findHavingLecture(year: number, semester: number, courseNumber: string, lectureNumber: string): Promise<Timetable[]> {
