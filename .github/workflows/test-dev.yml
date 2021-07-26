@@ -33,7 +33,7 @@ jobs:
           mv ./snutt.yml.example ./snutt.yml
 
       - name: install packages
-        run: yarn
+        run: npm install
 
       - name: test
         run: yarn test
