@@ -6,6 +6,7 @@ import TimetableRepository = require('./TimetableRepository');
 import AbstractTimetable from './model/AbstractTimetable';
 import TimetableNotEnoughParamError from './error/TimetableNotEnoughParamError';
 
+//deprecated
 export async function copy(timetable: Timetable): Promise<void> {
     for (let trial = 1; true; trial++) {
         let newTitle = timetable.title + " (" + trial + ")";
@@ -20,6 +21,7 @@ export async function copy(timetable: Timetable): Promise<void> {
     }
 }
 
+//deprecated
 export async function copyWithTitle(src: Timetable, newTitle: string): Promise<void> {
     if (newTitle === src.title) {
         throw new DuplicateTimetableTitleError(src.user_id, src.year, src.semester, newTitle);
@@ -78,17 +80,27 @@ export async function modifyTheme(tableId, userId, newTheme): Promise<void> {
 
 export async function addCopyFromSourceId(user, sourceId): Promise<Timetable> {
   const source:Timetable = await TimetableRepository.findByUserIdAndMongooseId(user._id, sourceId)
-
-  let newTimetable: Timetable = {
-    user_id : user.user_id,
-    year : source.year,
-    semester : source.semester,
-    title : source.title + " copy",
-    lecture_list : source.lecture_list,
-    updated_at: Date.now()
-  };
-
-  return await TimetableRepository.insert(newTimetable);
+  let newTitle: string = `${source.title} copy`
+  for(let trial = 1; true; trial++) {
+    try {
+      const newTimetable: Timetable = {
+        user_id: user.user_id,
+        year: source.year,
+        semester: source.semester,
+        title: newTitle,
+        lecture_list: source.lecture_list,
+        updated_at: Date.now()
+      };
+      await validateTimetable(newTimetable)
+      return await TimetableRepository.insert(newTimetable);
+    } catch (err) {
+      if (err instanceof DuplicateTimetableTitleError) {
+        newTitle = source.title + ` copy(${trial})`
+        continue;
+      }
+      throw err;
+    }
+  }
 }
 
 export async function addFromParam(params): Promise<Timetable> {
