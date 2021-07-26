@@ -25,13 +25,15 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: install node 8
         run: |
-          sudo update-ca-certificates
+          sudo apt-get install ca-certificates -y
           sudo apt install curl
           curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
           sudo apt-get install -y nodejs
 
       - name: setup redis, mongodb
-        run: docker compose up
+        run: |
+          docker compose up
+          mv ./snutt.yml.example ./snutt.yml
 
       - name: install packages
         run: yarn
