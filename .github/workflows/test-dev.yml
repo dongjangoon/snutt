@@ -20,13 +20,10 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
 
-      # Runs a set of commands using the runners shell
-      - name: install node 8
-        run: |
-          sudo apt install curl
-          sudo apt remove -y nodejs
-          curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
-          sudo apt-get install -y nodejs
+      - name: Setup node 8
+        uses: actions/setup-node@v1
+        with:
+          node-version: 8.x
 
       - name: check node version
         run: node -v
