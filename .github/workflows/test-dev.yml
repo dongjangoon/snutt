@@ -5,8 +5,6 @@ name: CI
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the develop branch
-  push:
-    branches: [ feature/SNUTT-150 ]
   pull_request:
     branches: [ develop ]
 
@@ -31,7 +29,7 @@ jobs:
 
       - name: setup redis, mongodb
         run: |
-          docker compose up
+          docker-compose up
           mv ./snutt.yml.example ./snutt.yml
 
       - name: install packages
