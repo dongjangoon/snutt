@@ -89,6 +89,7 @@ export async function addCopyFromSourceId(user, sourceId): Promise<Timetable> {
         year: source.year,
         semester: source.semester,
         title: newTitle,
+        theme : source.theme,
         lecture_list: source.lecture_list,
         updated_at: Date.now()
       };
