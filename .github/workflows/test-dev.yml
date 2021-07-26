@@ -25,6 +25,7 @@ jobs:
       # Runs a set of commands using the runners shell
       - name: install node 8
         run: |
+          sudo update-ca-certificates
           sudo apt install curl
           curl -sL https://deb.nodesource.com/setup_8.x | sudo -E bash -
           sudo apt-get install -y nodejs
