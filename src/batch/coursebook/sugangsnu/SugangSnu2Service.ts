@@ -81,8 +81,8 @@ async function isCoursebookOpened(year: number, semester: number): Promise<boole
             }
 
             return Promise.resolve(
-                (year < latestYear) ||
-                (year == latestYear && semester <= latestSemester)
+              (year < latestYear) ||
+              (year == latestYear && semester <= latestSemester)
             );
         });
     }, {
@@ -152,6 +152,7 @@ function getCoursebookExcelFileForCategory(year: number, semester: number, lectu
 const SUGANG_SNU_BASEPATH = "https://sugang.snu.ac.kr/sugang/cc/cc100InterfaceExcel.action?";
 function makeCoursebookExcelFileUrl(year: number, semester: number, lectureCategory: number): string {
     let params = {
+        // pageNo: 1,
         seeMore: "더보기",
         srchBdNo: "",
         srchCamp: "",
