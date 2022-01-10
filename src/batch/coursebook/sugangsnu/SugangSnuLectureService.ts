@@ -165,15 +165,17 @@ function getSugangSnuLectureFromSheetRow(sheetWrap: ExcelSheetWrapper, rowIndex:
         location: sheetWrap.getCell(rowIndex, 14),
         // 주담당교수
         instructor: sheetWrap.getCell(rowIndex, 15),
+        // 장바구니 신청
+        pre_booking: sheetWrap.getCell(rowIndex, 16),
         // 정원
-        quota: sheetWrap.getCell(rowIndex, 16),
+        quota: sheetWrap.getCell(rowIndex, 17),
         // 수강신청인원
-        enrollment: sheetWrap.getCell(rowIndex, 17),
+        enrollment: sheetWrap.getCell(rowIndex, 18),
         // 비고
-        remark: sheetWrap.getCell(rowIndex, 18),
+        remark: sheetWrap.getCell(rowIndex, 19),
         // 강의 언어
-        lecture_language: sheetWrap.getCell(rowIndex, 19),
+        lecture_language: sheetWrap.getCell(rowIndex, 20),
         // 개설 상태
-        lecture_status: sheetWrap.getCell(rowIndex, 20),
+        lecture_status: sheetWrap.getCell(rowIndex, 21),
     };
 }
