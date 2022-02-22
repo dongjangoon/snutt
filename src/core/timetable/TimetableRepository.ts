@@ -124,7 +124,7 @@ export async function findAbstractListByUserId(userId: string): Promise<Abstract
         }
       }
     },
-      {$sort: {_id:1}}
+      {$sort: {title:1}}
   ]).exec()
   return docs
 }
